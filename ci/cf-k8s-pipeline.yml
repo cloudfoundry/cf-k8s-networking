@@ -2,7 +2,6 @@
 
 resources:
 
-# schedules
 - name: weekly-sunday
   type: time
   source:
@@ -54,7 +53,9 @@ jobs:
         - get: weekly-sunday
           trigger: true
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/setup-environment/seed.yml
+      file: cf-k8s-networking/ci/tasks/seed-env/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-1"
         DOMAIN: &eirini-dev-1-domain "eirini-dev-1.routing.cf-app.com"

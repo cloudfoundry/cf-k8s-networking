@@ -5,10 +5,7 @@ set -e -u -o pipefail
 : "${BBL_STATE_DIR:?}"
 : "${DOMAIN:?}"
 
-workspace_dir="$( pwd )" # TODO
-bbl_state="${workspace_dir}/bbl-state"
-lb_output_path="${bbl_state}/$BBL_STATE_DIR/lbcerts"
-updated_bbl_state="${workspace_dir}/updated-bbl-state"
+lb_output_path="certs/load-balancer"
 
 function write_load_balancer_certs() {
   if [ ! -d "${lb_output_path}" ]; then
@@ -32,15 +29,15 @@ function commit_bbl_state() {
     git config user.name "CI Bot"
     git config user.email "cf-routing-eng@pivotal.io"
 
-    git add "${updated_bbl_state}/${BBL_STATE_DIR}"
-    git commit -m "Initial commit for '${BBL_STATE_DIR}'"
+    git add .
+    git commit -m "Create LB certs for '${BBL_STATE_DIR}'"
   fi
 }
 
-git clone "${bbl_state}" "${updated_bbl_state}"
+git clone "bbl-state" "updated-bbl-state"
 
-mkdir -p "${updated_bbl_state}/${BBL_STATE_DIR}"
-pushd "${updated_bbl_state}/${BBL_STATE_DIR}"
+mkdir -p "updated-bbl-state/${BBL_STATE_DIR}"
+pushd "updated-bbl-state/${BBL_STATE_DIR}"
 	write_load_balancer_certs
 
 	commit_bbl_state
