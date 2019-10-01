@@ -1,0 +1,15 @@
+#!/bin/bash
+
+set -e -u
+export PIPELINE=cf-k8s-pipeline
+export TARGET=cf-k8s
+
+echo "setting pipeline \"${PIPELINE}\""
+
+fly -t $TARGET sync
+fly -t $TARGET status || fly -t $TARGET login -b
+
+ciDir="$(cd $(dirname $0); pwd)"
+fly -t $TARGET \
+  set-pipeline -p $PIPELINE \
+  -c "$ciDir/$PIPELINE.yml"
