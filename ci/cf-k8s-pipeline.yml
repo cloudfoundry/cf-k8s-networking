@@ -2,14 +2,6 @@
 
 resources:
 
-- name: weekly-sunday
-  type: time
-  source:
-    location: America/Los_Angeles
-    start: 23:00
-    stop: 23:30
-    days: [Sunday]
-
 - name: cf-k8s-networking
   type: git
   source:
@@ -67,8 +59,6 @@ jobs:
         - get: cf-k8s-networking
         - get: networking-oss-deployments
         - get: bosh-deployment
-        - get: weekly-sunday
-          trigger: true
     - task: seed-bbl-env
       file: cf-k8s-networking/ci/tasks/seed-env/task.yml
       input_mapping:
@@ -124,20 +114,20 @@ jobs:
         bbl-state: networking-oss-deployments
         release-tarball: eirini-bosh-release
       params:
-        BBL_STATE_DIR: "eirini-dev-1"
+        BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: upload-bits-service-release-tarball
       file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: bits-service-release
       params:
-        BBL_STATE_DIR: "eirini-dev-1"
+        BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: eirini-dev-1-stemcell-upload
       file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
-        BBL_STATE_DIR: "eirini-dev-1"
+        BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: collect-ops-files
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
@@ -155,7 +145,7 @@ jobs:
         ops-files: collected-ops-files
         vars-files: networking-oss-deployments
       params:
-        BBL_STATE_DIR: "eirini-dev-1"
+        BBL_STATE_DIR: "environments/eirini-dev-1"
         SYSTEM_DOMAIN: *eirini-dev-1-domain
         OPS_FILES: &eirini-dev-1-ops-files |
           capi-skip-cert-verify.yml
@@ -170,4 +160,4 @@ jobs:
         bbl-state: networking-oss-deployments
       params:
         ERRAND_NAME: configure-eirini-bosh
-        BBL_STATE_DIR: eirini-dev-1
+        BBL_STATE_DIR: "environments/eirini-dev-1"
