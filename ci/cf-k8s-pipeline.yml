@@ -39,6 +39,23 @@ resources:
     uri: git@github.com:cloudfoundry/cf-deployment-concourse-tasks.git
     tag_filter: v*
 
+- name: cf-deployment
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/cf-deployment.git
+    private_key: ((github_private_key.private_key))
+    branch: release-candidate
+
+- name: eirini-bosh-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-community/eirini-bosh-release
+
+- name: bits-service-release
+  type: bosh-io-release
+  source:
+    repository: cloudfoundry-incubator/bits-service-release
+
 jobs:
 - name: eirini-dev-1-bbl-up
   serial: true
@@ -87,3 +104,70 @@ jobs:
         params:
           repository: updated-bbl-state
           rebase: true
+
+- name: eirini-dev-1-deploy-cf
+  serial: true
+  serial_groups: [eirini-dev-1]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+          resource: cf-deployment-concourse-tasks
+        - get: cf-deployment
+          resource: cf-deployment
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+        - get: eirini-bosh-release
+        - get: bits-service-release
+    - task: upload-eirini-release-tarball
+      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        release-tarball: eirini-bosh-release
+      params:
+        BBL_STATE_DIR: "eirini-dev-1"
+    - task: upload-bits-service-release-tarball
+      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        release-tarball: bits-service-release
+      params:
+        BBL_STATE_DIR: "eirini-dev-1"
+    - task: eirini-dev-1-stemcell-upload
+      file: cf-deployment-concourse-tasks/bosh-upload-stemcell-from-cf-deployment/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "eirini-dev-1"
+    - task: collect-ops-files
+      file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
+      input_mapping:
+        base-ops-files: cf-deployment
+        new-ops-files: cf-k8s-networking
+      params:
+        NEW_OPS_FILES: &eirini-dev-1-ops-to-collect |
+          ci/cf-deployment-operations/capi-skip-cert-verify.yml
+          ci/cf-deployment-operations/eirini/add-eirini.yml
+          ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
+    - task: deploy
+      file: cf-deployment-concourse-tasks/bosh-deploy/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        ops-files: collected-ops-files
+        vars-files: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "eirini-dev-1"
+        SYSTEM_DOMAIN: *eirini-dev-1-domain
+        OPS_FILES: &eirini-dev-1-ops-files |
+          capi-skip-cert-verify.yml
+          base-ops-files/operations/use-compiled-releases.yml
+          base-ops-files/operations/bits-service/use-bits-service.yml
+          add-eirini.yml
+          hardcode-doppler-ip.yml
+          base-ops-files/operations/scale-to-one-az.yml
+    - task: configure-eirini-bosh
+      file: cf-deployment-concourse-tasks/run-errand/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        ERRAND_NAME: configure-eirini-bosh
+        BBL_STATE_DIR: eirini-dev-1

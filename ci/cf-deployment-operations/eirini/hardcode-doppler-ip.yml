@@ -1,0 +1,9 @@
+- type: replace
+  path: /instance_groups/name=eirini/jobs/name=configure-eirini-bosh/properties/eirini/doppler_address
+  value: 10.0.255.1:8082
+- type: replace
+  path: /instance_groups/name=eirini/jobs/name=configure-eirini-bosh/properties/eirini/doppler_address_with_az
+  value: 10.0.255.1:8082
+- type: replace
+  path: /instance_groups/name=doppler/networks/name=default/static_ips?
+  value: [10.0.255.1]

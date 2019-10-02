@@ -27,7 +27,7 @@ function write_load_balancer_certs() {
 function commit_bbl_state() {
   if [[ -n $(git status --porcelain) ]]; then
     git config user.name "CI Bot"
-    git config user.email "cf-routing-eng@pivotal.io"
+    git config user.email "cf-networking@pivotal.io"
 
     git add .
     git commit -m "Create LB certs for '${BBL_STATE_DIR}'"
