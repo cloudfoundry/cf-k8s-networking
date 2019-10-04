@@ -22,3 +22,7 @@ type DestinationApp struct {
 	Guid    string
 	Process string
 }
+
+func (r *RouteSnapshot) Get() *RouteSnapshot {
+	return &RouteSnapshot{}
+}

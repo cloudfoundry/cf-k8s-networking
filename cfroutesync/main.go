@@ -9,14 +9,18 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
-	"time"
+
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
+	"code.cloudfoundry.org/cf-networking-helpers/marshal"
+
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/jsonclient"
 
-	"code.cloudfoundry.org/tlsconfig"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/uaaclient"
+	"code.cloudfoundry.org/tlsconfig"
 )
 
 func main() {
@@ -34,41 +38,18 @@ func mainWithError() error {
 		return fmt.Errorf("missing required flag for uaa config dir")
 	}
 
-	uaaClient, ccClient, err := buildClients(&Config{configDir})
-	if err != nil {
-		return fmt.Errorf("loading UAA config: %w", err)
+	repo := &models.RouteSnapshot{}
+	syncer := &synchandler.RouteSyncer{
+		RouteSnapshotRepo: repo,
+	}
+	handler := &synchandler.SyncHandler{
+		Marshaler:   marshal.MarshalFunc(json.Marshal),
+		Unmarshaler: marshal.UnmarshalFunc(json.Unmarshal),
+		Syncer:      syncer,
 	}
 
-	for {
-		token, err := uaaClient.GetToken()
-		if err != nil {
-			return fmt.Errorf("fetching token from UAA: %w", err)
-		}
-
-		routes, err := ccClient.ListRoutes(token)
-		if err != nil {
-			return fmt.Errorf("listing routes with Cloud Controller: %w", err)
-		}
-		routeJson, err := json.MarshalIndent(routes, "", "  ")
-		if err != nil {
-			return fmt.Errorf("marshaling route json: %w", err)
-		}
-		fmt.Printf("%s\n", string(routeJson))
-
-		for _, r := range routes {
-			destinations, err := ccClient.ListDestinationsForRoute(r.Guid, token)
-			if err != nil {
-				return fmt.Errorf("listing destinations with Cloud Controller: %w", err)
-			}
-			destinationJson, err := json.MarshalIndent(destinations, "", "  ")
-			if err != nil {
-				return fmt.Errorf("marshaling destination json: %w", err)
-			}
-			fmt.Printf("%s\n", string(destinationJson))
-		}
-
-		time.Sleep(10 * time.Second)
-	}
+	http.HandleFunc("/sync", handler.ServeHTTP)
+	http.ListenAndServe(":8080", nil)
 	return nil
 }
 

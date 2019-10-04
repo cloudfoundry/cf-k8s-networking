@@ -1,0 +1,23 @@
+# 1:1 with CCv3 Route
+
+apiVersion: apps.cloudfoundry.org/v1alpha1
+kind: Route
+metadata:
+  name: cc-route-guid
+  namespace: cf-workloads
+spec:
+  host: hostname.apps.example.com
+  path: /some/path
+  destinations:
+    - guid: cc-destination-guid-for-app1
+      app:
+        guid: app1-guid
+        process: web
+      port: 8080
+      weight: 80
+    - guid: cc-destination-guid-for-app2
+      app:
+        guid: app2-guid
+        process: web
+      port: 9000
+      weight: 20
