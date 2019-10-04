@@ -1,0 +1,30 @@
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cfroutesync
+  namespace: pas-system
+spec:
+  selector:
+    matchLabels:
+      app: cfroutesync
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: cfroutesync
+    spec:
+      containers:
+        - name: cfroutesync
+          image: gcr.io/cf-routing-desserts/cfroutesync:latest
+          args: [ "-c", "/etc/cfroutesync-uaa"]
+          volumeMounts:
+            - name: cfroutesync-uaa
+              mountPath: /etc/cfroutesync-uaa
+              readOnly: true
+      imagePullSecrets:
+        - name: gcr-image-registry
+      volumes:
+        - name: cfroutesync-uaa
+          secret:
+            secretName: cfroutesync-uaa
