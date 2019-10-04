@@ -1,6 +1,8 @@
 package synchandler
 
 import (
+	"errors"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -56,22 +58,28 @@ type RouteCRDDestinationApp struct {
 	Process string `json:"process"`
 }
 
-//go:generate counterfeiter -o fakes/route_snapshot.go --fake-name RouteSnapshot . routeSnapshot
-type routeSnapshot interface {
-	Get() *models.RouteSnapshot
+//go:generate counterfeiter -o fakes/snapshot_repo.go --fake-name SnapshotRepo . snapshotRepo
+type snapshotRepo interface {
+	Get() (*models.RouteSnapshot, bool)
 }
+
+var UninitializedError = errors.New("uninitialized: have not yet synchronized with cloud controller")
 
 type RouteSyncer struct {
-	RouteSnapshotRepo routeSnapshot
+	RouteSnapshotRepo snapshotRepo
 }
 
-func (m *RouteSyncer) Sync(syncRequest SyncRequest) *SyncResponse {
-	crds := snapshotToCRDList(m.RouteSnapshotRepo.Get(), &syncRequest.Parent.Spec.Template)
+func (m *RouteSyncer) Sync(syncRequest SyncRequest) (*SyncResponse, error) {
+	snapshot, ok := m.RouteSnapshotRepo.Get()
+	if !ok {
+		return nil, UninitializedError
+	}
+	crds := snapshotToCRDList(snapshot, &syncRequest.Parent.Spec.Template)
 	response := &SyncResponse{
 		Children: crds,
 	}
 
-	return response
+	return response, nil
 }
 
 func snapshotToCRDList(snapshot *models.RouteSnapshot, template *ParentTemplate) []*RouteCRD {

@@ -1,27 +1,27 @@
 package synchandler_test
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 var _ = Describe("Sync", func() {
 	var (
-		fakeRouteSnapshot *fakes.RouteSnapshot
-		syncHandler       *synchandler.RouteSyncer
+		fakeSnapshotRepo *fakes.SnapshotRepo
+		syncHandler      *synchandler.RouteSyncer
 	)
 
 	BeforeEach(func() {
-		fakeRouteSnapshot = &fakes.RouteSnapshot{}
+		fakeSnapshotRepo = &fakes.SnapshotRepo{}
 		syncHandler = &synchandler.RouteSyncer{
-			RouteSnapshotRepo: fakeRouteSnapshot,
+			RouteSnapshotRepo: fakeSnapshotRepo,
 		}
 
-		fakeRouteSnapshot.GetReturns(&models.RouteSnapshot{
+		fakeSnapshotRepo.GetReturns(&models.RouteSnapshot{
 			Routes: []*models.Route{
 				&models.Route{
 					Guid: "route-guid-1",
@@ -56,7 +56,7 @@ var _ = Describe("Sync", func() {
 					},
 				},
 			},
-		})
+		}, true)
 	})
 
 	It("returns children for a given parent", func() {
@@ -77,7 +77,9 @@ var _ = Describe("Sync", func() {
 			},
 		}
 
-		syncResponse := syncHandler.Sync(syncRequest)
+		syncResponse, err := syncHandler.Sync(syncRequest)
+		Expect(err).ToNot(HaveOccurred())
+
 		Expect(syncResponse).NotTo(BeNil())
 		expectedChildren := []*synchandler.RouteCRD{
 			&synchandler.RouteCRD{
@@ -136,9 +138,9 @@ var _ = Describe("Sync", func() {
 		Expect(syncResponse.Children).To(Equal(expectedChildren))
 	})
 
-	Context("when there are no routes", func() {
+	Context("when there's a valid snapshot but it does not contain any routes", func() {
 		BeforeEach(func() {
-			fakeRouteSnapshot.GetReturns(&models.RouteSnapshot{})
+			fakeSnapshotRepo.GetReturns(&models.RouteSnapshot{}, true)
 		})
 		It("returns an empty list of children in the response", func() {
 			syncRequest := synchandler.SyncRequest{
@@ -158,9 +160,37 @@ var _ = Describe("Sync", func() {
 				},
 			}
 
-			syncResponse := syncHandler.Sync(syncRequest)
+			syncResponse, err := syncHandler.Sync(syncRequest)
+			Expect(err).ToNot(HaveOccurred())
 			Expect(syncResponse).NotTo(BeNil())
 			Expect(syncResponse.Children).To(Equal([]*synchandler.RouteCRD{}))
 		})
 	})
+
+	Context("when the repo says no snapshot is available", func() {
+		BeforeEach(func() {
+			fakeSnapshotRepo.GetReturns(nil, false)
+		})
+		It("returns a meaningful error", func() {
+			syncRequest := synchandler.SyncRequest{
+				Parent: synchandler.BulkSync{
+					TypeMeta:   metav1.TypeMeta{},
+					ObjectMeta: metav1.ObjectMeta{},
+					Spec: synchandler.BulkSyncSpec{
+						Template: synchandler.ParentTemplate{
+							ObjectMeta: metav1.ObjectMeta{
+								Labels: map[string]string{
+									"cloudfoundry.org/bulk-sync-route": "true",
+									"label-for-routes":                 "cool-label",
+								},
+							},
+						},
+					},
+				},
+			}
+			_, err := syncHandler.Sync(syncRequest)
+			Expect(err).To(Equal(synchandler.UninitializedError))
+		})
+	})
+
 })

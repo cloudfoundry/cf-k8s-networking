@@ -38,7 +38,7 @@ func mainWithError() error {
 		return fmt.Errorf("missing required flag for uaa config dir")
 	}
 
-	repo := &models.RouteSnapshot{}
+	repo := &models.SnapshotRepo{}
 	syncer := &synchandler.RouteSyncer{
 		RouteSnapshotRepo: repo,
 	}

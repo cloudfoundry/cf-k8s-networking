@@ -8,22 +8,24 @@ import (
 )
 
 type Syncer struct {
-	SyncStub        func(synchandler.SyncRequest) *synchandler.SyncResponse
+	SyncStub        func(synchandler.SyncRequest) (*synchandler.SyncResponse, error)
 	syncMutex       sync.RWMutex
 	syncArgsForCall []struct {
 		arg1 synchandler.SyncRequest
 	}
 	syncReturns struct {
 		result1 *synchandler.SyncResponse
+		result2 error
 	}
 	syncReturnsOnCall map[int]struct {
 		result1 *synchandler.SyncResponse
+		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Syncer) Sync(arg1 synchandler.SyncRequest) *synchandler.SyncResponse {
+func (fake *Syncer) Sync(arg1 synchandler.SyncRequest) (*synchandler.SyncResponse, error) {
 	fake.syncMutex.Lock()
 	ret, specificReturn := fake.syncReturnsOnCall[len(fake.syncArgsForCall)]
 	fake.syncArgsForCall = append(fake.syncArgsForCall, struct {
@@ -35,10 +37,10 @@ func (fake *Syncer) Sync(arg1 synchandler.SyncRequest) *synchandler.SyncResponse
 		return fake.SyncStub(arg1)
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
 	fakeReturns := fake.syncReturns
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
 func (fake *Syncer) SyncCallCount() int {
@@ -47,7 +49,7 @@ func (fake *Syncer) SyncCallCount() int {
 	return len(fake.syncArgsForCall)
 }
 
-func (fake *Syncer) SyncCalls(stub func(synchandler.SyncRequest) *synchandler.SyncResponse) {
+func (fake *Syncer) SyncCalls(stub func(synchandler.SyncRequest) (*synchandler.SyncResponse, error)) {
 	fake.syncMutex.Lock()
 	defer fake.syncMutex.Unlock()
 	fake.SyncStub = stub
@@ -60,27 +62,30 @@ func (fake *Syncer) SyncArgsForCall(i int) synchandler.SyncRequest {
 	return argsForCall.arg1
 }
 
-func (fake *Syncer) SyncReturns(result1 *synchandler.SyncResponse) {
+func (fake *Syncer) SyncReturns(result1 *synchandler.SyncResponse, result2 error) {
 	fake.syncMutex.Lock()
 	defer fake.syncMutex.Unlock()
 	fake.SyncStub = nil
 	fake.syncReturns = struct {
 		result1 *synchandler.SyncResponse
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
-func (fake *Syncer) SyncReturnsOnCall(i int, result1 *synchandler.SyncResponse) {
+func (fake *Syncer) SyncReturnsOnCall(i int, result1 *synchandler.SyncResponse, result2 error) {
 	fake.syncMutex.Lock()
 	defer fake.syncMutex.Unlock()
 	fake.SyncStub = nil
 	if fake.syncReturnsOnCall == nil {
 		fake.syncReturnsOnCall = make(map[int]struct {
 			result1 *synchandler.SyncResponse
+			result2 error
 		})
 	}
 	fake.syncReturnsOnCall[i] = struct {
 		result1 *synchandler.SyncResponse
-	}{result1}
+		result2 error
+	}{result1, result2}
 }
 
 func (fake *Syncer) Invocations() map[string][][]interface{} {

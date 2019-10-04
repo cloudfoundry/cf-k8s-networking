@@ -1,5 +1,9 @@
 package models
 
+type SnapshotRepo struct {
+	snapshot *RouteSnapshot
+}
+
 type RouteSnapshot struct {
 	Routes []*Route
 }
@@ -23,6 +27,12 @@ type DestinationApp struct {
 	Process string
 }
 
-func (r *RouteSnapshot) Get() *RouteSnapshot {
-	return &RouteSnapshot{}
+func (r *SnapshotRepo) Get() (*RouteSnapshot, bool) {
+	return r.snapshot, true
 }
+
+func (r *SnapshotRepo) Put(snapshot *RouteSnapshot) {
+	r.snapshot = snapshot
+}
+
+// TODO: Expect: it is safe to call Get and Replace at the same time

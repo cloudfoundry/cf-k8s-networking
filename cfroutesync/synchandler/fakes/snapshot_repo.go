@@ -7,22 +7,24 @@ import (
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 )
 
-type RouteSnapshot struct {
-	GetStub        func() *models.RouteSnapshot
+type SnapshotRepo struct {
+	GetStub        func() (*models.RouteSnapshot, bool)
 	getMutex       sync.RWMutex
 	getArgsForCall []struct {
 	}
 	getReturns struct {
 		result1 *models.RouteSnapshot
+		result2 bool
 	}
 	getReturnsOnCall map[int]struct {
 		result1 *models.RouteSnapshot
+		result2 bool
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *RouteSnapshot) Get() *models.RouteSnapshot {
+func (fake *SnapshotRepo) Get() (*models.RouteSnapshot, bool) {
 	fake.getMutex.Lock()
 	ret, specificReturn := fake.getReturnsOnCall[len(fake.getArgsForCall)]
 	fake.getArgsForCall = append(fake.getArgsForCall, struct {
@@ -33,48 +35,51 @@ func (fake *RouteSnapshot) Get() *models.RouteSnapshot {
 		return fake.GetStub()
 	}
 	if specificReturn {
-		return ret.result1
+		return ret.result1, ret.result2
 	}
 	fakeReturns := fake.getReturns
-	return fakeReturns.result1
+	return fakeReturns.result1, fakeReturns.result2
 }
 
-func (fake *RouteSnapshot) GetCallCount() int {
+func (fake *SnapshotRepo) GetCallCount() int {
 	fake.getMutex.RLock()
 	defer fake.getMutex.RUnlock()
 	return len(fake.getArgsForCall)
 }
 
-func (fake *RouteSnapshot) GetCalls(stub func() *models.RouteSnapshot) {
+func (fake *SnapshotRepo) GetCalls(stub func() (*models.RouteSnapshot, bool)) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = stub
 }
 
-func (fake *RouteSnapshot) GetReturns(result1 *models.RouteSnapshot) {
+func (fake *SnapshotRepo) GetReturns(result1 *models.RouteSnapshot, result2 bool) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = nil
 	fake.getReturns = struct {
 		result1 *models.RouteSnapshot
-	}{result1}
+		result2 bool
+	}{result1, result2}
 }
 
-func (fake *RouteSnapshot) GetReturnsOnCall(i int, result1 *models.RouteSnapshot) {
+func (fake *SnapshotRepo) GetReturnsOnCall(i int, result1 *models.RouteSnapshot, result2 bool) {
 	fake.getMutex.Lock()
 	defer fake.getMutex.Unlock()
 	fake.GetStub = nil
 	if fake.getReturnsOnCall == nil {
 		fake.getReturnsOnCall = make(map[int]struct {
 			result1 *models.RouteSnapshot
+			result2 bool
 		})
 	}
 	fake.getReturnsOnCall[i] = struct {
 		result1 *models.RouteSnapshot
-	}{result1}
+		result2 bool
+	}{result1, result2}
 }
 
-func (fake *RouteSnapshot) Invocations() map[string][][]interface{} {
+func (fake *SnapshotRepo) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
 	fake.getMutex.RLock()
@@ -86,7 +91,7 @@ func (fake *RouteSnapshot) Invocations() map[string][][]interface{} {
 	return copiedInvocations
 }
 
-func (fake *RouteSnapshot) recordInvocation(key string, args []interface{}) {
+func (fake *SnapshotRepo) recordInvocation(key string, args []interface{}) {
 	fake.invocationsMutex.Lock()
 	defer fake.invocationsMutex.Unlock()
 	if fake.invocations == nil {

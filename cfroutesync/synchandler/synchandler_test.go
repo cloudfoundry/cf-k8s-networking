@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler/fakes"
 	hfakes "code.cloudfoundry.org/cf-networking-helpers/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler/fakes"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -68,7 +68,7 @@ var _ = Describe("ServeHTTP", func() {
 				},
 			},
 		}
-		fakeSyncer.SyncReturns(fakeSyncResponse)
+		fakeSyncer.SyncReturns(fakeSyncResponse, nil)
 
 		resp = httptest.NewRecorder()
 	})
@@ -184,7 +184,7 @@ var _ = Describe("ServeHTTP", func() {
 				fakeSyncResponse := &synchandler.SyncResponse{
 					Children: []*synchandler.RouteCRD{},
 				}
-				fakeSyncer.SyncReturns(fakeSyncResponse)
+				fakeSyncer.SyncReturns(fakeSyncResponse, nil)
 			})
 
 			It("returns an empty list of children", func() {
@@ -222,6 +222,32 @@ var _ = Describe("ServeHTTP", func() {
 
 				Expect(resp.Code).To(Equal(http.StatusBadRequest))
 				Expect(resp.Body).To(MatchJSON(`{"error": "failed to unmarshal request"}`))
+			})
+		})
+
+		Context("when the syncer isn't yet initialized", func() {
+			BeforeEach(func() {
+				fakeSyncer.SyncReturns(nil, synchandler.UninitializedError)
+			})
+
+			It("returns the error in the response and sets a 500 code so that metacontroller won't attempt to modify state in the k8s api", func() {
+				handler.ServeHTTP(resp, request)
+
+				Expect(resp.Code).To(Equal(http.StatusInternalServerError))
+				Expect(resp.Body).To(ContainSubstring("uninitialized"))
+			})
+		})
+
+		Context("when the syncer returns any other error", func() {
+			BeforeEach(func() {
+				fakeSyncer.SyncReturns(nil, errors.New("unknown error!!!"))
+			})
+
+			It("returns an Internal Server Error", func() {
+				handler.ServeHTTP(resp, request)
+
+				Expect(resp.Code).To(Equal(http.StatusInternalServerError))
+				Expect(resp.Body).To(ContainSubstring("Internal Server Error"))
 			})
 		})
 	})
