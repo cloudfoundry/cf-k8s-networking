@@ -35,7 +35,7 @@ var _ = Describe("Sync", func() {
 								Process: "process-type-1",
 							},
 							Port:   9000,
-							Weight: 10,
+							Weight: models.IntPtr(10),
 						},
 					},
 				},
@@ -51,7 +51,7 @@ var _ = Describe("Sync", func() {
 								Process: "process-type-2",
 							},
 							Port:   8080,
-							Weight: 80,
+							Weight: models.IntPtr(80),
 						},
 					},
 				},
@@ -99,7 +99,7 @@ var _ = Describe("Sync", func() {
 						synchandler.RouteCRDDestination{
 							Guid:   "destination-guid-1",
 							Port:   9000,
-							Weight: 10,
+							Weight: models.IntPtr(10),
 							App: synchandler.RouteCRDDestinationApp{
 								Guid:    "app-guid-1",
 								Process: "process-type-1",
@@ -125,7 +125,7 @@ var _ = Describe("Sync", func() {
 						synchandler.RouteCRDDestination{
 							Guid:   "destination-guid-2",
 							Port:   8080,
-							Weight: 80,
+							Weight: models.IntPtr(80),
 							App: synchandler.RouteCRDDestinationApp{
 								Guid:    "app-guid-2",
 								Process: "process-type-2",

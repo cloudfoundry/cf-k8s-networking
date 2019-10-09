@@ -154,19 +154,17 @@ var _ = Describe("SnapshotBuilder", func() {
 			Url:  "route-0-url",
 		}
 
-		route0Destination0Weight := 10
 		fakeRoute0Destination0 := ccclient.Destination{
 			Guid:   "route-0-dest-0-guid",
-			Weight: &route0Destination0Weight,
+			Weight: models.IntPtr(10),
 			Port:   8000,
 		}
 		fakeRoute0Destination0.App.Guid = "route-0-dest-0-app-0-guid"
 		fakeRoute0Destination0.App.Process.Type = "route-0-dest-0-app-0-process-type"
 
-		route0Destination1Weight := 11
 		fakeRoute0Destination1 := ccclient.Destination{
 			Guid:   "route-0-dest-1-guid",
-			Weight: &route0Destination1Weight,
+			Weight: models.IntPtr(11),
 			Port:   8001,
 		}
 		fakeRoute0Destination1.App.Guid = "route-0-dest-1-app-1-guid"
@@ -179,10 +177,9 @@ var _ = Describe("SnapshotBuilder", func() {
 			Url:  "route-1-url",
 		}
 
-		route1Destination0Weight := 12
 		fakeRoute1Destination0 := ccclient.Destination{
 			Guid:   "route-1-dest-0-guid",
-			Weight: &route1Destination0Weight,
+			Weight: models.IntPtr(12),
 			Port:   9000,
 		}
 		fakeRoute1Destination0.App.Guid = "route-1-dest-0-app-0-guid"
@@ -213,7 +210,7 @@ var _ = Describe("SnapshotBuilder", func() {
 						Process: "route-0-dest-0-app-0-process-type",
 					},
 					Port:   8000,
-					Weight: 10,
+					Weight: models.IntPtr(10),
 				},
 				&models.Destination{
 					Guid: "route-0-dest-1-guid",
@@ -222,7 +219,7 @@ var _ = Describe("SnapshotBuilder", func() {
 						Process: "route-0-dest-1-app-1-process-type",
 					},
 					Port:   8001,
-					Weight: 11,
+					Weight: models.IntPtr(11),
 				},
 			},
 		}))
@@ -240,55 +237,10 @@ var _ = Describe("SnapshotBuilder", func() {
 						Process: "route-1-dest-0-app-0-process-type",
 					},
 					Port:   9000,
-					Weight: 12,
+					Weight: models.IntPtr(12),
 				},
 			},
 		}))
-	})
-
-	Context("when a destination has a nil weight", func() {
-		It("defaults the destination weight to 1", func() {
-			fakeRoute0 := ccclient.Route{
-				Guid: "route-0-guid",
-				Host: "route-0-host",
-				Path: "route-0-path",
-				Url:  "route-0-url",
-			}
-
-			fakeRoute0Destination0 := ccclient.Destination{
-				Guid:   "route-0-dest-0-guid",
-				Weight: nil,
-				Port:   8000,
-			}
-			fakeRoute0Destination0.App.Guid = "route-0-dest-0-app-0-guid"
-			fakeRoute0Destination0.App.Process.Type = "route-0-dest-0-app-0-process-type"
-
-			routes := []ccclient.Route{fakeRoute0}
-			routeDestMap := make(map[string][]ccclient.Destination)
-			routeDestMap[fakeRoute0.Guid] = []ccclient.Destination{
-				fakeRoute0Destination0,
-			}
-
-			snapshot := ccroutefetcher.SnapshotBuilder(routes, routeDestMap)
-
-			snapshotRoute0 := findRouteInSnapshot(fakeRoute0.Guid, snapshot)
-			Expect(*snapshotRoute0).To(Equal(models.Route{
-				Guid: "route-0-guid",
-				Host: "route-0-host",
-				Path: "route-0-path",
-				Destinations: []*models.Destination{
-					&models.Destination{
-						Guid: "route-0-dest-0-guid",
-						App: models.DestinationApp{
-							Guid:    "route-0-dest-0-app-0-guid",
-							Process: "route-0-dest-0-app-0-process-type",
-						},
-						Port:   8000,
-						Weight: 1,
-					},
-				},
-			}))
-		})
 	})
 })
 

@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler/fakes"
 	hfakes "code.cloudfoundry.org/cf-networking-helpers/fakes"
@@ -57,7 +59,7 @@ var _ = Describe("ServeHTTP", func() {
 							synchandler.RouteCRDDestination{
 								Guid:   "destination-guid-1",
 								Port:   9000,
-								Weight: 10,
+								Weight: models.IntPtr(10),
 								App: synchandler.RouteCRDDestinationApp{
 									Guid:    "app-guid-1",
 									Process: "process-type-1",

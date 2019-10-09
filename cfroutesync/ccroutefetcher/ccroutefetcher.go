@@ -75,7 +75,7 @@ func SnapshotBuilder(routes []ccclient.Route, routeDestinationMap map[string][]c
 					Process: ccDestination.App.Process.Type,
 				},
 				Port:   ccDestination.Port,
-				Weight: defaultRouteWeight(ccDestination.Weight),
+				Weight: ccDestination.Weight,
 			}
 			snapshotRouteDestinations = append(snapshotRouteDestinations, snapshotDestination)
 		}
@@ -90,14 +90,4 @@ func SnapshotBuilder(routes []ccclient.Route, routeDestinationMap map[string][]c
 	}
 
 	return &models.RouteSnapshot{Routes: snapshotRoutes}
-}
-
-func defaultRouteWeight(weight *int) int {
-	const defaultWeight = 1
-
-	if weight == nil {
-		return defaultWeight
-	} else {
-		return *weight
-	}
 }

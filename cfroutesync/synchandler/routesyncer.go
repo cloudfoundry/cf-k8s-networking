@@ -49,7 +49,7 @@ type RouteCRDSpec struct {
 type RouteCRDDestination struct {
 	Guid   string                 `json:"guid"`
 	Port   int                    `json:"port"`
-	Weight int                    `json:"weight"`
+	Weight *int                   `json:"weight"`
 	App    RouteCRDDestinationApp `json:"app"`
 }
 

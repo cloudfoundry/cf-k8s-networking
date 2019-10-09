@@ -21,7 +21,7 @@ type Route struct {
 type Destination struct {
 	Guid   string
 	App    DestinationApp
-	Weight int
+	Weight *int
 	Port   int
 }
 
@@ -43,4 +43,8 @@ func (r *SnapshotRepo) Put(snapshot *RouteSnapshot) {
 	r.mutex.Lock()
 	defer r.mutex.Unlock()
 	r.snapshot = snapshot
+}
+
+func IntPtr(x int) *int {
+	return &x
 }
