@@ -1,6 +1,8 @@
 package ccroutefetcher
 
 import (
+	"fmt"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 )
@@ -22,72 +24,56 @@ type snapshotRepo interface {
 }
 
 type Fetcher struct {
-	CCClient        ccClient
-	UAAClient       uaaClient
-	SnapshotRepo    snapshotRepo
-	SnapshotBuilder func([]ccclient.Route, map[string][]ccclient.Destination) *models.RouteSnapshot
+	CCClient     ccClient
+	UAAClient    uaaClient
+	SnapshotRepo snapshotRepo
 }
 
 func (f *Fetcher) FetchOnce() error {
 	token, err := f.UAAClient.GetToken()
 	if err != nil {
-		return err
+		return fmt.Errorf("uaa get token: %w", err)
 	}
 
 	routes, err := f.CCClient.ListRoutes(token)
 	if err != nil {
-		return err
+		return fmt.Errorf("cc list routes: %w", err)
 	}
 
-	routeGuidDestinationMap := make(map[string][]ccclient.Destination)
+	var snapshotRoutes []*models.Route
 	for _, route := range routes {
 		destList, err := f.CCClient.ListDestinationsForRoute(route.Guid, token)
 		if err != nil {
-			return err
+			return fmt.Errorf("cc list destinations for %s: %w", route.Guid, err)
 		}
 
-		routeGuidDestinationMap[route.Guid] = destList
+		snapshotRoutes = append(snapshotRoutes, buildSnapshot(route, destList))
 	}
 
-	snapshot := f.SnapshotBuilder(routes, routeGuidDestinationMap)
-
-	f.SnapshotRepo.Put(snapshot)
+	f.SnapshotRepo.Put(&models.RouteSnapshot{Routes: snapshotRoutes})
 
 	return nil
 }
 
-func SnapshotBuilder(routes []ccclient.Route, routeDestinationMap map[string][]ccclient.Destination) *models.RouteSnapshot {
-	routeMap := make(map[string]ccclient.Route)
-	for _, route := range routes {
-		routeMap[route.Guid] = route
+func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination) *models.Route {
+	var snapshotRouteDestinations []*models.Destination
+	for _, ccDestination := range destinations {
+		snapshotDestination := &models.Destination{
+			Guid: ccDestination.Guid,
+			App: models.DestinationApp{
+				Guid:    ccDestination.App.Guid,
+				Process: ccDestination.App.Process.Type,
+			},
+			Port:   ccDestination.Port,
+			Weight: ccDestination.Weight,
+		}
+		snapshotRouteDestinations = append(snapshotRouteDestinations, snapshotDestination)
 	}
 
-	var snapshotRoutes []*models.Route
-	for routeGuid, ccDestinationList := range routeDestinationMap {
-		ccRoute := routeMap[routeGuid]
-
-		var snapshotRouteDestinations []*models.Destination
-		for _, ccDestination := range ccDestinationList {
-			snapshotDestination := &models.Destination{
-				Guid: ccDestination.Guid,
-				App: models.DestinationApp{
-					Guid:    ccDestination.App.Guid,
-					Process: ccDestination.App.Process.Type,
-				},
-				Port:   ccDestination.Port,
-				Weight: ccDestination.Weight,
-			}
-			snapshotRouteDestinations = append(snapshotRouteDestinations, snapshotDestination)
-		}
-		snapshotRoute := &models.Route{
-			Guid:         ccRoute.Guid,
-			Host:         ccRoute.Host,
-			Path:         ccRoute.Path,
-			Destinations: snapshotRouteDestinations,
-		}
-
-		snapshotRoutes = append(snapshotRoutes, snapshotRoute)
+	return &models.Route{
+		Guid:         route.Guid,
+		Host:         route.Host,
+		Path:         route.Path,
+		Destinations: snapshotRouteDestinations,
 	}
-
-	return &models.RouteSnapshot{Routes: snapshotRoutes}
 }
