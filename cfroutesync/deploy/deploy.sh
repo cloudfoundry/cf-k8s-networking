@@ -15,13 +15,13 @@ kubectl apply -f "${cfroutesync_dir}/config/routebulksync.yaml"
 kubectl apply -f "${cfroutesync_dir}/config/route.yaml"
 
 echo 'Deploying to Kubernetes'
-pushd ~/workspace/lagunabeach/cfroutesync-uaa
-  kubectl -n pas-system delete secret cfroutesync-uaa || true
-  kubectl -n pas-system create secret generic cfroutesync-uaa --from-file=ca --from-file=clientName --from-file=clientSecret --from-file uaaBaseUrl
+pushd ~/workspace/eirini-dev-1-config
+  kubectl -n cf-system delete secret cfroutesync || true
+  kubectl -n cf-system create secret generic cfroutesync --from-file=ca --from-file=clientName --from-file=clientSecret --from-file=uaaBaseUrl --from-file=ccBaseUrl
 popd
 kubectl apply -f "${script_dir}/cfroutesync.yaml"
 
 echo restarting...
-kubectl delete pods -l app=cfroutesync -npas-system
+kubectl delete pods -ncf-system -l app=cfroutesync
 echo done
 

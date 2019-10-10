@@ -9,6 +9,9 @@ import (
 	"net/http"
 	"path/filepath"
 	"strings"
+	"time"
+
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccroutefetcher"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-networking-helpers/marshal"
@@ -38,18 +41,39 @@ func mainWithError() error {
 		return fmt.Errorf("missing required flag for uaa config dir")
 	}
 
+	uaaClient, ccClient, err := buildClients(&Config{configDir})
+	if err != nil {
+		return err
+	}
+
 	repo := &models.SnapshotRepo{}
 	syncer := &synchandler.RouteSyncer{
 		RouteSnapshotRepo: repo,
 	}
-	handler := &synchandler.SyncHandler{
+	syncHandler := &synchandler.SyncHandler{
 		Marshaler:   marshal.MarshalFunc(json.Marshal),
 		Unmarshaler: marshal.UnmarshalFunc(json.Unmarshal),
 		Syncer:      syncer,
 	}
 
-	http.HandleFunc("/sync", handler.ServeHTTP)
-	http.ListenAndServe(":8080", nil)
+	fetcher := &ccroutefetcher.Fetcher{
+		CCClient:     ccClient,
+		UAAClient:    uaaClient,
+		SnapshotRepo: repo,
+	}
+
+	mux := http.NewServeMux()
+	mux.Handle("/sync", syncHandler)
+	go http.ListenAndServe(":8080", mux)
+
+	for {
+		err := fetcher.FetchOnce()
+		if err != nil {
+			log.Printf("fetch error: %s", err)
+		}
+		time.Sleep(10 * time.Second)
+	}
+
 	return nil
 }
 

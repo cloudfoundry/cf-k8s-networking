@@ -35,17 +35,17 @@ spec:
       containers:
         - name: cfroutesync
           image: gcr.io/cf-routing-desserts/cfroutesync:latest
-          args: [ "-c", "/etc/cfroutesync-uaa"]
+          args: [ "-c", "/etc/cfroutesync-config"]
           volumeMounts:
-            - name: cfroutesync-uaa
-              mountPath: /etc/cfroutesync-uaa
+            - name: cfroutesync-config
+              mountPath: /etc/cfroutesync-config
               readOnly: true
       imagePullSecrets:
         - name: gcr-image-registry
       volumes:
-        - name: cfroutesync-uaa
+        - name: cfroutesync-config
           secret:
-            secretName: cfroutesync-uaa
+            secretName: cfroutesync
 ---
 apiVersion: v1
 kind: Service
