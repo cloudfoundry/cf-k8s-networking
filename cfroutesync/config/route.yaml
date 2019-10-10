@@ -26,6 +26,15 @@ spec:
               type: string
             path:
               type: string
+            domain:
+              type: object
+              properties:
+                guid:
+                  type: string
+                name:
+                  type: string
+                internal:
+                  type: boolean
             destinations:
               type: array
               items:

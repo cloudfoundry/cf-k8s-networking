@@ -43,7 +43,14 @@ type RouteCRD struct {
 type RouteCRDSpec struct {
 	Host         string                `json:"host"`
 	Path         string                `json:"path"`
+	Domain       RouteCRDDomain        `json:"domain"`
 	Destinations []RouteCRDDestination `json:"destinations"`
+}
+
+type RouteCRDDomain struct {
+	Guid     string `json:"guid"`
+	Name     string `json:"name"`
+	Internal bool   `json:"internal"`
 }
 
 type RouteCRDDestination struct {
@@ -102,6 +109,11 @@ func routeToCRD(route *models.Route, template *ParentTemplate) *RouteCRD {
 		Spec: RouteCRDSpec{
 			Host: route.Host,
 			Path: route.Path,
+			Domain: RouteCRDDomain{
+				Guid:     route.Domain.Guid,
+				Name:     route.Domain.Name,
+				Internal: route.Domain.Internal,
+			},
 		},
 	}
 

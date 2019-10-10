@@ -11,10 +11,17 @@ type RouteSnapshot struct {
 	Routes []*Route
 }
 
+type Domain struct {
+	Guid     string
+	Name     string
+	Internal bool
+}
+
 type Route struct {
 	Guid         string
 	Host         string
 	Path         string
+	Domain       *Domain
 	Destinations []*Destination
 }
 

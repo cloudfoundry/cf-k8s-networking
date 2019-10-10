@@ -55,6 +55,11 @@ var _ = Describe("ServeHTTP", func() {
 					Spec: synchandler.RouteCRDSpec{
 						Host: "test1.example.com",
 						Path: "/path1",
+						Domain: synchandler.RouteCRDDomain{
+							Guid:     "domain-guid",
+							Name:     "domain.apps.internal",
+							Internal: true,
+						},
 						Destinations: []synchandler.RouteCRDDestination{
 							synchandler.RouteCRDDestination{
 								Guid:   "destination-guid-1",
@@ -146,36 +151,38 @@ var _ = Describe("ServeHTTP", func() {
 			Expect(fakeSyncer.SyncArgsForCall(0)).To(Equal(expectedSyncRequest))
 
 			expectedResponseBody := `
-			{
-				"children":[
-					{
-					    "apiVersion": "apps.cloudfoundry.org/v1alpha1",
-					    "kind": "Route",
-					    "metadata": {
-					        "labels": {
-					            "cloudfoundry.org/bulk-sync-route": "true"
-					        },
-					        "name": "route-guid-1",
-							"creationTimestamp": null
-					    },
-					    "spec": {
-					        "host": "test1.example.com",
-					        "path": "/path1",
-							"destinations": [
-								{
-									"app": {
-										"guid": "app-guid-1",
-										"process": "process-type-1"
-									},
-									"guid": "destination-guid-1",
-									"port": 9000,
-									"weight": 10
-								}
-							]
-					    }
-					}
-				]
-			}`
+{
+	"children": [{
+		"apiVersion": "apps.cloudfoundry.org/v1alpha1",
+		"kind": "Route",
+		"metadata": {
+			"labels": {
+				"cloudfoundry.org/bulk-sync-route": "true"
+			},
+			"name": "route-guid-1",
+			"creationTimestamp": null
+		},
+		"spec": {
+			"host": "test1.example.com",
+			"path": "/path1",
+			"domain": {
+				"guid": "domain-guid",
+				"name": "domain.apps.internal",
+				"internal": true
+			},
+			"destinations": [{
+				"app": {
+					"guid": "app-guid-1",
+					"process": "process-type-1"
+				},
+				"guid": "destination-guid-1",
+				"port": 9000,
+				"weight": 10
+			}]
+		}
+	}]
+}
+`
 
 			Expect(resp.Code).To(Equal(http.StatusOK))
 			Expect(resp.Body).To(MatchJSON(expectedResponseBody))

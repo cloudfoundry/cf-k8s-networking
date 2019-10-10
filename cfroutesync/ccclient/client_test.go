@@ -6,10 +6,10 @@ import (
 	"fmt"
 	"net/http"
 
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient/fakes"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 var _ = Describe("Cloud Controller Client", func() {
@@ -32,38 +32,51 @@ var _ = Describe("Cloud Controller Client", func() {
 		BeforeEach(func() {
 			body := `
 			{
-			  "pagination": {
-				"total_results": 3,
-				"total_pages": 1,
-				"first": {
-				  "href": "https://api.example.org/v3/routes?page=1&per_page=2"
+				"pagination": {
+					"total_results": 3,
+					"total_pages": 1,
+					"first": {
+						"href": "https://api.example.org/v3/routes?page=1&per_page=2"
+					},
+					"last": {
+						"href": "https://api.example.org/v3/routes?page=2&per_page=2"
+					},
+					"next": {
+						"href": "https://api.example.org/v3/routes?page=2&per_page=2"
+					},
+					"previous": null
 				},
-				"last": {
-				  "href": "https://api.example.org/v3/routes?page=2&per_page=2"
-				},
-				"next": {
-				  "href": "https://api.example.org/v3/routes?page=2&per_page=2"
-				},
-				"previous": null
-			  },
-			  "resources": [
-				{
-				  "guid": "fake-guid",
-				  "host": "fake-host",
-				  "path": "/fake_path",
-				  "url": "fake-host.fake-domain.com/fake_path",
-				  "metadata": {
-					"labels": {},
-					"annotations": {}
-				  }
-				},
-				{
-				  "guid": "fake-guid2",
-				  "host": "fake-host2",
-				  "path": "/fake_path2",
-				  "url": "fake-host2.fake-domain.com/fake_path2"
-				}
-			  ]
+				"resources": [{
+						"guid": "fake-guid",
+						"host": "fake-host",
+						"path": "/fake_path",
+						"url": "fake-host.fake-domain.com/fake_path",
+						"metadata": {
+							"labels": {},
+							"annotations": {}
+						},
+						"relationships": {
+							"domain": {
+								"data": {
+									"guid": "fake-domain-1-guid"
+								}
+							}
+						}
+					},
+					{
+						"guid": "fake-guid2",
+						"host": "fake-host2",
+						"path": "/fake_path2",
+						"url": "fake-host2.fake-domain.com/fake_path2",
+						"relationships": {
+							"domain": {
+								"data": {
+									"guid": "fake-domain-2-guid"
+								}
+							}
+						}
+					}
+				]
 			}
 			`
 			jsonClient.MakeRequestStub = func(req *http.Request, responseStruct interface{}) error {
@@ -80,12 +93,16 @@ var _ = Describe("Cloud Controller Client", func() {
 				Path: "/fake_path",
 				Url:  "fake-host.fake-domain.com/fake_path",
 			}
+			route1.Relationships.Domain.Data.Guid = "fake-domain-1-guid"
+
 			route2 := ccclient.Route{
 				Guid: "fake-guid2",
 				Host: "fake-host2",
 				Path: "/fake_path2",
 				Url:  "fake-host2.fake-domain.com/fake_path2",
 			}
+			route2.Relationships.Domain.Data.Guid = "fake-domain-2-guid"
+
 			Expect(len(routeResults)).To(Equal(2))
 			Expect(routeResults).To(ContainElement(route1))
 			Expect(routeResults).To(ContainElement(route2))
@@ -269,4 +286,127 @@ var _ = Describe("Cloud Controller Client", func() {
 
 	})
 
+	Describe("ListDomains", func() {
+		BeforeEach(func() {
+			body := `
+			{
+			  "pagination": {
+				"total_results": 3,
+				"total_pages": 1,
+				"first": {
+				  "href": "https://api.example.org/v3/domains?page=1&per_page=2"
+				},
+				"last": {
+				  "href": "https://api.example.org/v3/domains?page=2&per_page=2"
+				},
+				"next": {
+				  "href": "https://api.example.org/v3/domains?page=2&per_page=2"
+				},
+				"previous": null
+			  },
+			  "resources": [
+				{
+				  "guid": "fake-domain-1-guid",
+				  "name": "fake-domain1.example.com",
+                  "internal": false,
+				  "metadata": {
+					"labels": {},
+					"annotations": {}
+				  }
+				},
+				{
+				  "guid": "fake-domain-2-guid",
+				  "name": "fake-domain2.example.com",
+                  "internal": true,
+				  "metadata": {
+					"labels": {},
+					"annotations": {}
+				  }
+				}
+			  ]
+			}
+			`
+			jsonClient.MakeRequestStub = func(req *http.Request, responseStruct interface{}) error {
+				return json.Unmarshal([]byte(body), responseStruct)
+			}
+		})
+
+		It("returns a list of domains", func() {
+			domainResults, err := ccClient.ListDomains(token)
+			Expect(err).To(Not(HaveOccurred()))
+			domain1 := ccclient.Domain{
+				Guid:     "fake-domain-1-guid",
+				Name:     "fake-domain1.example.com",
+				Internal: false,
+			}
+			domain2 := ccclient.Domain{
+				Guid:     "fake-domain-2-guid",
+				Name:     "fake-domain2.example.com",
+				Internal: true,
+			}
+			Expect(len(domainResults)).To(Equal(2))
+			Expect(domainResults).To(ContainElement(domain1))
+			Expect(domainResults).To(ContainElement(domain2))
+		})
+
+		It("forms the right request URL", func() {
+			_, err := ccClient.ListDomains(token)
+			Expect(err).To(Not(HaveOccurred()))
+
+			receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+			Expect(receivedRequest.Method).To(Equal("GET"))
+			Expect(receivedRequest.URL.Path).To(Equal("/v3/domains"))
+		})
+
+		It("sets the provided token as an Authorization header on the request", func() {
+			_, err := ccClient.ListDomains(token)
+			Expect(err).To(Not(HaveOccurred()))
+
+			receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+
+			authHeader := receivedRequest.Header["Authorization"]
+			Expect(authHeader).To(HaveLen(1))
+			Expect(authHeader[0]).To(Equal("bearer fake-token"))
+		})
+
+		Context("this only supports 5000 routes", func() {
+			It("requests 5000 results per page", func() {
+				_, err := ccClient.ListDomains(token)
+				Expect(err).To(Not(HaveOccurred()))
+				receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+				Expect(receivedRequest.URL.Query()["per_page"]).To(Equal([]string{"5000"}))
+			})
+			It("errors if there is more than one page of results", func() {
+				body := `{ "pagination": { "total_pages": 2 } }`
+				jsonClient.MakeRequestStub = func(req *http.Request, responseStruct interface{}) error {
+					return json.Unmarshal([]byte(body), responseStruct)
+				}
+
+				_, err := ccClient.ListDomains(token)
+				Expect(err).To(MatchError(ContainSubstring("too many results, paging not implemented")))
+			})
+		})
+
+		Context("when the json client returns an error", func() {
+			BeforeEach(func() {
+				jsonClient.MakeRequestReturns(errors.New("potato"))
+			})
+
+			It("returns a helpful error", func() {
+				_, err := ccClient.ListDomains(token)
+				Expect(err).To(MatchError(ContainSubstring("potato")))
+			})
+		})
+
+		Context("when the url is malformed", func() {
+			BeforeEach(func() {
+				ccClient.BaseURL = "%%%%%%%"
+			})
+
+			It("returns a helpful error", func() {
+				_, err := ccClient.ListDomains(token)
+				Expect(err).To(MatchError(ContainSubstring("invalid URL escape")))
+			})
+		})
+	})
 })

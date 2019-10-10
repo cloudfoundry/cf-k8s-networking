@@ -22,6 +22,19 @@ type CCClient struct {
 		result1 []ccclient.Destination
 		result2 error
 	}
+	ListDomainsStub        func(string) ([]ccclient.Domain, error)
+	listDomainsMutex       sync.RWMutex
+	listDomainsArgsForCall []struct {
+		arg1 string
+	}
+	listDomainsReturns struct {
+		result1 []ccclient.Domain
+		result2 error
+	}
+	listDomainsReturnsOnCall map[int]struct {
+		result1 []ccclient.Domain
+		result2 error
+	}
 	ListRoutesStub        func(string) ([]ccclient.Route, error)
 	listRoutesMutex       sync.RWMutex
 	listRoutesArgsForCall []struct {
@@ -103,6 +116,69 @@ func (fake *CCClient) ListDestinationsForRouteReturnsOnCall(i int, result1 []ccc
 	}{result1, result2}
 }
 
+func (fake *CCClient) ListDomains(arg1 string) ([]ccclient.Domain, error) {
+	fake.listDomainsMutex.Lock()
+	ret, specificReturn := fake.listDomainsReturnsOnCall[len(fake.listDomainsArgsForCall)]
+	fake.listDomainsArgsForCall = append(fake.listDomainsArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("ListDomains", []interface{}{arg1})
+	fake.listDomainsMutex.Unlock()
+	if fake.ListDomainsStub != nil {
+		return fake.ListDomainsStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.listDomainsReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *CCClient) ListDomainsCallCount() int {
+	fake.listDomainsMutex.RLock()
+	defer fake.listDomainsMutex.RUnlock()
+	return len(fake.listDomainsArgsForCall)
+}
+
+func (fake *CCClient) ListDomainsCalls(stub func(string) ([]ccclient.Domain, error)) {
+	fake.listDomainsMutex.Lock()
+	defer fake.listDomainsMutex.Unlock()
+	fake.ListDomainsStub = stub
+}
+
+func (fake *CCClient) ListDomainsArgsForCall(i int) string {
+	fake.listDomainsMutex.RLock()
+	defer fake.listDomainsMutex.RUnlock()
+	argsForCall := fake.listDomainsArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *CCClient) ListDomainsReturns(result1 []ccclient.Domain, result2 error) {
+	fake.listDomainsMutex.Lock()
+	defer fake.listDomainsMutex.Unlock()
+	fake.ListDomainsStub = nil
+	fake.listDomainsReturns = struct {
+		result1 []ccclient.Domain
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *CCClient) ListDomainsReturnsOnCall(i int, result1 []ccclient.Domain, result2 error) {
+	fake.listDomainsMutex.Lock()
+	defer fake.listDomainsMutex.Unlock()
+	fake.ListDomainsStub = nil
+	if fake.listDomainsReturnsOnCall == nil {
+		fake.listDomainsReturnsOnCall = make(map[int]struct {
+			result1 []ccclient.Domain
+			result2 error
+		})
+	}
+	fake.listDomainsReturnsOnCall[i] = struct {
+		result1 []ccclient.Domain
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *CCClient) ListRoutes(arg1 string) ([]ccclient.Route, error) {
 	fake.listRoutesMutex.Lock()
 	ret, specificReturn := fake.listRoutesReturnsOnCall[len(fake.listRoutesArgsForCall)]
@@ -171,6 +247,8 @@ func (fake *CCClient) Invocations() map[string][][]interface{} {
 	defer fake.invocationsMutex.RUnlock()
 	fake.listDestinationsForRouteMutex.RLock()
 	defer fake.listDestinationsForRouteMutex.RUnlock()
+	fake.listDomainsMutex.RLock()
+	defer fake.listDomainsMutex.RUnlock()
 	fake.listRoutesMutex.RLock()
 	defer fake.listRoutesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}

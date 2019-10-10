@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
-	"strings"
 )
 
 type Client struct {
@@ -18,10 +17,17 @@ type jsonClient interface {
 }
 
 type Route struct {
-	Guid string
-	Host string
-	Path string
-	Url  string
+	Guid          string
+	Host          string
+	Path          string
+	Url           string
+	Relationships struct {
+		Domain struct {
+			Data struct {
+				Guid string
+			}
+		}
+	}
 }
 
 type Destination struct {
@@ -36,26 +42,26 @@ type Destination struct {
 	Port   int
 }
 
+type Domain struct {
+	Guid     string
+	Name     string
+	Internal bool
+}
+
 // determined by CC API: https://v3-apidocs.cloudfoundry.org/version/3.76.0/index.html#get-a-route
 const MaxResultsPerPage int = 5000
 
 func (c *Client) ListRoutes(token string) ([]Route, error) {
-	reqURL := fmt.Sprintf("%s/v3/routes?per_page=%d", c.BaseURL, MaxResultsPerPage)
-	request, err := http.NewRequest("GET", reqURL, strings.NewReader(""))
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Authorization", "bearer "+token)
+	pathAndQuery := fmt.Sprintf("v3/routes?per_page=%d", MaxResultsPerPage)
 
-	type listRoutesResponse struct {
+	var response struct {
 		Pagination struct {
 			TotalPages int `json:"total_pages"`
 		}
 		Resources []Route
 	}
-	response := &listRoutesResponse{}
 
-	err = c.JSONClient.MakeRequest(request, response)
+	err := c.getList(pathAndQuery, token, &response)
 	if err != nil {
 		return nil, err
 	}
@@ -67,22 +73,52 @@ func (c *Client) ListRoutes(token string) ([]Route, error) {
 }
 
 func (c *Client) ListDestinationsForRoute(routeGUID, token string) ([]Destination, error) {
-	reqURL := fmt.Sprintf("%s/v3/routes/%s/destinations", c.BaseURL, routeGUID)
-	request, err := http.NewRequest("GET", reqURL, strings.NewReader(""))
-	if err != nil {
-		return nil, err
-	}
-	request.Header.Set("Authorization", "bearer "+token)
+	pathAndQuery := fmt.Sprintf("v3/routes/%s/destinations", routeGUID)
 
-	type listDestinationsResponse struct {
+	var response struct {
 		Destinations []Destination
 	}
-	response := &listDestinationsResponse{}
 
-	err = c.JSONClient.MakeRequest(request, response)
+	err := c.getList(pathAndQuery, token, &response)
 	if err != nil {
 		return nil, err
 	}
 
 	return response.Destinations, nil
+}
+
+func (c *Client) ListDomains(token string) ([]Domain, error) {
+	pathAndQuery := fmt.Sprintf("v3/domains?per_page=%d", MaxResultsPerPage)
+
+	var response struct {
+		Pagination struct {
+			TotalPages int `json:"total_pages"`
+		}
+		Resources []Domain
+	}
+
+	err := c.getList(pathAndQuery, token, &response)
+	if err != nil {
+		return nil, err
+	}
+	if response.Pagination.TotalPages > 1 {
+		return nil, errors.New("too many results, paging not implemented")
+	}
+
+	return response.Resources, nil
+}
+
+func (c *Client) getList(pathAndQuery string, token string, response interface{}) error {
+	reqURL := fmt.Sprintf("%s/%s", c.BaseURL, pathAndQuery)
+	request, err := http.NewRequest("GET", reqURL, nil)
+	if err != nil {
+		return err
+	}
+	request.Header.Set("Authorization", "bearer "+token)
+
+	err = c.JSONClient.MakeRequest(request, response)
+	if err != nil {
+		return err
+	}
+	return nil
 }

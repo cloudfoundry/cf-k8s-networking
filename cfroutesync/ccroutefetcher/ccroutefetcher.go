@@ -11,6 +11,7 @@ import (
 type ccClient interface {
 	ListRoutes(token string) ([]ccclient.Route, error)
 	ListDestinationsForRoute(routeGUID, token string) ([]ccclient.Destination, error)
+	ListDomains(token string) ([]ccclient.Domain, error)
 }
 
 //go:generate counterfeiter -o fakes/uaaclient.go --fake-name UAAClient . uaaClient
@@ -40,6 +41,15 @@ func (f *Fetcher) FetchOnce() error {
 		return fmt.Errorf("cc list routes: %w", err)
 	}
 
+	domains, err := f.CCClient.ListDomains(token)
+	if err != nil {
+		return fmt.Errorf("cc list domains: %w", err)
+	}
+	domainsMap := make(map[string]ccclient.Domain)
+	for _, domain := range domains {
+		domainsMap[domain.Guid] = domain
+	}
+
 	var snapshotRoutes []*models.Route
 	for _, route := range routes {
 		destList, err := f.CCClient.ListDestinationsForRoute(route.Guid, token)
@@ -47,7 +57,13 @@ func (f *Fetcher) FetchOnce() error {
 			return fmt.Errorf("cc list destinations for %s: %w", route.Guid, err)
 		}
 
-		snapshotRoutes = append(snapshotRoutes, buildSnapshot(route, destList))
+		routeDomainGuid := route.Relationships.Domain.Data.Guid
+		domain, ok := domainsMap[routeDomainGuid]
+		if !ok {
+			return fmt.Errorf("route %s refers to missing domain %s", route.Guid, routeDomainGuid)
+		}
+
+		snapshotRoutes = append(snapshotRoutes, buildSnapshot(route, destList, domain))
 	}
 
 	f.SnapshotRepo.Put(&models.RouteSnapshot{Routes: snapshotRoutes})
@@ -55,7 +71,7 @@ func (f *Fetcher) FetchOnce() error {
 	return nil
 }
 
-func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination) *models.Route {
+func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination, domain ccclient.Domain) *models.Route {
 	var snapshotRouteDestinations []*models.Destination
 	for _, ccDestination := range destinations {
 		snapshotDestination := &models.Destination{
@@ -75,5 +91,10 @@ func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination) *m
 		Host:         route.Host,
 		Path:         route.Path,
 		Destinations: snapshotRouteDestinations,
+		Domain: &models.Domain{
+			Guid:     domain.Guid,
+			Name:     domain.Name,
+			Internal: domain.Internal,
+		},
 	}
 }

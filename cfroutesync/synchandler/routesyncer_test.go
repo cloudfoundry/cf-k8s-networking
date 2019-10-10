@@ -27,6 +27,11 @@ var _ = Describe("Sync", func() {
 					Guid: "route-guid-1",
 					Host: "test1.example.com",
 					Path: "/path1",
+					Domain: &models.Domain{
+						Guid:     "domain-1-guid",
+						Name:     "domain1.example.com",
+						Internal: false,
+					},
 					Destinations: []*models.Destination{
 						&models.Destination{
 							Guid: "destination-guid-1",
@@ -43,6 +48,11 @@ var _ = Describe("Sync", func() {
 					Guid: "route-guid-2",
 					Host: "test2.example.com",
 					Path: "/path2",
+					Domain: &models.Domain{
+						Guid:     "domain-2-guid",
+						Name:     "domain2.apps.internal",
+						Internal: true,
+					},
 					Destinations: []*models.Destination{
 						&models.Destination{
 							Guid: "destination-guid-2",
@@ -95,6 +105,11 @@ var _ = Describe("Sync", func() {
 				Spec: synchandler.RouteCRDSpec{
 					Host: "test1.example.com",
 					Path: "/path1",
+					Domain: synchandler.RouteCRDDomain{
+						Guid:     "domain-1-guid",
+						Name:     "domain1.example.com",
+						Internal: false,
+					},
 					Destinations: []synchandler.RouteCRDDestination{
 						synchandler.RouteCRDDestination{
 							Guid:   "destination-guid-1",
@@ -121,6 +136,11 @@ var _ = Describe("Sync", func() {
 				Spec: synchandler.RouteCRDSpec{
 					Host: "test2.example.com",
 					Path: "/path2",
+					Domain: synchandler.RouteCRDDomain{
+						Guid:     "domain-2-guid",
+						Name:     "domain2.apps.internal",
+						Internal: true,
+					},
 					Destinations: []synchandler.RouteCRDDestination{
 						synchandler.RouteCRDDestination{
 							Guid:   "destination-guid-2",
