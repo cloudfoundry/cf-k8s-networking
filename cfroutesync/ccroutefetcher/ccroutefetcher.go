@@ -30,6 +30,7 @@ type Fetcher struct {
 	SnapshotRepo snapshotRepo
 }
 
+// FetchOnce gets all the routing data from CC, builds a snapshot and puts it into the repo
 func (f *Fetcher) FetchOnce() error {
 	token, err := f.UAAClient.GetToken()
 	if err != nil {
@@ -76,7 +77,7 @@ func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination, do
 	for _, ccDestination := range destinations {
 		snapshotDestination := &models.Destination{
 			Guid: ccDestination.Guid,
-			App: models.DestinationApp{
+			App: models.App{
 				Guid:    ccDestination.App.Guid,
 				Process: ccDestination.App.Process.Type,
 			},

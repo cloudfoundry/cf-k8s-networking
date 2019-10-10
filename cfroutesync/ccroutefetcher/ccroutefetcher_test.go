@@ -113,7 +113,7 @@ var _ = Describe("Fetching once", func() {
 					Destinations: []*models.Destination{
 						&models.Destination{
 							Guid: "route-0-dest-0-guid",
-							App: models.DestinationApp{
+							App: models.App{
 								Guid:    "route-0-dest-0-app-0-guid",
 								Process: "route-0-dest-0-app-0-process-type",
 							},
@@ -122,7 +122,7 @@ var _ = Describe("Fetching once", func() {
 						},
 						&models.Destination{
 							Guid: "route-0-dest-1-guid",
-							App: models.DestinationApp{
+							App: models.App{
 								Guid:    "route-0-dest-1-app-1-guid",
 								Process: "route-0-dest-1-app-1-process-type",
 							},
@@ -143,7 +143,7 @@ var _ = Describe("Fetching once", func() {
 					Destinations: []*models.Destination{
 						&models.Destination{
 							Guid: "route-1-dest-0-guid",
-							App: models.DestinationApp{
+							App: models.App{
 								Guid:    "route-1-dest-0-app-0-guid",
 								Process: "route-1-dest-0-app-0-process-type",
 							},

@@ -1,4 +1,4 @@
-package synchandler_test
+package webhook_test
 
 import (
 	"testing"
@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-func TestRoutelister(t *testing.T) {
+func TestWebhook(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "SyncHandler Suite")
+	RunSpecs(t, "WebHook Suite")
 }

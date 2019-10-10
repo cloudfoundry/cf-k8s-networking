@@ -1,9 +1,9 @@
-package synchandler_test
+package webhook_test
 
 import (
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler/fakes"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -12,12 +12,12 @@ import (
 var _ = Describe("Sync", func() {
 	var (
 		fakeSnapshotRepo *fakes.SnapshotRepo
-		syncHandler      *synchandler.RouteSyncer
+		syncHandler      *webhook.Lineage
 	)
 
 	BeforeEach(func() {
 		fakeSnapshotRepo = &fakes.SnapshotRepo{}
-		syncHandler = &synchandler.RouteSyncer{
+		syncHandler = &webhook.Lineage{
 			RouteSnapshotRepo: fakeSnapshotRepo,
 		}
 
@@ -35,7 +35,7 @@ var _ = Describe("Sync", func() {
 					Destinations: []*models.Destination{
 						&models.Destination{
 							Guid: "destination-guid-1",
-							App: models.DestinationApp{
+							App: models.App{
 								Guid:    "app-guid-1",
 								Process: "process-type-1",
 							},
@@ -56,7 +56,7 @@ var _ = Describe("Sync", func() {
 					Destinations: []*models.Destination{
 						&models.Destination{
 							Guid: "destination-guid-2",
-							App: models.DestinationApp{
+							App: models.App{
 								Guid:    "app-guid-2",
 								Process: "process-type-2",
 							},
@@ -70,12 +70,12 @@ var _ = Describe("Sync", func() {
 	})
 
 	It("returns children for a given parent", func() {
-		syncRequest := synchandler.SyncRequest{
-			Parent: synchandler.BulkSync{
+		syncRequest := webhook.SyncRequest{
+			Parent: webhook.BulkSync{
 				TypeMeta:   metav1.TypeMeta{},
 				ObjectMeta: metav1.ObjectMeta{},
-				Spec: synchandler.BulkSyncSpec{
-					Template: synchandler.ParentTemplate{
+				Spec: webhook.BulkSyncSpec{
+					Template: webhook.Template{
 						ObjectMeta: metav1.ObjectMeta{
 							Labels: map[string]string{
 								"cloudfoundry.org/bulk-sync-route": "true",
@@ -91,8 +91,8 @@ var _ = Describe("Sync", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(syncResponse).NotTo(BeNil())
-		expectedChildren := []*synchandler.RouteCRD{
-			&synchandler.RouteCRD{
+		expectedChildren := []*webhook.Route{
+			&webhook.Route{
 				ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 				Kind:       "Route",
 				ObjectMeta: metav1.ObjectMeta{
@@ -102,20 +102,20 @@ var _ = Describe("Sync", func() {
 						"label-for-routes":                 "cool-label",
 					},
 				},
-				Spec: synchandler.RouteCRDSpec{
+				Spec: webhook.RouteSpec{
 					Host: "test1.example.com",
 					Path: "/path1",
-					Domain: synchandler.RouteCRDDomain{
+					Domain: webhook.Domain{
 						Guid:     "domain-1-guid",
 						Name:     "domain1.example.com",
 						Internal: false,
 					},
-					Destinations: []synchandler.RouteCRDDestination{
-						synchandler.RouteCRDDestination{
+					Destinations: []webhook.Destination{
+						webhook.Destination{
 							Guid:   "destination-guid-1",
 							Port:   9000,
 							Weight: models.IntPtr(10),
-							App: synchandler.RouteCRDDestinationApp{
+							App: webhook.App{
 								Guid:    "app-guid-1",
 								Process: "process-type-1",
 							},
@@ -123,7 +123,7 @@ var _ = Describe("Sync", func() {
 					},
 				},
 			},
-			&synchandler.RouteCRD{
+			&webhook.Route{
 				ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 				Kind:       "Route",
 				ObjectMeta: metav1.ObjectMeta{
@@ -133,20 +133,20 @@ var _ = Describe("Sync", func() {
 						"label-for-routes":                 "cool-label",
 					},
 				},
-				Spec: synchandler.RouteCRDSpec{
+				Spec: webhook.RouteSpec{
 					Host: "test2.example.com",
 					Path: "/path2",
-					Domain: synchandler.RouteCRDDomain{
+					Domain: webhook.Domain{
 						Guid:     "domain-2-guid",
 						Name:     "domain2.apps.internal",
 						Internal: true,
 					},
-					Destinations: []synchandler.RouteCRDDestination{
-						synchandler.RouteCRDDestination{
+					Destinations: []webhook.Destination{
+						webhook.Destination{
 							Guid:   "destination-guid-2",
 							Port:   8080,
 							Weight: models.IntPtr(80),
-							App: synchandler.RouteCRDDestinationApp{
+							App: webhook.App{
 								Guid:    "app-guid-2",
 								Process: "process-type-2",
 							},
@@ -163,12 +163,12 @@ var _ = Describe("Sync", func() {
 			fakeSnapshotRepo.GetReturns(&models.RouteSnapshot{}, true)
 		})
 		It("returns an empty list of children in the response", func() {
-			syncRequest := synchandler.SyncRequest{
-				Parent: synchandler.BulkSync{
+			syncRequest := webhook.SyncRequest{
+				Parent: webhook.BulkSync{
 					TypeMeta:   metav1.TypeMeta{},
 					ObjectMeta: metav1.ObjectMeta{},
-					Spec: synchandler.BulkSyncSpec{
-						Template: synchandler.ParentTemplate{
+					Spec: webhook.BulkSyncSpec{
+						Template: webhook.Template{
 							ObjectMeta: metav1.ObjectMeta{
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
@@ -183,7 +183,7 @@ var _ = Describe("Sync", func() {
 			syncResponse, err := syncHandler.Sync(syncRequest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(syncResponse).NotTo(BeNil())
-			Expect(syncResponse.Children).To(Equal([]*synchandler.RouteCRD{}))
+			Expect(syncResponse.Children).To(Equal([]*webhook.Route{}))
 		})
 	})
 
@@ -192,12 +192,12 @@ var _ = Describe("Sync", func() {
 			fakeSnapshotRepo.GetReturns(nil, false)
 		})
 		It("returns a meaningful error", func() {
-			syncRequest := synchandler.SyncRequest{
-				Parent: synchandler.BulkSync{
+			syncRequest := webhook.SyncRequest{
+				Parent: webhook.BulkSync{
 					TypeMeta:   metav1.TypeMeta{},
 					ObjectMeta: metav1.ObjectMeta{},
-					Spec: synchandler.BulkSyncSpec{
-						Template: synchandler.ParentTemplate{
+					Spec: webhook.BulkSyncSpec{
+						Template: webhook.Template{
 							ObjectMeta: metav1.ObjectMeta{
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
@@ -209,7 +209,7 @@ var _ = Describe("Sync", func() {
 				},
 			}
 			_, err := syncHandler.Sync(syncRequest)
-			Expect(err).To(Equal(synchandler.UninitializedError))
+			Expect(err).To(Equal(webhook.UninitializedError))
 		})
 	})
 

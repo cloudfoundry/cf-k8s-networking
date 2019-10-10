@@ -1,4 +1,4 @@
-package synchandler_test
+package webhook_test
 
 import (
 	"bytes"
@@ -7,10 +7,11 @@ import (
 	"net/http"
 	"net/http/httptest"
 
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler/fakes"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook/fakes"
 	hfakes "code.cloudfoundry.org/cf-networking-helpers/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -19,7 +20,7 @@ import (
 
 var _ = Describe("ServeHTTP", func() {
 	var (
-		handler     *synchandler.SyncHandler
+		handler     *webhook.SyncHandler
 		resp        *httptest.ResponseRecorder
 		marshaler   *hfakes.Marshaler
 		unmarshaler *hfakes.Unmarshaler
@@ -35,15 +36,15 @@ var _ = Describe("ServeHTTP", func() {
 
 		fakeSyncer = &fakes.Syncer{}
 
-		handler = &synchandler.SyncHandler{
+		handler = &webhook.SyncHandler{
 			Marshaler:   marshaler,
 			Unmarshaler: unmarshaler,
 			Syncer:      fakeSyncer,
 		}
 
-		fakeSyncResponse := &synchandler.SyncResponse{
-			Children: []*synchandler.RouteCRD{
-				&synchandler.RouteCRD{
+		fakeSyncResponse := &webhook.SyncResponse{
+			Children: []*webhook.Route{
+				&webhook.Route{
 					ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 					Kind:       "Route",
 					ObjectMeta: metav1.ObjectMeta{
@@ -52,20 +53,20 @@ var _ = Describe("ServeHTTP", func() {
 							"cloudfoundry.org/bulk-sync-route": "true",
 						},
 					},
-					Spec: synchandler.RouteCRDSpec{
+					Spec: webhook.RouteSpec{
 						Host: "test1.example.com",
 						Path: "/path1",
-						Domain: synchandler.RouteCRDDomain{
+						Domain: webhook.Domain{
 							Guid:     "domain-guid",
 							Name:     "domain.apps.internal",
 							Internal: true,
 						},
-						Destinations: []synchandler.RouteCRDDestination{
-							synchandler.RouteCRDDestination{
+						Destinations: []webhook.Destination{
+							webhook.Destination{
 								Guid:   "destination-guid-1",
 								Port:   9000,
 								Weight: models.IntPtr(10),
-								App: synchandler.RouteCRDDestinationApp{
+								App: webhook.App{
 									Guid:    "app-guid-1",
 									Process: "process-type-1",
 								},
@@ -124,22 +125,22 @@ var _ = Describe("ServeHTTP", func() {
 		It("lists route CRDs", func() {
 			handler.ServeHTTP(resp, request)
 
-			expectedSyncRequest := synchandler.SyncRequest{
-				Parent: synchandler.BulkSync{
+			expectedSyncRequest := webhook.SyncRequest{
+				Parent: webhook.BulkSync{
 					TypeMeta: metav1.TypeMeta{
 						APIVersion: "apps.cloudfoundry.org/v1alpha1",
 						Kind:       "RouteBulkSync",
 					},
 					ObjectMeta: metav1.ObjectMeta{},
-					Spec: synchandler.BulkSyncSpec{
-						Template: synchandler.ParentTemplate{
+					Spec: webhook.BulkSyncSpec{
+						Template: webhook.Template{
 							ObjectMeta: metav1.ObjectMeta{
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
 								},
 							},
 						},
-						Selector: synchandler.ParentSelector{
+						Selector: webhook.Selector{
 							MatchLabels: map[string]string{
 								"cloudfoundry.org/bulk-sync-route": "true",
 							},
@@ -190,8 +191,8 @@ var _ = Describe("ServeHTTP", func() {
 
 		Context("when there are no routes", func() {
 			BeforeEach(func() {
-				fakeSyncResponse := &synchandler.SyncResponse{
-					Children: []*synchandler.RouteCRD{},
+				fakeSyncResponse := &webhook.SyncResponse{
+					Children: []*webhook.Route{},
 				}
 				fakeSyncer.SyncReturns(fakeSyncResponse, nil)
 			})
@@ -236,7 +237,7 @@ var _ = Describe("ServeHTTP", func() {
 
 		Context("when the syncer isn't yet initialized", func() {
 			BeforeEach(func() {
-				fakeSyncer.SyncReturns(nil, synchandler.UninitializedError)
+				fakeSyncer.SyncReturns(nil, webhook.UninitializedError)
 			})
 
 			It("returns the error in the response and sets a 500 code so that metacontroller won't attempt to modify state in the k8s api", func() {

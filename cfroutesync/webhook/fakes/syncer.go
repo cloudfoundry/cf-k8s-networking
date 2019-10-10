@@ -4,32 +4,32 @@ package fakes
 import (
 	"sync"
 
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 )
 
 type Syncer struct {
-	SyncStub        func(synchandler.SyncRequest) (*synchandler.SyncResponse, error)
+	SyncStub        func(webhook.SyncRequest) (*webhook.SyncResponse, error)
 	syncMutex       sync.RWMutex
 	syncArgsForCall []struct {
-		arg1 synchandler.SyncRequest
+		arg1 webhook.SyncRequest
 	}
 	syncReturns struct {
-		result1 *synchandler.SyncResponse
+		result1 *webhook.SyncResponse
 		result2 error
 	}
 	syncReturnsOnCall map[int]struct {
-		result1 *synchandler.SyncResponse
+		result1 *webhook.SyncResponse
 		result2 error
 	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
 
-func (fake *Syncer) Sync(arg1 synchandler.SyncRequest) (*synchandler.SyncResponse, error) {
+func (fake *Syncer) Sync(arg1 webhook.SyncRequest) (*webhook.SyncResponse, error) {
 	fake.syncMutex.Lock()
 	ret, specificReturn := fake.syncReturnsOnCall[len(fake.syncArgsForCall)]
 	fake.syncArgsForCall = append(fake.syncArgsForCall, struct {
-		arg1 synchandler.SyncRequest
+		arg1 webhook.SyncRequest
 	}{arg1})
 	fake.recordInvocation("Sync", []interface{}{arg1})
 	fake.syncMutex.Unlock()
@@ -49,41 +49,41 @@ func (fake *Syncer) SyncCallCount() int {
 	return len(fake.syncArgsForCall)
 }
 
-func (fake *Syncer) SyncCalls(stub func(synchandler.SyncRequest) (*synchandler.SyncResponse, error)) {
+func (fake *Syncer) SyncCalls(stub func(webhook.SyncRequest) (*webhook.SyncResponse, error)) {
 	fake.syncMutex.Lock()
 	defer fake.syncMutex.Unlock()
 	fake.SyncStub = stub
 }
 
-func (fake *Syncer) SyncArgsForCall(i int) synchandler.SyncRequest {
+func (fake *Syncer) SyncArgsForCall(i int) webhook.SyncRequest {
 	fake.syncMutex.RLock()
 	defer fake.syncMutex.RUnlock()
 	argsForCall := fake.syncArgsForCall[i]
 	return argsForCall.arg1
 }
 
-func (fake *Syncer) SyncReturns(result1 *synchandler.SyncResponse, result2 error) {
+func (fake *Syncer) SyncReturns(result1 *webhook.SyncResponse, result2 error) {
 	fake.syncMutex.Lock()
 	defer fake.syncMutex.Unlock()
 	fake.SyncStub = nil
 	fake.syncReturns = struct {
-		result1 *synchandler.SyncResponse
+		result1 *webhook.SyncResponse
 		result2 error
 	}{result1, result2}
 }
 
-func (fake *Syncer) SyncReturnsOnCall(i int, result1 *synchandler.SyncResponse, result2 error) {
+func (fake *Syncer) SyncReturnsOnCall(i int, result1 *webhook.SyncResponse, result2 error) {
 	fake.syncMutex.Lock()
 	defer fake.syncMutex.Unlock()
 	fake.SyncStub = nil
 	if fake.syncReturnsOnCall == nil {
 		fake.syncReturnsOnCall = make(map[int]struct {
-			result1 *synchandler.SyncResponse
+			result1 *webhook.SyncResponse
 			result2 error
 		})
 	}
 	fake.syncReturnsOnCall[i] = struct {
-		result1 *synchandler.SyncResponse
+		result1 *webhook.SyncResponse
 		result2 error
 	}{result1, result2}
 }

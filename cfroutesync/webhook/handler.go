@@ -1,4 +1,4 @@
-package synchandler
+package webhook
 
 import (
 	"fmt"
@@ -19,6 +19,7 @@ type SyncHandler struct {
 	Syncer      syncer
 }
 
+// ServeHTTP serves the /sync webhook to metacontroller
 func (r *SyncHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	bodyBytes, err := ioutil.ReadAll(req.Body)
 	if err != nil {

@@ -11,19 +11,15 @@ import (
 	"strings"
 	"time"
 
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccroutefetcher"
-
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-networking-helpers/marshal"
-
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/synchandler"
+	"code.cloudfoundry.org/tlsconfig"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
-
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccroutefetcher"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/jsonclient"
-
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/uaaclient"
-	"code.cloudfoundry.org/tlsconfig"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 )
 
 func main() {
@@ -46,31 +42,30 @@ func mainWithError() error {
 		return err
 	}
 
-	repo := &models.SnapshotRepo{}
-	syncer := &synchandler.RouteSyncer{
-		RouteSnapshotRepo: repo,
-	}
-	syncHandler := &synchandler.SyncHandler{
-		Marshaler:   marshal.MarshalFunc(json.Marshal),
-		Unmarshaler: marshal.UnmarshalFunc(json.Unmarshal),
-		Syncer:      syncer,
-	}
+	snapshotRepo := &models.SnapshotRepo{}
 
 	fetcher := &ccroutefetcher.Fetcher{
 		CCClient:     ccClient,
 		UAAClient:    uaaClient,
-		SnapshotRepo: repo,
+		SnapshotRepo: snapshotRepo,
 	}
 
-	mux := http.NewServeMux()
-	mux.Handle("/sync", syncHandler)
-	go http.ListenAndServe(":8080", mux)
+	webhookMux := http.NewServeMux()
+	webhookMux.Handle("/sync", &webhook.SyncHandler{
+		Marshaler:   marshal.MarshalFunc(json.Marshal),
+		Unmarshaler: marshal.UnmarshalFunc(json.Unmarshal),
+		Syncer: &webhook.Lineage{
+			RouteSnapshotRepo: snapshotRepo,
+		},
+	})
+	go http.ListenAndServe(":8080", webhookMux)
 
 	for {
 		err := fetcher.FetchOnce()
 		if err != nil {
 			log.Printf("fetch error: %s", err)
 		}
+
 		time.Sleep(10 * time.Second)
 	}
 
