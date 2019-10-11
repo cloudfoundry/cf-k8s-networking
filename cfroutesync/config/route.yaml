@@ -15,6 +15,19 @@ spec:
     plural: routes
     singular: route
     kind: Route
+  additionalPrinterColumns:
+    - name: Host
+      type: string
+      description: The host for the route
+      JSONPath: .spec.host
+    - name: Domain
+      type: string
+      description: The domain name for the route
+      JSONPath: .spec.domain.name
+    - name: Path
+      type: string
+      description: The path for the route
+      JSONPath: .spec.path
   validation:
     openAPIV3Schema:
       type: object
