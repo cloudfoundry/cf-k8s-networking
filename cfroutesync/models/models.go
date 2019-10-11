@@ -27,7 +27,11 @@ type Destination struct {
 
 type App struct {
 	Guid    string
-	Process string
+	Process Process
+}
+
+type Process struct {
+	Type string
 }
 
 func IntPtr(x int) *int {

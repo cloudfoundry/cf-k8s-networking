@@ -72,4 +72,3 @@ spec:
     metadata:
       labels:
         cloudfoundry.org/route-bulk-sync: "true"
-

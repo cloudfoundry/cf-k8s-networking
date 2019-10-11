@@ -37,7 +37,7 @@ var _ = Describe("Sync", func() {
 							Guid: "destination-guid-1",
 							App: models.App{
 								Guid:    "app-guid-1",
-								Process: "process-type-1",
+								Process: models.Process{Type: "process-type-1"},
 							},
 							Port:   9000,
 							Weight: models.IntPtr(10),
@@ -58,7 +58,7 @@ var _ = Describe("Sync", func() {
 							Guid: "destination-guid-2",
 							App: models.App{
 								Guid:    "app-guid-2",
-								Process: "process-type-2",
+								Process: models.Process{Type: "process-type-2"},
 							},
 							Port:   8080,
 							Weight: models.IntPtr(80),
@@ -117,7 +117,7 @@ var _ = Describe("Sync", func() {
 							Weight: models.IntPtr(10),
 							App: webhook.App{
 								Guid:    "app-guid-1",
-								Process: "process-type-1",
+								Process: webhook.Process{Type: "process-type-1"},
 							},
 						},
 					},
@@ -148,7 +148,7 @@ var _ = Describe("Sync", func() {
 							Weight: models.IntPtr(80),
 							App: webhook.App{
 								Guid:    "app-guid-2",
-								Process: "process-type-2",
+								Process: webhook.Process{Type: "process-type-2"},
 							},
 						},
 					},

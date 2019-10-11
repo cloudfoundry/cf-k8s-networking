@@ -115,7 +115,7 @@ var _ = Describe("Fetching once", func() {
 							Guid: "route-0-dest-0-guid",
 							App: models.App{
 								Guid:    "route-0-dest-0-app-0-guid",
-								Process: "route-0-dest-0-app-0-process-type",
+								Process: models.Process{Type: "route-0-dest-0-app-0-process-type"},
 							},
 							Port:   8000,
 							Weight: models.IntPtr(10),
@@ -124,7 +124,7 @@ var _ = Describe("Fetching once", func() {
 							Guid: "route-0-dest-1-guid",
 							App: models.App{
 								Guid:    "route-0-dest-1-app-1-guid",
-								Process: "route-0-dest-1-app-1-process-type",
+								Process: models.Process{Type: "route-0-dest-1-app-1-process-type"},
 							},
 							Port:   8001,
 							Weight: models.IntPtr(11),
@@ -145,7 +145,7 @@ var _ = Describe("Fetching once", func() {
 							Guid: "route-1-dest-0-guid",
 							App: models.App{
 								Guid:    "route-1-dest-0-app-0-guid",
-								Process: "route-1-dest-0-app-0-process-type",
+								Process: models.Process{Type: "route-1-dest-0-app-0-process-type"},
 							},
 							Port:   9000,
 							Weight: models.IntPtr(12),

@@ -53,6 +53,10 @@ type Destination struct {
 }
 
 type App struct {
-	Guid    string `json:"guid"`
-	Process string `json:"process"`
+	Guid    string  `json:"guid"`
+	Process Process `json:"process"`
+}
+
+type Process struct {
+	Type string `json:"type"`
 }

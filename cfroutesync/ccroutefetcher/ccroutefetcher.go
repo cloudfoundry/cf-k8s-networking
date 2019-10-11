@@ -79,7 +79,7 @@ func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination, do
 			Guid: ccDestination.Guid,
 			App: models.App{
 				Guid:    ccDestination.App.Guid,
-				Process: ccDestination.App.Process.Type,
+				Process: models.Process{Type: ccDestination.App.Process.Type},
 			},
 			Port:   ccDestination.Port,
 			Weight: ccDestination.Weight,

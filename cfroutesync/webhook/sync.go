@@ -73,7 +73,7 @@ func routeToCRD(route *models.Route, template *Template) *Route {
 			Guid: routeDest.Guid,
 			App: App{
 				Guid:    routeDest.App.Guid,
-				Process: routeDest.App.Process,
+				Process: Process{Type: routeDest.App.Process.Type},
 			},
 			Weight: routeDest.Weight,
 			Port:   routeDest.Port,

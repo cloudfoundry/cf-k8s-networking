@@ -48,7 +48,10 @@ spec:
                       guid:
                         type: string
                       process:
-                        type: string
+                        type: object
+                        properties:
+                          type:  # field name for process type
+                            type: string
                   port:
                     type: integer
                   weight:

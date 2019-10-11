@@ -67,8 +67,10 @@ var _ = Describe("ServeHTTP", func() {
 								Port:   9000,
 								Weight: models.IntPtr(10),
 								App: webhook.App{
-									Guid:    "app-guid-1",
-									Process: "process-type-1",
+									Guid: "app-guid-1",
+									Process: webhook.Process{
+										Type: "process-type-1",
+									},
 								},
 							},
 						},
@@ -174,7 +176,7 @@ var _ = Describe("ServeHTTP", func() {
 			"destinations": [{
 				"app": {
 					"guid": "app-guid-1",
-					"process": "process-type-1"
+					"process": {"type": "process-type-1"}
 				},
 				"guid": "destination-guid-1",
 				"port": 9000,
