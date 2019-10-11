@@ -100,18 +100,18 @@ var _ = Describe("Fetching once", func() {
 		fakeSnapshotRepo = &fakes.SnapshotRepo{}
 
 		expectedSnapshot = &models.RouteSnapshot{
-			Routes: []*models.Route{
-				&models.Route{
+			Routes: []models.Route{
+				models.Route{
 					Guid: "route-0-guid",
 					Host: "route-0-host",
 					Path: "route-0-path",
-					Domain: &models.Domain{
+					Domain: models.Domain{
 						Guid:     "domain-0",
 						Name:     "domain0.example.com",
 						Internal: false,
 					},
-					Destinations: []*models.Destination{
-						&models.Destination{
+					Destinations: []models.Destination{
+						models.Destination{
 							Guid: "route-0-dest-0-guid",
 							App: models.App{
 								Guid:    "route-0-dest-0-app-0-guid",
@@ -120,7 +120,7 @@ var _ = Describe("Fetching once", func() {
 							Port:   8000,
 							Weight: models.IntPtr(10),
 						},
-						&models.Destination{
+						models.Destination{
 							Guid: "route-0-dest-1-guid",
 							App: models.App{
 								Guid:    "route-0-dest-1-app-1-guid",
@@ -131,17 +131,17 @@ var _ = Describe("Fetching once", func() {
 						},
 					},
 				},
-				&models.Route{
+				models.Route{
 					Guid: "route-1-guid",
 					Host: "route-1-host",
 					Path: "route-1-path",
-					Domain: &models.Domain{
+					Domain: models.Domain{
 						Guid:     "domain-1",
 						Name:     "domain1.apps.internal",
 						Internal: true,
 					},
-					Destinations: []*models.Destination{
-						&models.Destination{
+					Destinations: []models.Destination{
+						models.Destination{
 							Guid: "route-1-dest-0-guid",
 							App: models.App{
 								Guid:    "route-1-dest-0-app-0-guid",
@@ -152,11 +152,11 @@ var _ = Describe("Fetching once", func() {
 						},
 					},
 				},
-				&models.Route{
+				models.Route{
 					Guid: "route-2-guid",
 					Host: "route-2-host",
 					Path: "route-2-path",
-					Domain: &models.Domain{
+					Domain: models.Domain{
 						Guid:     "domain-1",
 						Name:     "domain1.apps.internal",
 						Internal: true,

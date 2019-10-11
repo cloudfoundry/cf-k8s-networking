@@ -22,40 +22,49 @@ var _ = Describe("Sync", func() {
 		}
 
 		fakeSnapshotRepo.GetReturns(&models.RouteSnapshot{
-			Routes: []*models.Route{
-				&models.Route{
-					Guid: "route-guid-1",
-					Host: "test1.example.com",
-					Path: "/path1",
-					Domain: &models.Domain{
-						Guid:     "domain-1-guid",
-						Name:     "domain1.example.com",
+			Routes: []models.Route{
+				models.Route{
+					Guid: "route-guid-0",
+					Host: "test0",
+					Path: "/path0",
+					Domain: models.Domain{
+						Guid:     "domain-0-guid",
+						Name:     "domain0.example.com",
 						Internal: false,
 					},
-					Destinations: []*models.Destination{
-						&models.Destination{
-							Guid: "destination-guid-1",
+					Destinations: []models.Destination{
+						models.Destination{
+							Guid: "route-0-destination-guid-0",
 							App: models.App{
-								Guid:    "app-guid-1",
+								Guid:    "app-guid-0",
 								Process: models.Process{Type: "process-type-1"},
 							},
 							Port:   9000,
 							Weight: models.IntPtr(10),
 						},
+						models.Destination{
+							Guid: "route-0-destination-guid-1",
+							App: models.App{
+								Guid:    "app-guid-1",
+								Process: models.Process{Type: "process-type-1"},
+							},
+							Port:   9001,
+							Weight: models.IntPtr(11),
+						},
 					},
 				},
-				&models.Route{
-					Guid: "route-guid-2",
-					Host: "test2.example.com",
-					Path: "/path2",
-					Domain: &models.Domain{
-						Guid:     "domain-2-guid",
-						Name:     "domain2.apps.internal",
+				models.Route{
+					Guid: "route-guid-1",
+					Host: "test1",
+					Path: "/path1",
+					Domain: models.Domain{
+						Guid:     "domain-1-guid",
+						Name:     "domain1.apps.internal",
 						Internal: true,
 					},
-					Destinations: []*models.Destination{
-						&models.Destination{
-							Guid: "destination-guid-2",
+					Destinations: []models.Destination{
+						models.Destination{
+							Guid: "route-1-destination-guid-0",
 							App: models.App{
 								Guid:    "app-guid-2",
 								Process: models.Process{Type: "process-type-2"},
@@ -91,8 +100,48 @@ var _ = Describe("Sync", func() {
 		Expect(err).ToNot(HaveOccurred())
 
 		Expect(syncResponse).NotTo(BeNil())
-		expectedChildren := []*webhook.Route{
-			&webhook.Route{
+		expectedChildren := []webhook.Route{
+			webhook.Route{
+				ApiVersion: "apps.cloudfoundry.org/v1alpha1",
+				Kind:       "Route",
+				ObjectMeta: metav1.ObjectMeta{
+					Name: "route-guid-0",
+					Labels: map[string]string{
+						"cloudfoundry.org/bulk-sync-route": "true",
+						"label-for-routes":                 "cool-label",
+					},
+				},
+				Spec: webhook.RouteSpec{
+					Host: "test0",
+					Path: "/path0",
+					Domain: webhook.Domain{
+						Guid:     "domain-0-guid",
+						Name:     "domain0.example.com",
+						Internal: false,
+					},
+					Destinations: []webhook.Destination{
+						webhook.Destination{
+							Guid:   "route-0-destination-guid-0",
+							Port:   9000,
+							Weight: models.IntPtr(10),
+							App: webhook.App{
+								Guid:    "app-guid-0",
+								Process: webhook.Process{Type: "process-type-1"},
+							},
+						},
+						webhook.Destination{
+							Guid:   "route-0-destination-guid-1",
+							Port:   9001,
+							Weight: models.IntPtr(11),
+							App: webhook.App{
+								Guid:    "app-guid-1",
+								Process: webhook.Process{Type: "process-type-1"},
+							},
+						},
+					},
+				},
+			},
+			webhook.Route{
 				ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 				Kind:       "Route",
 				ObjectMeta: metav1.ObjectMeta{
@@ -103,47 +152,16 @@ var _ = Describe("Sync", func() {
 					},
 				},
 				Spec: webhook.RouteSpec{
-					Host: "test1.example.com",
+					Host: "test1",
 					Path: "/path1",
 					Domain: webhook.Domain{
 						Guid:     "domain-1-guid",
-						Name:     "domain1.example.com",
-						Internal: false,
-					},
-					Destinations: []webhook.Destination{
-						webhook.Destination{
-							Guid:   "destination-guid-1",
-							Port:   9000,
-							Weight: models.IntPtr(10),
-							App: webhook.App{
-								Guid:    "app-guid-1",
-								Process: webhook.Process{Type: "process-type-1"},
-							},
-						},
-					},
-				},
-			},
-			&webhook.Route{
-				ApiVersion: "apps.cloudfoundry.org/v1alpha1",
-				Kind:       "Route",
-				ObjectMeta: metav1.ObjectMeta{
-					Name: "route-guid-2",
-					Labels: map[string]string{
-						"cloudfoundry.org/bulk-sync-route": "true",
-						"label-for-routes":                 "cool-label",
-					},
-				},
-				Spec: webhook.RouteSpec{
-					Host: "test2.example.com",
-					Path: "/path2",
-					Domain: webhook.Domain{
-						Guid:     "domain-2-guid",
-						Name:     "domain2.apps.internal",
+						Name:     "domain1.apps.internal",
 						Internal: true,
 					},
 					Destinations: []webhook.Destination{
 						webhook.Destination{
-							Guid:   "destination-guid-2",
+							Guid:   "route-1-destination-guid-0",
 							Port:   8080,
 							Weight: models.IntPtr(80),
 							App: webhook.App{
@@ -183,7 +201,7 @@ var _ = Describe("Sync", func() {
 			syncResponse, err := syncHandler.Sync(syncRequest)
 			Expect(err).ToNot(HaveOccurred())
 			Expect(syncResponse).NotTo(BeNil())
-			Expect(syncResponse.Children).To(Equal([]*webhook.Route{}))
+			Expect(syncResponse.Children).To(Equal([]webhook.Route{}))
 		})
 	})
 

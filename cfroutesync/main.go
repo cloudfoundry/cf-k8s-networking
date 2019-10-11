@@ -5,11 +5,12 @@ import (
 	"flag"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"path/filepath"
 	"strings"
 	"time"
+
+	log "github.com/sirupsen/logrus"
 
 	"code.cloudfoundry.org/cf-networking-helpers/marshal"
 	"code.cloudfoundry.org/tlsconfig"
@@ -29,6 +30,8 @@ func main() {
 }
 
 func mainWithError() error {
+	log.SetFormatter(&log.JSONFormatter{})
+
 	var configDir string
 	flag.StringVar(&configDir, "c", "", "directory with uaa config")
 	flag.Parse()

@@ -12,6 +12,7 @@ require (
 	github.com/lib/pq v1.2.0 // indirect
 	github.com/onsi/ginkgo v1.10.1
 	github.com/onsi/gomega v1.7.0
+	github.com/sirupsen/logrus v1.4.2
 	github.com/tedsuo/ifrit v0.0.0-20191009134036-9a97d0632f00 // indirect
 	google.golang.org/appengine v1.6.5 // indirect
 	k8s.io/apimachinery v0.0.0-20191001195453-082230a5ffdd

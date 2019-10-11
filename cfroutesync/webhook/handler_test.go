@@ -43,8 +43,8 @@ var _ = Describe("ServeHTTP", func() {
 		}
 
 		fakeSyncResponse := &webhook.SyncResponse{
-			Children: []*webhook.Route{
-				&webhook.Route{
+			Children: []webhook.Route{
+				webhook.Route{
 					ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 					Kind:       "Route",
 					ObjectMeta: metav1.ObjectMeta{
@@ -54,7 +54,7 @@ var _ = Describe("ServeHTTP", func() {
 						},
 					},
 					Spec: webhook.RouteSpec{
-						Host: "test1.example.com",
+						Host: "test1",
 						Path: "/path1",
 						Domain: webhook.Domain{
 							Guid:     "domain-guid",
@@ -166,7 +166,7 @@ var _ = Describe("ServeHTTP", func() {
 			"creationTimestamp": null
 		},
 		"spec": {
-			"host": "test1.example.com",
+			"host": "test1",
 			"path": "/path1",
 			"domain": {
 				"guid": "domain-guid",
@@ -194,7 +194,7 @@ var _ = Describe("ServeHTTP", func() {
 		Context("when there are no routes", func() {
 			BeforeEach(func() {
 				fakeSyncResponse := &webhook.SyncResponse{
-					Children: []*webhook.Route{},
+					Children: []webhook.Route{},
 				}
 				fakeSyncer.SyncReturns(fakeSyncResponse, nil)
 			})

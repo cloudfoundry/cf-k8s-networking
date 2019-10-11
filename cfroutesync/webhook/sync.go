@@ -8,7 +8,7 @@ import (
 )
 
 type SyncResponse struct {
-	Children []*Route `json:"children"`
+	Children []Route `json:"children"`
 }
 type SyncRequest struct {
 	Parent BulkSync `json:"parent"`
@@ -39,8 +39,8 @@ func (m *Lineage) Sync(syncRequest SyncRequest) (*SyncResponse, error) {
 	return response, nil
 }
 
-func snapshotToCRDList(snapshot *models.RouteSnapshot, template *Template) []*Route {
-	crds := make([]*Route, len(snapshot.Routes))
+func snapshotToCRDList(snapshot *models.RouteSnapshot, template *Template) []Route {
+	crds := make([]Route, len(snapshot.Routes))
 
 	for i, route := range snapshot.Routes {
 		crds[i] = routeToCRD(route, template)
@@ -48,7 +48,7 @@ func snapshotToCRDList(snapshot *models.RouteSnapshot, template *Template) []*Ro
 	return crds
 }
 
-func routeToCRD(route *models.Route, template *Template) *Route {
+func routeToCRD(route models.Route, template *Template) Route {
 	crd := Route{
 		ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 		Kind:       "Route",
@@ -80,5 +80,5 @@ func routeToCRD(route *models.Route, template *Template) *Route {
 		}
 	}
 
-	return &crd
+	return crd
 }

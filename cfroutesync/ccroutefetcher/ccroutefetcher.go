@@ -3,6 +3,8 @@ package ccroutefetcher
 import (
 	"fmt"
 
+	log "github.com/sirupsen/logrus"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 )
@@ -51,7 +53,7 @@ func (f *Fetcher) FetchOnce() error {
 		domainsMap[domain.Guid] = domain
 	}
 
-	var snapshotRoutes []*models.Route
+	var snapshotRoutes []models.Route
 	for _, route := range routes {
 		destList, err := f.CCClient.ListDestinationsForRoute(route.Guid, token)
 		if err != nil {
@@ -64,18 +66,22 @@ func (f *Fetcher) FetchOnce() error {
 			return fmt.Errorf("route %s refers to missing domain %s", route.Guid, routeDomainGuid)
 		}
 
-		snapshotRoutes = append(snapshotRoutes, buildSnapshot(route, destList, domain))
+		snapshotRoutes = append(snapshotRoutes, buildRouteForSnapshot(route, destList, domain))
 	}
 
-	f.SnapshotRepo.Put(&models.RouteSnapshot{Routes: snapshotRoutes})
+	snapshot := &models.RouteSnapshot{Routes: snapshotRoutes}
+	f.SnapshotRepo.Put(snapshot)
+	log.WithFields(log.Fields{
+		"snapshot": *snapshot,
+	}).Debug("Fetched and put snapshot")
 
 	return nil
 }
 
-func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination, domain ccclient.Domain) *models.Route {
-	var snapshotRouteDestinations []*models.Destination
+func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destination, domain ccclient.Domain) models.Route {
+	var snapshotRouteDestinations []models.Destination
 	for _, ccDestination := range destinations {
-		snapshotDestination := &models.Destination{
+		snapshotDestination := models.Destination{
 			Guid: ccDestination.Guid,
 			App: models.App{
 				Guid:    ccDestination.App.Guid,
@@ -87,12 +93,12 @@ func buildSnapshot(route ccclient.Route, destinations []ccclient.Destination, do
 		snapshotRouteDestinations = append(snapshotRouteDestinations, snapshotDestination)
 	}
 
-	return &models.Route{
+	return models.Route{
 		Guid:         route.Guid,
 		Host:         route.Host,
 		Path:         route.Path,
 		Destinations: snapshotRouteDestinations,
-		Domain: &models.Domain{
+		Domain: models.Domain{
 			Guid:     domain.Guid,
 			Name:     domain.Name,
 			Internal: domain.Internal,

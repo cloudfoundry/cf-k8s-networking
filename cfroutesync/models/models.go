@@ -1,15 +1,15 @@
 package models
 
 type RouteSnapshot struct {
-	Routes []*Route
+	Routes []Route
 }
 
 type Route struct {
 	Guid         string
 	Host         string
 	Path         string
-	Domain       *Domain
-	Destinations []*Destination
+	Domain       Domain
+	Destinations []Destination
 }
 
 type Domain struct {

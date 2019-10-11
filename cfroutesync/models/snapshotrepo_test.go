@@ -13,7 +13,7 @@ var _ = Describe("SnapshotRepo", func() {
 	Specify("Get returns the snapshot that was Put in", func() {
 		repo := models.SnapshotRepo{}
 		thing := &models.RouteSnapshot{
-			Routes: []*models.Route{
+			Routes: []models.Route{
 				{Guid: "foo"},
 				{Guid: "bar"},
 			},
@@ -48,7 +48,7 @@ var _ = Describe("SnapshotRepo", func() {
 		go func(repo *models.SnapshotRepo) {
 			for i := 0; i < numCalls; i++ {
 				thing := &models.RouteSnapshot{
-					Routes: []*models.Route{
+					Routes: []models.Route{
 						{Guid: "foo"},
 						{Guid: "bar"},
 					},
