@@ -1,0 +1,33 @@
+name: Tests
+on: [push]
+jobs:
+  build:
+    name: CF Route Syncer
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+
+    - name: Check out code
+      uses: actions/checkout@v1
+
+    - name: Get dependencies
+      working-directory: cfroutesync
+      run: |
+        go get -v -t -d ./...
+
+    - name: Fmt and build
+      working-directory: cfroutesync
+      run: |
+        needsFmt="$(go fmt ./...)"; [ -z "$needsFmt" ] || (printf "please go fmt:\n$needsFmt"; exit 1)
+        go build -o /dev/null -v .
+
+    - name: Run tests
+      working-directory: cfroutesync
+      run: |
+        go build -o $HOME/ginkgo github.com/onsi/ginkgo/ginkgo
+        $HOME/ginkgo -r --race .
