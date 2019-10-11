@@ -8,9 +8,9 @@ import (
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/uaaclient"
 
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/uaaclient/fakes"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/uaaclient/fakes"
 )
 
 var _ = Describe("Client", func() {

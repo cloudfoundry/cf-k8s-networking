@@ -71,8 +71,6 @@ func mainWithError() error {
 
 		time.Sleep(10 * time.Second)
 	}
-
-	return nil
 }
 
 type Config struct {

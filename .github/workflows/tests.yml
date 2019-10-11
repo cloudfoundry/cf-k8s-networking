@@ -30,4 +30,5 @@ jobs:
       working-directory: cfroutesync
       run: |
         go build -o $HOME/ginkgo github.com/onsi/ginkgo/ginkgo
-        $HOME/ginkgo -r --race .
+        export PATH=$PATH:$HOME
+        bin/test
