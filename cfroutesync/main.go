@@ -4,19 +4,16 @@ import (
 	"encoding/json"
 	"flag"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"path/filepath"
-	"strings"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 
 	"code.cloudfoundry.org/cf-networking-helpers/marshal"
 	"code.cloudfoundry.org/tlsconfig"
+	log "github.com/sirupsen/logrus"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccroutefetcher"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/cfg"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/jsonclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/uaaclient"
@@ -33,23 +30,60 @@ func mainWithError() error {
 	log.SetFormatter(&log.JSONFormatter{})
 
 	var configDir string
-	flag.StringVar(&configDir, "c", "", "directory with uaa config")
+	var listenAddr string
+	flag.StringVar(&configDir, "c", "", "config directory")
+	flag.StringVar(&listenAddr, "l", ":8080", "listen address for serving webhook to metacontroller")
 	flag.Parse()
 
 	if configDir == "" {
-		return fmt.Errorf("missing required flag for uaa config dir")
+		return fmt.Errorf("missing required flag for config dir")
 	}
 
-	uaaClient, ccClient, err := buildClients(&Config{configDir})
+	config, err := cfg.FromDir(configDir)
 	if err != nil {
-		return err
+		return fmt.Errorf("loading config: %w", err)
+	}
+	log.WithFields(log.Fields{"dir": configDir}).Info("loaded config")
+
+	uaaTLSConfig, err := tlsconfig.
+		Build(tlsconfig.WithInternalServiceDefaults()).
+		Client(tlsconfig.WithAuthorityFromFile(config.UAA.CAFile))
+	if err != nil {
+		return fmt.Errorf("building UAA TLS config: %w", err)
+	}
+
+	ccTLSConfig, err := tlsconfig.
+		Build(tlsconfig.WithInternalServiceDefaults()).
+		Client(tlsconfig.WithAuthorityFromFile(config.CC.CAFile))
+	if err != nil {
+		return fmt.Errorf("building CC TLS config: %w", err)
 	}
 
 	snapshotRepo := &models.SnapshotRepo{}
 
 	fetcher := &ccroutefetcher.Fetcher{
-		CCClient:     ccClient,
-		UAAClient:    uaaClient,
+		CCClient: &ccclient.Client{
+			BaseURL: config.CC.BaseURL,
+			JSONClient: &jsonclient.JSONClient{
+				HTTPClient: &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: ccTLSConfig,
+					},
+				},
+			},
+		},
+		UAAClient: &uaaclient.Client{
+			BaseURL: config.UAA.BaseURL,
+			Name:    config.UAA.ClientName,
+			Secret:  config.UAA.ClientSecret,
+			JSONClient: &jsonclient.JSONClient{
+				HTTPClient: &http.Client{
+					Transport: &http.Transport{
+						TLSClientConfig: uaaTLSConfig,
+					},
+				},
+			},
+		},
 		SnapshotRepo: snapshotRepo,
 	}
 
@@ -61,76 +95,17 @@ func mainWithError() error {
 			RouteSnapshotRepo: snapshotRepo,
 		},
 	})
-	go http.ListenAndServe(":8080", webhookMux)
 
+	log.Info("starting webhook server")
+	go http.ListenAndServe(listenAddr, webhookMux)
+
+	log.Info("starting cc fetch loop")
 	for {
 		err := fetcher.FetchOnce()
 		if err != nil {
-			log.Printf("fetch error: %s", err)
+			log.WithError(err).Errorf("fetching")
 		}
 
 		time.Sleep(10 * time.Second)
 	}
-}
-
-type Config struct {
-	configDir string
-}
-
-func (c *Config) configFilePath(configFilename string) string {
-	return filepath.Join(c.configDir, configFilename)
-}
-
-func (c *Config) getConfigString(configFilename string) (string, error) {
-	bytes, err := ioutil.ReadFile(c.configFilePath(configFilename))
-	if err != nil {
-		return "", err
-	}
-	return strings.TrimSpace(string(bytes)), nil
-}
-func buildClients(c *Config) (*uaaclient.Client, *ccclient.Client, error) {
-	uaaBaseUrl, err := c.getConfigString("uaaBaseUrl")
-	if err != nil {
-		return nil, nil, err
-	}
-	clientName, err := c.getConfigString("clientName")
-	if err != nil {
-		return nil, nil, err
-	}
-	clientSecret, err := c.getConfigString("clientSecret")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	ccBaseUrl, err := c.getConfigString("ccBaseUrl")
-	if err != nil {
-		return nil, nil, err
-	}
-
-	tlsConfig, err := tlsconfig.
-		Build(tlsconfig.WithInternalServiceDefaults()).
-		Client(tlsconfig.WithAuthorityFromFile(c.configFilePath("ca")))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	httpClient := &http.Client{
-		Transport: &http.Transport{
-			TLSClientConfig: tlsConfig,
-		},
-	}
-
-	jsonClient := &jsonclient.JSONClient{
-		HTTPClient: httpClient,
-	}
-
-	return &uaaclient.Client{
-			BaseURL:    uaaBaseUrl,
-			Name:       clientName,
-			Secret:     clientSecret,
-			JSONClient: jsonClient,
-		}, &ccclient.Client{
-			BaseURL:    ccBaseUrl,
-			JSONClient: jsonClient,
-		}, nil
 }
