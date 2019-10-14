@@ -54,6 +54,9 @@ var _ = Describe("ServeHTTP", func() {
 						},
 					},
 					Spec: webhook.RouteSpec{
+						Selector: webhook.Selector{
+							MatchLabels: map[string]string{"cloudfoundry.org/route": "route-guid-1"},
+						},
 						Host: "test1",
 						Path: "/path1",
 						Domain: webhook.Domain{
@@ -166,6 +169,11 @@ var _ = Describe("ServeHTTP", func() {
 			"creationTimestamp": null
 		},
 		"spec": {
+			"selector": {
+				"matchLabels": {
+					"cloudfoundry.org/route": "route-guid-1"
+				}
+			},
 			"host": "test1",
 			"path": "/path1",
 			"domain": {

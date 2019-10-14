@@ -35,6 +35,8 @@ spec:
         spec:
           type: object
           properties:
+            selector:
+              type: object
             host:
               type: string
             path:
