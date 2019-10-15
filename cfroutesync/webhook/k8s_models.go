@@ -33,7 +33,6 @@ type Route struct {
 }
 
 type RouteSpec struct {
-	Selector     Selector      `json:"selector"`
 	Host         string        `json:"host"`
 	Path         string        `json:"path"`
 	Domain       Domain        `json:"domain"`

@@ -57,11 +57,6 @@ func routeToCRD(route models.Route, template *Template) Route {
 			Labels: template.ObjectMeta.Labels,
 		},
 		Spec: RouteSpec{
-			Selector: Selector{
-				MatchLabels: map[string]string{
-					"cloudfoundry.org/route": route.Guid,
-				},
-			},
 			Host: route.Host,
 			Path: route.Path,
 			Domain: Domain{

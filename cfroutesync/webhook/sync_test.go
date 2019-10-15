@@ -112,9 +112,6 @@ var _ = Describe("Sync", func() {
 					},
 				},
 				Spec: webhook.RouteSpec{
-					Selector: webhook.Selector{MatchLabels: map[string]string{
-						"cloudfoundry.org/route": "route-guid-0",
-					}},
 					Host: "test0",
 					Path: "/path0",
 					Domain: webhook.Domain{
@@ -155,10 +152,6 @@ var _ = Describe("Sync", func() {
 					},
 				},
 				Spec: webhook.RouteSpec{
-					Selector: webhook.Selector{MatchLabels: map[string]string{
-						"cloudfoundry.org/route": "route-guid-1",
-					}},
-
 					Host: "test1",
 					Path: "/path1",
 					Domain: webhook.Domain{
