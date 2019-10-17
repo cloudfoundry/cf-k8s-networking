@@ -64,9 +64,17 @@
             doppler_address_with_az: doppler.service.cf.internal:8082
             fluentd_image: eirini/loggregator-fluentd
             loggregator_agent_image: loggregator/agent
+            server_cert: ((eirini_tls_server_cert.certificate))
+            server_key: ((eirini_tls_server_cert.private_key))
+            client_ca: ((service_cf_internal_ca.certificate))
           opi:
+            certs_secret_name: eirini-staging-secret
             workloads_namespace: cf-workloads
             system_namespace: cf-system
+          cc:
+            server_cert_key: ((cc_bridge_tps.certificate))
+            server_cert: ((cc_bridge_tps.private_key))
+            ca_cert: ((service_cf_internal_ca.certificate))
           loggregator:
             agent-cert: ((loggregator_tls_agent.certificate))
             agent-cert-key: ((loggregator_tls_agent.private_key))
@@ -138,7 +146,6 @@
 - type: replace
   path: /releases/name=eirini?/version?
   value: latest
-
 # Enable OPI in CC
 - type: replace
   path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/opi?/enabled?
