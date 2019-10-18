@@ -5,6 +5,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
+	log "github.com/sirupsen/logrus"
+
 	"code.cloudfoundry.org/cf-networking-helpers/marshal"
 )
 
@@ -33,6 +35,8 @@ func (r *SyncHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		r.respondWithCode(http.StatusBadRequest, rw, "failed to unmarshal request")
 		return
 	}
+
+	log.WithFields(log.Fields{"request": syncRequest}).Info("metacontroller request received")
 
 	response, err := r.Syncer.Sync(*syncRequest)
 	if err != nil {

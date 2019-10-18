@@ -1,0 +1,73 @@
+# Route (new CRD, schema feedback welcome!)
+# 1:1 with CCv3 Route
+apiVersion: "apiextensions.k8s.io/v1beta1"
+kind: "CustomResourceDefinition"
+metadata:
+  name: routes.apps.cloudfoundry.org
+spec:
+  group: apps.cloudfoundry.org
+  versions:
+    - name: v1alpha1
+      served: true
+      storage: true
+  scope: Namespaced
+  names:
+    plural: routes
+    singular: route
+    kind: Route
+  additionalPrinterColumns:
+    - name: Host
+      type: string
+      description: The host for the route
+      JSONPath: .spec.host
+    - name: Domain
+      type: string
+      description: The domain name for the route
+      JSONPath: .spec.domain.name
+    - name: Path
+      type: string
+      description: The path for the route
+      JSONPath: .spec.path
+  validation:
+    openAPIV3Schema:
+      type: object
+      properties:
+        spec:
+          type: object
+          properties:
+            selector:
+              type: object
+            host:
+              type: string
+            path:
+              type: string
+            domain:
+              type: object
+              properties:
+                guid:
+                  type: string
+                name:
+                  type: string
+                internal:
+                  type: boolean
+            destinations:
+              type: array
+              items:
+                type: object
+                properties:
+                  guid:
+                    type: string
+                  app:
+                    type: object
+                    properties:
+                      guid:
+                        type: string
+                      process:
+                        type: object
+                        properties:
+                          type:  # field name for process type
+                            type: string
+                  port:
+                    type: integer
+                  weight:
+                    type: integer

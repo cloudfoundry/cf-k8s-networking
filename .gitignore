@@ -11,3 +11,4 @@ bin/*.sh
 tags
 .DS_Store
 *.coverprofile
+cfroutesync/integration/.kube

@@ -5,19 +5,24 @@ import (
 	"crypto/x509"
 	"encoding/json"
 	"encoding/pem"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
 	"sync"
 
-	log "github.com/sirupsen/logrus"
+	"k8s.io/client-go/rest"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/cfg"
+	log "github.com/sirupsen/logrus"
+	fakeapiserver "sigs.k8s.io/controller-runtime/pkg/envtest"
 )
 
 type TestEnv struct {
@@ -38,6 +43,10 @@ type TestEnv struct {
 			Destinations map[string][]ccclient.Destination
 		}
 	}
+	FakeApiServerEnv *fakeapiserver.Environment
+	KubeConfigPath   string
+
+	TestOutput io.Writer
 }
 
 func (te *TestEnv) FakeUAAServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -67,13 +76,16 @@ func (te *TestEnv) FakeCCServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func NewTestEnv() (*TestEnv, error) {
+func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
 	configDir, err := ioutil.TempDir("", "cfroutesync-integ-test-config-dir")
 	if err != nil {
 		return nil, err
 	}
 
-	testEnv := &TestEnv{ConfigDir: configDir}
+	testEnv := &TestEnv{
+		ConfigDir:  configDir,
+		TestOutput: testOutput,
+	}
 
 	testEnv.FakeUAA.Handler = http.HandlerFunc(testEnv.FakeUAAServeHTTP)
 	testEnv.FakeUAA.Server = httptest.NewTLSServer(testEnv.FakeUAA.Handler)
@@ -102,21 +114,19 @@ func NewTestEnv() (*TestEnv, error) {
 		}
 	}
 
+	testEnv.FakeApiServerEnv = &fakeapiserver.Environment{}
+
+	testEnvConfig, err = testEnv.FakeApiServerEnv.Start()
+	if err != nil {
+		return nil, fmt.Errorf("starting fake api server: %w", err)
+	}
+
+	testEnv.KubeConfigPath, err = createKubeConfig(testEnvConfig)
+	if err != nil {
+		return nil, fmt.Errorf("writing kube config: %w", err)
+	}
+
 	return testEnv, nil
-}
-
-func tlsCertToPem(cert *x509.Certificate) ([]byte, error) {
-	pemBlock := &pem.Block{
-		Type:    "CERTIFICATE",
-		Headers: nil,
-		Bytes:   cert.Raw,
-	}
-
-	buf := new(bytes.Buffer)
-	if err := pem.Encode(buf, pemBlock); err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 func (te *TestEnv) Cleanup() {
@@ -140,4 +150,98 @@ func (te *TestEnv) Cleanup() {
 		te.FakeCC.Server.Close()
 		te.FakeCC.Server = nil
 	}
+}
+
+func tlsCertToPem(cert *x509.Certificate) ([]byte, error) {
+	pemBlock := &pem.Block{
+		Type:    "CERTIFICATE",
+		Headers: nil,
+		Bytes:   cert.Raw,
+	}
+
+	buf := new(bytes.Buffer)
+	if err := pem.Encode(buf, pemBlock); err != nil {
+		return nil, err
+	}
+	return buf.Bytes(), nil
+}
+
+func (te *TestEnv) kubectl(args ...string) ([]byte, error) {
+	cmd := exec.Command("kubectl", args...)
+	cmd.Env = []string{
+		fmt.Sprintf("KUBECONFIG=%s", te.KubeConfigPath),
+		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+	}
+	cmd.Stderr = te.TestOutput
+
+	fmt.Fprintf(te.TestOutput, "+ kubectl %s\n", strings.Join(args, " "))
+	output, err := cmd.Output()
+	return output, err
+}
+
+func createKubeConfig(config *rest.Config) (string, error) {
+	kubeConfig, err := ioutil.TempFile("", "kubeconfig")
+	if err != nil {
+		return "", err
+	}
+	defer kubeConfig.Close()
+
+	payload := fmt.Sprintf(`apiVersion: v1
+clusters:
+- cluster:
+    server: %s
+  name: test-env
+contexts:
+- context:
+    cluster: test-env
+    user: test-user
+  name: test-env
+current-context: test-env
+kind: Config
+users:
+- name: test-user
+  user:
+    token: %s`, config.Host, config.BearerToken)
+
+	_, err = kubeConfig.Write([]byte(payload))
+	if err != nil {
+		return "", nil
+	}
+
+	return kubeConfig.Name(), nil
+}
+
+func createCompositeController(webhookHost string) (string, error) {
+	compositeControllerYAML, err := ioutil.TempFile("", "compositecontroller.yaml")
+	if err != nil {
+		return "", err
+	}
+	defer compositeControllerYAML.Close()
+
+	payload := fmt.Sprintf(`---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: cfroutesync
+spec:
+  resyncPeriodSeconds: 5
+  parentResource:
+    apiVersion: apps.cloudfoundry.org/v1alpha1
+    resource: routebulksyncs
+  childResources:
+    - apiVersion: apps.cloudfoundry.org/v1alpha1
+      resource: routes
+      updateStrategy:
+        method: Recreate
+  hooks:
+    sync:
+      webhook:
+        url: http://%s/sync`, webhookHost)
+
+	_, err = compositeControllerYAML.Write([]byte(payload))
+	if err != nil {
+		return "", nil
+	}
+
+	return compositeControllerYAML.Name(), nil
 }

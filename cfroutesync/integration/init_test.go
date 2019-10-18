@@ -8,6 +8,8 @@ import (
 	ginkgoConfig "github.com/onsi/ginkgo/config"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
+
+	"k8s.io/client-go/rest"
 )
 
 func TestIntegration(t *testing.T) {
@@ -17,6 +19,8 @@ func TestIntegration(t *testing.T) {
 
 var (
 	binaryPathCFRouteSync string
+
+	testEnvConfig *rest.Config
 )
 
 var _ = SynchronizedBeforeSuite(func() []byte {
@@ -29,6 +33,7 @@ var _ = SynchronizedBeforeSuite(func() []byte {
 }, func(data []byte) {
 	binaryPathCFRouteSync = string(data)
 	rand.Seed(ginkgoConfig.GinkgoConfig.RandomSeed + int64(GinkgoParallelNode()))
+
 })
 
 var _ = SynchronizedAfterSuite(func() {}, func() {
