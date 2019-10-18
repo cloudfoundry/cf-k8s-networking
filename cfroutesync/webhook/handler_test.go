@@ -7,10 +7,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
-
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
-
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook/fakes"
 	hfakes "code.cloudfoundry.org/cf-networking-helpers/fakes"
 	. "github.com/onsi/ginkgo"
@@ -43,7 +41,7 @@ var _ = Describe("ServeHTTP", func() {
 		}
 
 		fakeSyncResponse := &webhook.SyncResponse{
-			Children: []webhook.Route{
+			Children: []webhook.K8sResource{
 				webhook.Route{
 					ApiVersion: "apps.cloudfoundry.org/v1alpha1",
 					Kind:       "Route",
@@ -194,7 +192,7 @@ var _ = Describe("ServeHTTP", func() {
 		Context("when there are no routes", func() {
 			BeforeEach(func() {
 				fakeSyncResponse := &webhook.SyncResponse{
-					Children: []webhook.Route{},
+					Children: []webhook.K8sResource{},
 				}
 				fakeSyncer.SyncReturns(fakeSyncResponse, nil)
 			})

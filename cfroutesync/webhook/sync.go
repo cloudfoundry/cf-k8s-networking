@@ -2,13 +2,18 @@ package webhook
 
 import (
 	"errors"
+	"fmt"
+	"path"
+	"sort"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
+type K8sResource interface{}
+
 type SyncResponse struct {
-	Children []Route `json:"children"`
+	Children []K8sResource `json:"children"`
 }
 type SyncRequest struct {
 	Parent BulkSync `json:"parent"`
@@ -23,6 +28,7 @@ var UninitializedError = errors.New("uninitialized: have not yet synchronized wi
 
 type Lineage struct {
 	RouteSnapshotRepo snapshotRepo
+	IstioGateways     []string
 }
 
 // Sync generates child resources for a metacontroller /sync request
@@ -31,7 +37,7 @@ func (m *Lineage) Sync(syncRequest SyncRequest) (*SyncResponse, error) {
 	if !ok {
 		return nil, UninitializedError
 	}
-	crds := snapshotToCRDList(snapshot, &syncRequest.Parent.Spec.Template)
+	crds := m.snapshotToCRDList(snapshot, syncRequest.Parent.Spec.Template)
 	response := &SyncResponse{
 		Children: crds,
 	}
@@ -39,46 +45,154 @@ func (m *Lineage) Sync(syncRequest SyncRequest) (*SyncResponse, error) {
 	return response, nil
 }
 
-func snapshotToCRDList(snapshot *models.RouteSnapshot, template *Template) []Route {
-	crds := make([]Route, len(snapshot.Routes))
+func (m *Lineage) snapshotToCRDList(snapshot *models.RouteSnapshot, template Template) []K8sResource {
+	crds := make([]K8sResource, 0)
+	for _, route := range snapshot.Routes {
+		for _, s := range routeToServices(route, template) {
+			crds = append(crds, s)
+		}
+	}
 
-	for i, route := range snapshot.Routes {
-		crds[i] = routeToCRD(route, template)
+	routesForFQDN := groupByFQDN(snapshot.Routes)
+	sortedFQDNs := sortFQDNs(routesForFQDN)
+
+	for _, fqdn := range sortedFQDNs {
+		destinations := destinationsForFQDN(fqdn, routesForFQDN)
+		if len(destinations) != 0 {
+			crds = append(crds, m.fqdnToVirtualService(fqdn, routesForFQDN[fqdn], template))
+		}
 	}
 	return crds
 }
 
-func routeToCRD(route models.Route, template *Template) Route {
-	crd := Route{
-		ApiVersion: "apps.cloudfoundry.org/v1alpha1",
-		Kind:       "Route",
+func (m *Lineage) fqdnToVirtualService(fqdn string, routes []models.Route, template Template) VirtualService {
+	vs := VirtualService{
+		ApiVersion: "networking.istio.io/v1alpha3",
+		Kind:       "VirtualService",
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   route.Guid,
-			Labels: template.ObjectMeta.Labels,
+			Name:   fqdn,
+			Labels: cloneLabels(template.ObjectMeta.Labels),
 		},
-		Spec: RouteSpec{
-			Host: route.Host,
-			Path: route.Path,
-			Domain: Domain{
-				Guid:     route.Domain.Guid,
-				Name:     route.Domain.Name,
-				Internal: route.Domain.Internal,
-			},
-		},
+		Spec: VirtualServiceSpec{Hosts: []string{fqdn}},
 	}
 
-	crd.Spec.Destinations = make([]Destination, len(route.Destinations))
-	for i, routeDest := range route.Destinations {
-		crd.Spec.Destinations[i] = Destination{
-			Guid: routeDest.Guid,
-			App: App{
-				Guid:    routeDest.App.Guid,
-				Process: Process{Type: routeDest.App.Process.Type},
-			},
-			Weight: routeDest.Weight,
-			Port:   routeDest.Port,
+	// we are assuming that internal and external routes cannot share an fqdn
+	if routes[0].Domain.Internal {
+		vs.Spec.Gateways = []string{"mesh"}
+	} else {
+		vs.Spec.Gateways = m.IstioGateways
+	}
+
+	sortRoutes(routes)
+
+	for _, route := range routes {
+		istioRoute := HTTPRoute{
+			Route: destinationsToHttpRouteDestinations(route.Destinations),
 		}
+		if route.Path != "" {
+			istioRoute.Match = []HTTPMatchRequest{{Uri: HTTPPrefixMatch{Prefix: route.Path}}}
+		}
+		vs.Spec.Http = append(vs.Spec.Http, istioRoute)
 	}
 
-	return crd
+	return vs
+}
+
+func destinationsForFQDN(fqdn string, routesByFQDN map[string][]models.Route) []models.Destination {
+	destinations := make([]models.Destination, 0)
+	routes := routesByFQDN[fqdn]
+	for _, route := range routes {
+		destinations = append(destinations, route.Destinations...)
+	}
+	return destinations
+}
+
+func groupByFQDN(routes []models.Route) map[string][]models.Route {
+	fqdns := make(map[string][]models.Route)
+	for _, route := range routes {
+		n := fqdn(route)
+		fqdns[n] = append(fqdns[n], route)
+	}
+	return fqdns
+}
+
+func sortFQDNs(fqdns map[string][]models.Route) []string {
+	var fqdnSlice []string
+	for fqdn, _ := range fqdns {
+		fqdnSlice = append(fqdnSlice, fqdn)
+	}
+	sort.Strings(fqdnSlice)
+	// so that the results are stable
+	return fqdnSlice
+}
+
+func sortRoutes(routes []models.Route) {
+	sort.Slice(routes, func(i, j int) bool {
+		return url(routes[i]) > url(routes[j])
+	})
+}
+
+func url(route models.Route) string {
+	return path.Join(fqdn(route), route.Path)
+}
+
+// service names cannot start with numbers
+func serviceName(dest models.Destination) string {
+	return fmt.Sprintf("s-%s", dest.Guid)
+}
+
+func cloneLabels(template map[string]string) map[string]string {
+	labels := make(map[string]string)
+	for k, v := range template {
+		labels[k] = v
+	}
+	return labels
+}
+
+func fqdn(route models.Route) string {
+	if route.Host == "" {
+		return route.Domain.Name
+	}
+	return fmt.Sprintf("%s.%s", route.Host, route.Domain.Name)
+}
+
+func routeToServices(route models.Route, template Template) []Service {
+	services := []Service{}
+	for _, dest := range route.Destinations {
+		crd := Service{
+			ApiVersion: "v1",
+			Kind:       "Service",
+			ObjectMeta: metav1.ObjectMeta{
+				Name:   serviceName(dest),
+				Labels: cloneLabels(template.ObjectMeta.Labels),
+			},
+			Spec: ServiceSpec{
+				Selector: map[string]string{
+					"app_guid":     dest.App.Guid,
+					"process_type": dest.App.Process.Type,
+				},
+				Ports: []ServicePort{{Port: dest.Port}},
+			},
+		}
+		crd.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
+		crd.ObjectMeta.Labels["cloudfoundry.org/process"] = dest.App.Process.Type
+		crd.ObjectMeta.Labels["cloudfoundry.org/route"] = route.Guid
+		crd.ObjectMeta.Labels["cloudfoundry.org/route-fqdn"] = fqdn(route)
+		services = append(services, crd)
+	}
+	return services
+}
+
+func destinationsToHttpRouteDestinations(destinations []models.Destination) []HTTPRouteDestination {
+	httpDestinations := make([]HTTPRouteDestination, 0)
+	for _, destination := range destinations {
+		httpDestination := HTTPRouteDestination{
+			Destination: VirtualServiceDestination{Host: serviceName(destination)},
+		}
+		if destination.Weight != nil {
+			httpDestination.Weight = destination.Weight
+		}
+		httpDestinations = append(httpDestinations, httpDestination)
+	}
+	return httpDestinations
 }
