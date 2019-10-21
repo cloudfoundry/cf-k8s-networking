@@ -1,5 +1,7 @@
 package models
 
+import "fmt"
+
 type RouteSnapshot struct {
 	Routes []Route
 }
@@ -8,6 +10,7 @@ type Route struct {
 	Guid         string
 	Host         string
 	Path         string
+	Url          string
 	Domain       Domain
 	Destinations []Destination
 }
@@ -32,6 +35,13 @@ type App struct {
 
 type Process struct {
 	Type string
+}
+
+func (r Route) FQDN() string {
+	if r.Host == "" {
+		return r.Domain.Name
+	}
+	return fmt.Sprintf("%s.%s", r.Host, r.Domain.Name)
 }
 
 func IntPtr(x int) *int {

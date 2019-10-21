@@ -3,7 +3,6 @@ package webhook
 import (
 	"errors"
 	"fmt"
-	"path"
 	"sort"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
@@ -110,7 +109,7 @@ func destinationsForFQDN(fqdn string, routesByFQDN map[string][]models.Route) []
 func groupByFQDN(routes []models.Route) map[string][]models.Route {
 	fqdns := make(map[string][]models.Route)
 	for _, route := range routes {
-		n := fqdn(route)
+		n := route.FQDN()
 		fqdns[n] = append(fqdns[n], route)
 	}
 	return fqdns
@@ -128,12 +127,8 @@ func sortFQDNs(fqdns map[string][]models.Route) []string {
 
 func sortRoutes(routes []models.Route) {
 	sort.Slice(routes, func(i, j int) bool {
-		return url(routes[i]) > url(routes[j])
+		return routes[i].Url > routes[j].Url
 	})
-}
-
-func url(route models.Route) string {
-	return path.Join(fqdn(route), route.Path)
 }
 
 // service names cannot start with numbers
@@ -147,13 +142,6 @@ func cloneLabels(template map[string]string) map[string]string {
 		labels[k] = v
 	}
 	return labels
-}
-
-func fqdn(route models.Route) string {
-	if route.Host == "" {
-		return route.Domain.Name
-	}
-	return fmt.Sprintf("%s.%s", route.Host, route.Domain.Name)
 }
 
 func routeToServices(route models.Route, template Template) []Service {
@@ -177,7 +165,7 @@ func routeToServices(route models.Route, template Template) []Service {
 		service.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
 		service.ObjectMeta.Labels["cloudfoundry.org/process"] = dest.App.Process.Type
 		service.ObjectMeta.Labels["cloudfoundry.org/route"] = route.Guid
-		service.ObjectMeta.Labels["cloudfoundry.org/route-fqdn"] = fqdn(route)
+		service.ObjectMeta.Labels["cloudfoundry.org/route-fqdn"] = route.FQDN()
 		services = append(services, service)
 	}
 	return services

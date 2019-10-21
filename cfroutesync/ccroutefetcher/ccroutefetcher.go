@@ -97,6 +97,7 @@ func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destina
 		Guid:         route.Guid,
 		Host:         route.Host,
 		Path:         route.Path,
+		Url:          route.Url,
 		Destinations: snapshotRouteDestinations,
 		Domain: models.Domain{
 			Guid:     domain.Guid,

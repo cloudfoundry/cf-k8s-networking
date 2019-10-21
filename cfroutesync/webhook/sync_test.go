@@ -48,6 +48,7 @@ var _ = Describe("Sync", func() {
 					Guid: "route-guid-0",
 					Host: "test0",
 					Path: "/path0",
+					Url:  "test0.domain0.example.com/path0",
 					Domain: models.Domain{
 						Guid:     "domain-0-guid",
 						Name:     "domain0.example.com",
@@ -77,6 +78,8 @@ var _ = Describe("Sync", func() {
 				models.Route{
 					Guid: "route-guid-1",
 					Host: "test1",
+					Path: "",
+					Url:  "test1.domain1.apps.internal",
 					Domain: models.Domain{
 						Guid:     "domain-1-guid",
 						Name:     "domain1.apps.internal",
@@ -97,7 +100,8 @@ var _ = Describe("Sync", func() {
 				models.Route{
 					Guid: "route-guid-2",
 					Host: "test0",
-					Path: "/path0/deeper", // test that longst path matches first
+					Path: "/path0/deeper", // test that longest path matches first
+					Url:  "test0.domain0.example.com/path0/deeper",
 					Domain: models.Domain{
 						Guid:     "domain-0-guid",
 						Name:     "domain0.example.com",

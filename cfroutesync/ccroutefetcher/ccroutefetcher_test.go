@@ -105,6 +105,7 @@ var _ = Describe("Fetching once", func() {
 					Guid: "route-0-guid",
 					Host: "route-0-host",
 					Path: "route-0-path",
+					Url:  "route-0-url",
 					Domain: models.Domain{
 						Guid:     "domain-0",
 						Name:     "domain0.example.com",
@@ -135,6 +136,7 @@ var _ = Describe("Fetching once", func() {
 					Guid: "route-1-guid",
 					Host: "route-1-host",
 					Path: "route-1-path",
+					Url:  "route-1-url",
 					Domain: models.Domain{
 						Guid:     "domain-1",
 						Name:     "domain1.apps.internal",
@@ -156,6 +158,7 @@ var _ = Describe("Fetching once", func() {
 					Guid: "route-2-guid",
 					Host: "route-2-host",
 					Path: "route-2-path",
+					Url:  "route-2-url",
 					Domain: models.Domain{
 						Guid:     "domain-1",
 						Name:     "domain1.apps.internal",
