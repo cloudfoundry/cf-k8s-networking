@@ -12,7 +12,6 @@ docker push gcr.io/cf-routing-desserts/cfroutesync
 
 echo 'Applying routebulksync and route custom resources'
 kubectl apply -f "${cfroutesync_dir}/crds/routebulksync.yaml"
-kubectl apply -f "${cfroutesync_dir}/crds/route.yaml"
 
 echo 'Deploying to Kubernetes'
 pushd ~/workspace/eirini-dev-1-config

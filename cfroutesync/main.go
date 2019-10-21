@@ -98,6 +98,7 @@ func mainWithError() error {
 		Unmarshaler: marshal.UnmarshalFunc(json.Unmarshal),
 		Syncer: &webhook.Lineage{
 			RouteSnapshotRepo: snapshotRepo,
+			IstioGateways:     config.Istio.Gateways,
 		},
 	})
 

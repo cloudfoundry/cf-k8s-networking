@@ -28,6 +28,11 @@ type Config struct {
 		// PEM file path for the certificate authority that signed the CC server cert
 		CAFile string
 	}
+
+	Istio struct {
+		// List of Istio Gateway names to use for workload ingress
+		Gateways []string
+	}
 }
 
 const (
@@ -75,5 +80,6 @@ func FromDir(configDir string) (*Config, error) {
 	c.UAA.CAFile = getPath(FileUAACA)
 	c.CC.BaseURL = ccBaseUrl
 	c.CC.CAFile = getPath(FileCCCA)
+	c.Istio.Gateways = []string{"istio-ingress"}
 	return c, nil
 }
