@@ -2,6 +2,7 @@ apiVersion: apps.cloudfoundry.org/v1alpha1
 kind: RouteBulkSync
 metadata:
   name: route-bulk-sync
+  namespace: cf-workloads
 spec:
   selector:
     matchLabels:

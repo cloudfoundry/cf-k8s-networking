@@ -64,7 +64,7 @@ func (te *TestEnv) FakeCCServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case strings.Contains(r.URL.Path, "destinations"):
 		routeGUIDs := regexp.MustCompile("/v3/routes/(.*)/destinations").FindStringSubmatch(r.URL.Path)
 		json.NewEncoder(w).Encode(map[string]interface{}{
-			"resources": te.FakeCC.Data.Destinations[routeGUIDs[1]],
+			"destinations": te.FakeCC.Data.Destinations[routeGUIDs[1]],
 		})
 	case strings.Contains(r.URL.Path, "routes"):
 		json.NewEncoder(w).Encode(map[string]interface{}{

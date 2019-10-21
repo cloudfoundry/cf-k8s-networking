@@ -1,11 +1,13 @@
 package integration_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"os/exec"
 	"time"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 	"code.cloudfoundry.org/cf-networking-helpers/testsupport/ports"
 
 	. "github.com/onsi/ginkgo"
@@ -93,6 +95,37 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 				Internal: true,
 			},
 		}
+
+		te.FakeCC.Data.Destinations = map[string][]ccclient.Destination{}
+		te.FakeCC.Data.Destinations["route-0-guid"] = []ccclient.Destination{
+			{
+				Guid:   "destination-0",
+				Port:   8000,
+				Weight: nil,
+			},
+		}
+		te.FakeCC.Data.Destinations["route-0-guid"][0].App.Guid = "destination-0-app-guid"
+		te.FakeCC.Data.Destinations["route-0-guid"][0].App.Process.Type = "destination-0-process-type"
+
+		te.FakeCC.Data.Destinations["route-1-guid"] = []ccclient.Destination{
+			{
+				Guid:   "destination-1",
+				Port:   8000,
+				Weight: nil,
+			},
+		}
+		te.FakeCC.Data.Destinations["route-1-guid"][0].App.Guid = "destination-1-app-guid"
+		te.FakeCC.Data.Destinations["route-1-guid"][0].App.Process.Type = "destination-1-process-type"
+
+		te.FakeCC.Data.Destinations["route-2-guid"] = []ccclient.Destination{
+			{
+				Guid:   "destination-2",
+				Port:   8000,
+				Weight: nil,
+			},
+		}
+		te.FakeCC.Data.Destinations["route-2-guid"][0].App.Guid = "destination-2-app-guid"
+		te.FakeCC.Data.Destinations["route-2-guid"][0].App.Process.Type = "destination-2-process-type"
 	})
 
 	AfterEach(func() {
@@ -117,11 +150,41 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 
 		Eventually(session.Out).Should(gbytes.Say("starting webhook server"))
 		Eventually(session.Out).Should(gbytes.Say("starting cc fetch loop"))
+		Eventually(session.Out, 10*time.Second).Should(gbytes.Say("Fetched and put snapshot"))
 		Eventually(session.Out, 10*time.Second).Should(gbytes.Say("metacontroller"))
 
-		out, err := te.kubectl("get", "services", "--all-namespaces")
-		Expect(err).NotTo(HaveOccurred())
-		fmt.Println(string(out))
+		type servicesResponse struct {
+			Items []webhook.Service `json:"items"`
+		}
+		actualServicesResponse := &servicesResponse{}
+		Eventually(func() ([]webhook.Service, error) {
+			out, err := te.kubectl("get", "services", "-n", "cf-workloads", "-o", "json")
+			if err != nil {
+				return []webhook.Service{}, err
+			}
+			err = json.Unmarshal(out, actualServicesResponse)
+			if err != nil {
+				return []webhook.Service{}, err
+			}
 
+			return actualServicesResponse.Items, nil
+		}, "1s", "0.1s").Should(HaveLen(3))
+
+		type virtualServicesResponse struct {
+			Items []webhook.VirtualService `json:"items"`
+		}
+		actualVirtualServicesResponse := &virtualServicesResponse{}
+		Eventually(func() ([]webhook.VirtualService, error) {
+			out, err := te.kubectl("get", "virtualservices", "-n", "cf-workloads", "-o", "json")
+			if err != nil {
+				return []webhook.VirtualService{}, err
+			}
+			err = json.Unmarshal(out, actualVirtualServicesResponse)
+			if err != nil {
+				return []webhook.VirtualService{}, err
+			}
+
+			return actualVirtualServicesResponse.Items, nil
+		}, "1s", "0.1s").Should(HaveLen(3))
 	})
 })
