@@ -37,19 +37,19 @@ func (m *Lineage) Sync(syncRequest SyncRequest) (*SyncResponse, error) {
 	if !ok {
 		return nil, UninitializedError
 	}
-	crds := m.snapshotToCRDList(snapshot, syncRequest.Parent.Spec.Template)
+	children := m.snapshotToK8sResources(snapshot, syncRequest.Parent.Spec.Template)
 	response := &SyncResponse{
-		Children: crds,
+		Children: children,
 	}
 
 	return response, nil
 }
 
-func (m *Lineage) snapshotToCRDList(snapshot *models.RouteSnapshot, template Template) []K8sResource {
-	crds := make([]K8sResource, 0)
+func (m *Lineage) snapshotToK8sResources(snapshot *models.RouteSnapshot, template Template) []K8sResource {
+	resources := make([]K8sResource, 0)
 	for _, route := range snapshot.Routes {
 		for _, s := range routeToServices(route, template) {
-			crds = append(crds, s)
+			resources = append(resources, s)
 		}
 	}
 
@@ -59,10 +59,10 @@ func (m *Lineage) snapshotToCRDList(snapshot *models.RouteSnapshot, template Tem
 	for _, fqdn := range sortedFQDNs {
 		destinations := destinationsForFQDN(fqdn, routesForFQDN)
 		if len(destinations) != 0 {
-			crds = append(crds, m.fqdnToVirtualService(fqdn, routesForFQDN[fqdn], template))
+			resources = append(resources, m.fqdnToVirtualService(fqdn, routesForFQDN[fqdn], template))
 		}
 	}
-	return crds
+	return resources
 }
 
 func (m *Lineage) fqdnToVirtualService(fqdn string, routes []models.Route, template Template) VirtualService {
@@ -159,7 +159,7 @@ func fqdn(route models.Route) string {
 func routeToServices(route models.Route, template Template) []Service {
 	services := []Service{}
 	for _, dest := range route.Destinations {
-		crd := Service{
+		service := Service{
 			ApiVersion: "v1",
 			Kind:       "Service",
 			ObjectMeta: metav1.ObjectMeta{
@@ -174,11 +174,11 @@ func routeToServices(route models.Route, template Template) []Service {
 				Ports: []ServicePort{{Port: dest.Port}},
 			},
 		}
-		crd.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
-		crd.ObjectMeta.Labels["cloudfoundry.org/process"] = dest.App.Process.Type
-		crd.ObjectMeta.Labels["cloudfoundry.org/route"] = route.Guid
-		crd.ObjectMeta.Labels["cloudfoundry.org/route-fqdn"] = fqdn(route)
-		services = append(services, crd)
+		service.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
+		service.ObjectMeta.Labels["cloudfoundry.org/process"] = dest.App.Process.Type
+		service.ObjectMeta.Labels["cloudfoundry.org/route"] = route.Guid
+		service.ObjectMeta.Labels["cloudfoundry.org/route-fqdn"] = fqdn(route)
+		services = append(services, service)
 	}
 	return services
 }

@@ -31,13 +31,15 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		fmt.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())
 
-		// apply the CRDs for metacontroller and cfroutesync
+		// apply the CRDs for metacontroller, istio, and cfroutesync
 		out, err = te.kubectl("apply", "-f", "fixtures/crds/metacontroller_crds.yaml")
 		fmt.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())
-		out, err = te.kubectl("apply", "-f", "fixtures/crds/route.yaml")
+
+		out, err = te.kubectl("apply", "-f", "fixtures/crds/istio_crds.yaml")
 		fmt.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())
+
 		out, err = te.kubectl("apply", "-f", "fixtures/crds/routebulksync.yaml")
 		fmt.Println(string(out))
 		Expect(err).NotTo(HaveOccurred())

@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook/fakes"
 	hfakes "code.cloudfoundry.org/cf-networking-helpers/fakes"
@@ -42,37 +41,13 @@ var _ = Describe("ServeHTTP", func() {
 
 		fakeSyncResponse := &webhook.SyncResponse{
 			Children: []webhook.K8sResource{
-				webhook.Route{
-					ApiVersion: "apps.cloudfoundry.org/v1alpha1",
-					Kind:       "Route",
-					ObjectMeta: metav1.ObjectMeta{
-						Name: "route-guid-1",
-						Labels: map[string]string{
-							"cloudfoundry.org/bulk-sync-route": "true",
-						},
-					},
-					Spec: webhook.RouteSpec{
-						Host: "test1",
-						Path: "/path1",
-						Domain: webhook.Domain{
-							Guid:     "domain-guid",
-							Name:     "domain.apps.internal",
-							Internal: true,
-						},
-						Destinations: []webhook.Destination{
-							webhook.Destination{
-								Guid:   "destination-guid-1",
-								Port:   9000,
-								Weight: models.IntPtr(10),
-								App: webhook.App{
-									Guid: "app-guid-1",
-									Process: webhook.Process{
-										Type: "process-type-1",
-									},
-								},
-							},
-						},
-					},
+				webhook.VirtualService{
+					ApiVersion: "networking.istio.io/v1alpha3",
+					Kind:       "VirtualService",
+				},
+				webhook.Service{
+					ApiVersion: "v1",
+					Kind:       "Service",
 				},
 			},
 		}
@@ -118,11 +93,11 @@ var _ = Describe("ServeHTTP", func() {
 
 			requestBody := bytes.NewBuffer([]byte(metacontrollerRequestBody))
 
-			request, err = http.NewRequest("POST", "/route_crds", requestBody)
+			request, err = http.NewRequest("POST", "/sync", requestBody)
 			Expect(err).NotTo(HaveOccurred())
 		})
 
-		It("lists route CRDs", func() {
+		It("lists VirtualService and Service objects as children", func() {
 			handler.ServeHTTP(resp, request)
 
 			expectedSyncRequest := webhook.SyncRequest{
@@ -154,34 +129,29 @@ var _ = Describe("ServeHTTP", func() {
 			expectedResponseBody := `
 {
 	"children": [{
-		"apiVersion": "apps.cloudfoundry.org/v1alpha1",
-		"kind": "Route",
-		"metadata": {
-			"labels": {
-				"cloudfoundry.org/bulk-sync-route": "true"
+			"apiVersion": "networking.istio.io/v1alpha3",
+			"kind": "VirtualService",
+			"metadata": {
+				"creationTimestamp": null
 			},
-			"name": "route-guid-1",
-			"creationTimestamp": null
+			"spec": {
+				"hosts": null,
+				"gateways": null,
+				"http": null
+			}
 		},
-		"spec": {
-			"host": "test1",
-			"path": "/path1",
-			"domain": {
-				"guid": "domain-guid",
-				"name": "domain.apps.internal",
-				"internal": true
+		{
+			"apiVersion": "v1",
+			"kind": "Service",
+			"metadata": {
+				"creationTimestamp": null
 			},
-			"destinations": [{
-				"app": {
-					"guid": "app-guid-1",
-					"process": {"type": "process-type-1"}
-				},
-				"guid": "destination-guid-1",
-				"port": 9000,
-				"weight": 10
-			}]
+			"spec": {
+				"selector": null,
+				"ports": null
+			}
 		}
-	}]
+	]
 }
 `
 

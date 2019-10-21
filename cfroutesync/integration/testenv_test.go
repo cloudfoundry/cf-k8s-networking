@@ -229,10 +229,14 @@ spec:
     apiVersion: apps.cloudfoundry.org/v1alpha1
     resource: routebulksyncs
   childResources:
-    - apiVersion: apps.cloudfoundry.org/v1alpha1
-      resource: routes
+    - apiVersion: v1
+      resource: services
       updateStrategy:
-        method: Recreate
+        method: InPlace
+    - apiVersion: networking.istio.io/v1alpha3
+      resource: virtualservices
+      updateStrategy:
+        method: InPlace
   hooks:
     sync:
       webhook:
