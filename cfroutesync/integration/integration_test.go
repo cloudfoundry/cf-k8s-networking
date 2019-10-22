@@ -153,38 +153,48 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		Eventually(session.Out, 10*time.Second).Should(gbytes.Say("Fetched and put snapshot"))
 		Eventually(session.Out, 10*time.Second).Should(gbytes.Say("metacontroller"))
 
-		type servicesResponse struct {
-			Items []webhook.Service `json:"items"`
+		kubectlGetResources := func(output interface{}, resourceType string, namespace string) error {
+			out, err := te.kubectl("get", resourceType, "-n", namespace, "-o", "json")
+			if err != nil {
+				return err
+			}
+			return json.Unmarshal(out, output)
 		}
-		actualServicesResponse := &servicesResponse{}
-		Eventually(func() ([]webhook.Service, error) {
-			out, err := te.kubectl("get", "services", "-n", "cf-workloads", "-o", "json")
-			if err != nil {
-				return []webhook.Service{}, err
-			}
-			err = json.Unmarshal(out, actualServicesResponse)
-			if err != nil {
-				return []webhook.Service{}, err
-			}
 
+		actualServicesResponse := &struct {
+			Items []webhook.Service `json:"items"`
+		}{}
+		Eventually(func() ([]webhook.Service, error) {
+			err := kubectlGetResources(actualServicesResponse, "services", "cf-workloads")
+			if err != nil {
+				return nil, err
+			}
 			return actualServicesResponse.Items, nil
 		}, "1s", "0.1s").Should(HaveLen(3))
-
-		type virtualServicesResponse struct {
-			Items []webhook.VirtualService `json:"items"`
+		serviceMap := map[string]webhook.Service{}
+		for _, s := range actualServicesResponse.Items {
+			serviceMap[s.Name] = s
 		}
-		actualVirtualServicesResponse := &virtualServicesResponse{}
-		Eventually(func() ([]webhook.VirtualService, error) {
-			out, err := te.kubectl("get", "virtualservices", "-n", "cf-workloads", "-o", "json")
-			if err != nil {
-				return []webhook.VirtualService{}, err
-			}
-			err = json.Unmarshal(out, actualVirtualServicesResponse)
-			if err != nil {
-				return []webhook.VirtualService{}, err
-			}
+		Expect(serviceMap).To(HaveKey("s-destination-0"))
+		Expect(serviceMap).To(HaveKey("s-destination-1"))
+		Expect(serviceMap).To(HaveKey("s-destination-2"))
 
+		actualVirtualServicesResponse := &struct {
+			Items []webhook.VirtualService `json:"items"`
+		}{}
+		Eventually(func() ([]webhook.VirtualService, error) {
+			err := kubectlGetResources(actualVirtualServicesResponse, "virtualservices", "cf-workloads")
+			if err != nil {
+				return nil, err
+			}
 			return actualVirtualServicesResponse.Items, nil
 		}, "1s", "0.1s").Should(HaveLen(3))
+		vsMap := map[string]webhook.VirtualService{}
+		for _, vs := range actualVirtualServicesResponse.Items {
+			vsMap[vs.Name] = vs
+		}
+		Expect(vsMap).To(HaveKey("route-0-host.domain0.example.com"))
+		Expect(vsMap).To(HaveKey("route-1-host.domain1.apps.internal"))
+		Expect(vsMap).To(HaveKey("route-2-host.domain1.apps.internal"))
 	})
 })
