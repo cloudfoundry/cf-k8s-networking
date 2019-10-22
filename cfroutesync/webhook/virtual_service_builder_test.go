@@ -146,6 +146,110 @@ var _ = Describe("VirtualServiceBuilder", func() {
 		Expect(builder.Build(routes, template)).To(Equal(expectedVirtualServices))
 	})
 
+	Describe("inferring weights", func() {
+		var routes []models.Route
+		BeforeEach(func() {
+			routes = []models.Route{
+				models.Route{
+					Guid: "route-guid-0",
+					Host: "test0",
+					Path: "/path0",
+					Url:  "test0.domain0.example.com/path0",
+					Domain: models.Domain{
+						Guid:     "domain-0-guid",
+						Name:     "domain0.example.com",
+						Internal: false,
+					},
+					Destinations: []models.Destination{
+						models.Destination{
+							Guid: "route-0-destination-guid-0",
+							App: models.App{
+								Guid:    "app-guid-0",
+								Process: models.Process{Type: "process-type-1"},
+							},
+							Port:   9000,
+							Weight: nil,
+						},
+						models.Destination{
+							Guid: "route-0-destination-guid-1",
+							App: models.App{
+								Guid:    "app-guid-1",
+								Process: models.Process{Type: "process-type-1"},
+							},
+							Port:   8080,
+							Weight: nil,
+						},
+						models.Destination{
+							Guid: "route-0-destination-guid-2",
+							App: models.App{
+								Guid:    "app-guid-2",
+								Process: models.Process{Type: "process-type-1"},
+							},
+							Port:   8080,
+							Weight: nil,
+						},
+					},
+				},
+			}
+		})
+
+		Context("when weights aren't present but a route has multiple destinations", func() {
+			It("evenly distributes weights that sum to 100", func() {
+				expectedVirtualServices := []webhook.K8sResource{
+					webhook.VirtualService{
+						ApiVersion: "networking.istio.io/v1alpha3",
+						Kind:       "VirtualService",
+						ObjectMeta: metav1.ObjectMeta{
+							Name: "test0.domain0.example.com",
+							Labels: map[string]string{
+								"cloudfoundry.org/bulk-sync-route": "true",
+								"label-for-routes":                 "cool-label",
+							},
+						},
+						Spec: webhook.VirtualServiceSpec{
+							Hosts:    []string{"test0.domain0.example.com"},
+							Gateways: []string{"some-gateway0", "some-gateway1"},
+							Http: []webhook.HTTPRoute{
+								{
+									Match: []webhook.HTTPMatchRequest{{Uri: webhook.HTTPPrefixMatch{Prefix: "/path0"}}},
+									Route: []webhook.HTTPRouteDestination{
+										{
+											Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
+											Weight:      models.IntPtr(34),
+										},
+										{
+											Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
+											Weight:      models.IntPtr(33),
+										},
+										{
+											Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-2"},
+											Weight:      models.IntPtr(33),
+										},
+									},
+								},
+							},
+						},
+					},
+				}
+
+				builder := webhook.VirtualServiceBuilder{
+					IstioGateways: []string{"some-gateway0", "some-gateway1"},
+				}
+				Expect(builder.Build(routes, template)).To(Equal(expectedVirtualServices))
+			})
+
+			Context("when one destination has a weight but the rest do not", func() {
+				It("panics, because this is invalid data from CAPI", func() {
+					routes[0].Destinations[0].Weight = models.IntPtr(10)
+					builder := webhook.VirtualServiceBuilder{
+						IstioGateways: []string{"some-gateway0", "some-gateway1"},
+					}
+					Expect(func() { builder.Build(routes, template) }).To(Panic())
+				})
+			})
+		})
+	})
+
 	Context("when a route is for an internal domain", func() {
 		It("uses the internal mesh gateways", func() {
 			routes := []models.Route{

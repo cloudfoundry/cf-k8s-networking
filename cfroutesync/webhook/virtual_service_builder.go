@@ -111,6 +111,7 @@ func cloneLabels(template map[string]string) map[string]string {
 }
 
 func destinationsToHttpRouteDestinations(destinations []models.Destination) []HTTPRouteDestination {
+	validateWeights(destinations)
 	httpDestinations := make([]HTTPRouteDestination, 0)
 	for _, destination := range destinations {
 		httpDestination := HTTPRouteDestination{
@@ -121,7 +122,25 @@ func destinationsToHttpRouteDestinations(destinations []models.Destination) []HT
 		}
 		httpDestinations = append(httpDestinations, httpDestination)
 	}
+	if len(destinations) > 1 && destinations[0].Weight == nil {
+		n := len(destinations)
+		for i, _ := range httpDestinations {
+			weight := int(100 / n)
+			if i == 0 { // ensure they all sum to 100
+				weight += 100 - n*int(100/n)
+			}
+			httpDestinations[i].Weight = models.IntPtr(weight)
+		}
+	}
 	return httpDestinations
+}
+
+func validateWeights(destinations []models.Destination) {
+	for _, d := range destinations {
+		if (d.Weight == nil) != (destinations[0].Weight == nil) {
+			panic("destinations for route: weights must be set on all or none")
+		}
+	}
 }
 
 func validateRoutesForFQDN(routes []models.Route) {
