@@ -98,7 +98,10 @@ func mainWithError() error {
 		Unmarshaler: marshal.UnmarshalFunc(json.Unmarshal),
 		Syncer: &webhook.Lineage{
 			RouteSnapshotRepo: snapshotRepo,
-			IstioGateways:     config.Istio.Gateways,
+			K8sResourceBuilders: []webhook.K8sResourceBuilder{
+				&webhook.ServiceBuilder{},
+				&webhook.VirtualServiceBuilder{IstioGateways: config.Istio.Gateways},
+			},
 		},
 	})
 
