@@ -44,6 +44,7 @@ type TestEnv struct {
 		}
 	}
 	FakeApiServerEnv *fakeapiserver.Environment
+	KubeCtlHome      string
 	KubeConfigPath   string
 
 	TestOutput io.Writer
@@ -121,8 +122,11 @@ func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
 		return nil, fmt.Errorf("starting fake api server: %w", err)
 	}
 
-	testEnv.KubeConfigPath, err = createKubeConfig(testEnvConfig)
+	testEnv.KubeCtlHome, err = ioutil.TempDir("", "kubectl-home")
 	if err != nil {
+		return nil, fmt.Errorf("creating home dir for kubectl: %w", err)
+	}
+	if err := testEnv.createKubeConfig(testEnvConfig); err != nil {
 		return nil, fmt.Errorf("writing kube config: %w", err)
 	}
 
@@ -171,6 +175,7 @@ func (te *TestEnv) kubectl(args ...string) ([]byte, error) {
 	cmd.Env = []string{
 		fmt.Sprintf("KUBECONFIG=%s", te.KubeConfigPath),
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+		fmt.Sprintf("HOME=%s", te.KubeCtlHome),
 	}
 	cmd.Stderr = te.TestOutput
 
@@ -179,13 +184,7 @@ func (te *TestEnv) kubectl(args ...string) ([]byte, error) {
 	return output, err
 }
 
-func createKubeConfig(config *rest.Config) (string, error) {
-	kubeConfig, err := ioutil.TempFile("", "kubeconfig")
-	if err != nil {
-		return "", err
-	}
-	defer kubeConfig.Close()
-
+func (te *TestEnv) createKubeConfig(config *rest.Config) error {
 	payload := fmt.Sprintf(`apiVersion: v1
 clusters:
 - cluster:
@@ -202,13 +201,8 @@ users:
 - name: test-user
   user:
     token: %s`, config.Host, config.BearerToken)
-
-	_, err = kubeConfig.Write([]byte(payload))
-	if err != nil {
-		return "", nil
-	}
-
-	return kubeConfig.Name(), nil
+	te.KubeConfigPath = filepath.Join(te.KubeCtlHome, "config")
+	return ioutil.WriteFile(te.KubeConfigPath, []byte(payload), 0644)
 }
 
 func createCompositeController(webhookHost string) (string, error) {
