@@ -19,10 +19,13 @@ import (
 
 	"k8s.io/client-go/rest"
 
+	"github.com/onsi/gomega/gexec"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/cfg"
 	log "github.com/sirupsen/logrus"
 	fakeapiserver "sigs.k8s.io/controller-runtime/pkg/envtest"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 type TestEnv struct {
@@ -46,6 +49,8 @@ type TestEnv struct {
 	FakeApiServerEnv *fakeapiserver.Environment
 	KubeCtlHome      string
 	KubeConfigPath   string
+
+	GalleySession *gexec.Session
 
 	TestOutput io.Writer
 }
@@ -115,8 +120,10 @@ func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
 		}
 	}
 
-	testEnv.FakeApiServerEnv = &fakeapiserver.Environment{}
-
+	logf.SetLogger(logf.ZapLoggerTo(testEnv.TestOutput /* development */, true))
+	testEnv.FakeApiServerEnv = &fakeapiserver.Environment{
+		KubeAPIServerFlags: getApiServerFlags(),
+	}
 	testEnvConfig, err = testEnv.FakeApiServerEnv.Start()
 	if err != nil {
 		return nil, fmt.Errorf("starting fake api server: %w", err)
@@ -130,7 +137,66 @@ func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
 		return nil, fmt.Errorf("writing kube config: %w", err)
 	}
 
+	if err := testEnv.startGalley(); err != nil {
+		return nil, fmt.Errorf("starting galley: %w", err)
+	}
 	return testEnv, nil
+}
+
+func getApiServerFlags() []string {
+	apiServerFlags := make([]string, len(fakeapiserver.DefaultKubeAPIServerFlags))
+	copy(apiServerFlags, fakeapiserver.DefaultKubeAPIServerFlags)
+	for i, current := range apiServerFlags {
+		if strings.HasPrefix(current, "--admission-control") {
+			apiServerFlags[i] = "--enable-admission-plugins=ValidatingAdmissionWebhook"
+		}
+	}
+	return apiServerFlags
+}
+
+func (te *TestEnv) startGalley() error {
+	cmd := exec.Command("galley",
+		"server",
+		"--enable-server=false",
+		"--enable-validation=true",
+		"--validation-webhook-config-file", "./fixtures/istio-validating-admission-webhook.yaml",
+		"--caCertFile", "./fixtures/galley-certs/galley-ca.crt",
+		"--tlsCertFile", "./fixtures/galley-certs/galley-webhook.crt",
+		"--tlsKeyFile", "./fixtures/galley-certs/galley-webhook.key",
+		"--insecure",
+		"--kubeconfig", te.KubeConfigPath,
+		//"--disableResourceReadyCheck",
+		//"--enable-reconcileWebhookConfiguration=false",
+		//"--enableServiceDiscovery=false",
+	)
+	var err error
+	te.GalleySession, err = gexec.Start(cmd, te.TestOutput, te.TestOutput)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (te *TestEnv) checkAdmissionWebhookRunning() error {
+	// attempt to apply invalid data
+	outBytes, err := te.kubectl("apply", "-f", "./fixtures/invalid-virtual-service.yaml")
+	out := string(outBytes)
+	if err == nil {
+		// it succeeded, clean-up
+		_, errOnDelete := te.kubectl("delete", "-f", "./fixtures/invalid-virtual-service.yaml")
+		if errOnDelete != nil {
+			return fmt.Errorf("applying invalid data was successful (bad) and then we errored when attempting to delete it (even worse!): %w", err)
+		}
+		return fmt.Errorf("invalid virtual-service was admitted to the K8s API: %s", out)
+	}
+
+	const expectedErrorSnippet = `admission webhook "pilot.validation.istio.io" denied the request`
+	if strings.Contains(out, expectedErrorSnippet) {
+		fmt.Fprintf(te.TestOutput, "invalid data was rejected, it appears that the istio galley validating admission webhook is working\n")
+		return nil
+	}
+
+	return fmt.Errorf("unexpected condition while applying invalid VirtualService: %w: %s", err, out)
 }
 
 func (te *TestEnv) Cleanup() {
@@ -153,6 +219,16 @@ func (te *TestEnv) Cleanup() {
 	if te.FakeCC.Server != nil {
 		te.FakeCC.Server.Close()
 		te.FakeCC.Server = nil
+	}
+
+	if te.FakeApiServerEnv != nil {
+		te.FakeApiServerEnv.Stop()
+		te.FakeApiServerEnv = nil
+	}
+
+	if te.GalleySession != nil {
+		te.GalleySession.Terminate().Wait("2s")
+		te.GalleySession = nil
 	}
 }
 
@@ -177,10 +253,9 @@ func (te *TestEnv) kubectl(args ...string) ([]byte, error) {
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
 		fmt.Sprintf("HOME=%s", te.KubeCtlHome),
 	}
-	cmd.Stderr = te.TestOutput
-
 	fmt.Fprintf(te.TestOutput, "+ kubectl %s\n", strings.Join(args, " "))
-	output, err := cmd.Output()
+	output, err := cmd.CombinedOutput()
+	te.TestOutput.Write(output)
 	return output, err
 }
 
@@ -202,6 +277,7 @@ users:
   user:
     token: %s`, config.Host, config.BearerToken)
 	te.KubeConfigPath = filepath.Join(te.KubeCtlHome, "config")
+	fmt.Fprintf(te.TestOutput, "saving kubecfg to %s\n", te.KubeConfigPath)
 	return ioutil.WriteFile(te.KubeConfigPath, []byte(payload), 0644)
 }
 
