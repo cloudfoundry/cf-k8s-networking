@@ -165,9 +165,6 @@ func (te *TestEnv) startGalley() error {
 		"--tlsKeyFile", "./fixtures/galley-certs/galley-webhook.key",
 		"--insecure",
 		"--kubeconfig", te.KubeConfigPath,
-		//"--disableResourceReadyCheck",
-		//"--enable-reconcileWebhookConfiguration=false",
-		//"--enableServiceDiscovery=false",
 	)
 	var err error
 	te.GalleySession, err = gexec.Start(cmd, te.TestOutput, te.TestOutput)

@@ -10,3 +10,5 @@ certstrap --depot-path "." request-cert --passphrase '' --ip '127.0.0.1' --cn ga
 certstrap --depot-path "." sign --passphrase '' --CA galley-ca galley-webhook
 
 rm -f *.crl *.csr
+
+echo "complete.  you should also update the caBundle in ../istio-validating-admission-webhook.yaml"
