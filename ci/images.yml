@@ -1,0 +1,43 @@
+resources:
+  - name: k8s-deploy-dockerfile
+    type: git
+    source:
+      uri: git://github.com/cloudfoundry/cf-k8s-networking
+      branch: master
+      paths:
+        - ci/dockerfiles/deploy
+
+  - name: k8s-deploy-image
+    type: docker-image
+    source:
+      repository: gcr.io/project/cf-routing/cf-k8s-networking/k8s-deploy
+      username: _json_key
+      password: ((shared_gcp_account_creds))
+
+  - name: cf-k8s-networking
+    type: git
+    source:
+      uri: https://github.com/cloudfoundry/cf-k8s-networking
+      branch: master
+
+#  - name: every-week
+#    type: time
+#    source:
+#      location: America/Tijuana
+#      start: 12:00 PM
+#      stop: 1:00 PM
+#      days: [Monday]
+
+jobs:
+  - name: build-k8s-deploy-image
+    plan:
+      - in_parallel:
+#          - get: every-week
+#            trigger: true
+          - get: cf-k8s-networking
+          - get: k8s-deploy-dockerfile
+            trigger: true
+      - put: k8s-deploy-image
+        params:
+          build: cf-k8s-networking/ci/dockerfiles/deploy
+          tag_as_latest: true

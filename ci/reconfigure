@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e -u
-export PIPELINE=cf-k8s-pipeline
+export PIPELINE=$1
 export TARGET=cf-k8s
 
 echo "setting pipeline \"${PIPELINE}\""
