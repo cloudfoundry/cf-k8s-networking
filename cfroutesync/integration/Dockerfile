@@ -66,4 +66,7 @@ RUN curl -L -O  "https://github.com/GoogleCloudPlatform/metacontroller/archive/v
     dep ensure && go install && \
     mv ${GOPATH}/bin/metacontroller.app /usr/local/bin/metacontroller
 
+# Install galley for the validating admission controller
+COPY --from=docker.io/istio/galley:1.3.3 /usr/local/bin/galley /usr/local/bin/galley
+
 
