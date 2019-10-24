@@ -2,6 +2,8 @@ package ccroutefetcher
 
 import (
 	"fmt"
+	"path"
+	"strings"
 
 	log "github.com/sirupsen/logrus"
 
@@ -95,14 +97,19 @@ func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destina
 
 	return models.Route{
 		Guid:         route.Guid,
-		Host:         route.Host,
+		Host:         strings.ToLower(route.Host),
 		Path:         route.Path,
-		Url:          route.Url,
+		Url:          normalizedUrl(route, domain),
 		Destinations: snapshotRouteDestinations,
 		Domain: models.Domain{
 			Guid:     domain.Guid,
-			Name:     domain.Name,
+			Name:     strings.ToLower(domain.Name),
 			Internal: domain.Internal,
 		},
 	}
+}
+
+func normalizedUrl(route ccclient.Route, domain ccclient.Domain) string {
+	fqdn := fmt.Sprintf("%s.%s", strings.ToLower(route.Host), strings.ToLower(domain.Name))
+	return path.Join(fqdn, route.Path)
 }

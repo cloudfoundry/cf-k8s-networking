@@ -7,6 +7,7 @@ import (
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccroutefetcher"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccroutefetcher/fakes"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
+
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -18,6 +19,7 @@ var _ = Describe("Fetching once", func() {
 		fakeSnapshotRepo *fakes.SnapshotRepo
 		expectedSnapshot *models.RouteSnapshot
 		fetcher          *ccroutefetcher.Fetcher
+		routesList       []ccclient.Route
 	)
 
 	BeforeEach(func() {
@@ -47,24 +49,24 @@ var _ = Describe("Fetching once", func() {
 
 		fakeCCClient = &fakes.CCClient{}
 
-		routesList := []ccclient.Route{
+		routesList = []ccclient.Route{
 			ccclient.Route{
 				Guid: "route-0-guid",
 				Host: "route-0-host",
-				Path: "route-0-path",
-				Url:  "route-0-url",
+				Path: "/route-0-path",
+				Url:  "route-0-host.domain0.example.com/route-0-path",
 			},
 			ccclient.Route{
 				Guid: "route-1-guid",
 				Host: "route-1-host",
-				Path: "route-1-path",
-				Url:  "route-1-url",
+				Path: "/route-1-path",
+				Url:  "route-1-host.domain1.apps.internal/route-1-path",
 			},
 			ccclient.Route{
 				Guid: "route-2-guid",
 				Host: "route-2-host",
-				Path: "route-2-path",
-				Url:  "route-2-url",
+				Path: "/route-2-path",
+				Url:  "route-2-host.domain1.apps.internal/route-2-path",
 			},
 		}
 		routesList[0].Relationships.Domain.Data.Guid = "domain-0"
@@ -104,8 +106,8 @@ var _ = Describe("Fetching once", func() {
 				models.Route{
 					Guid: "route-0-guid",
 					Host: "route-0-host",
-					Path: "route-0-path",
-					Url:  "route-0-url",
+					Path: "/route-0-path",
+					Url:  "route-0-host.domain0.example.com/route-0-path",
 					Domain: models.Domain{
 						Guid:     "domain-0",
 						Name:     "domain0.example.com",
@@ -135,8 +137,8 @@ var _ = Describe("Fetching once", func() {
 				models.Route{
 					Guid: "route-1-guid",
 					Host: "route-1-host",
-					Path: "route-1-path",
-					Url:  "route-1-url",
+					Path: "/route-1-path",
+					Url:  "route-1-host.domain1.apps.internal/route-1-path",
 					Domain: models.Domain{
 						Guid:     "domain-1",
 						Name:     "domain1.apps.internal",
@@ -157,8 +159,8 @@ var _ = Describe("Fetching once", func() {
 				models.Route{
 					Guid: "route-2-guid",
 					Host: "route-2-host",
-					Path: "route-2-path",
-					Url:  "route-2-url",
+					Path: "/route-2-path",
+					Url:  "route-2-host.domain1.apps.internal/route-2-path",
 					Domain: models.Domain{
 						Guid:     "domain-1",
 						Name:     "domain1.apps.internal",
@@ -197,12 +199,60 @@ var _ = Describe("Fetching once", func() {
 		Expect(token).To(Equal("fake-uaa-token"))
 	})
 
-	It("converts cc types to a route snapshot and puts that into the repo", func() {
-		err := fetcher.FetchOnce()
-		Expect(err).NotTo(HaveOccurred())
+	Context("when there are routes to save", func() {
+		It("converts cc types to a route snapshot and puts that into the repo", func() {
 
-		Expect(fakeSnapshotRepo.PutCallCount()).To(Equal(1))
-		Expect(fakeSnapshotRepo.PutArgsForCall(0)).To(Equal(expectedSnapshot))
+			err := fetcher.FetchOnce()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeSnapshotRepo.PutCallCount()).To(Equal(1))
+			Expect(fakeSnapshotRepo.PutArgsForCall(0)).To(Equal(expectedSnapshot))
+		})
+
+		It("transforms host and domain to lower case to have DNS-1123 compliant fqdns", func() {
+			routesList = []ccclient.Route{
+				{
+					Guid: "uppercase-route-guid",
+					Host: "UPPERCASE-HOST",
+					Path: "/PATH",
+					Url:  "UPPERCASE-HOST.EXAMPLE.COM/PATH",
+				},
+			}
+			routesList[0].Relationships.Domain.Data.Guid = "domain-0"
+			fakeCCClient.ListRoutesReturns(routesList, nil)
+
+			fakeCCClient.ListDomainsReturns([]ccclient.Domain{
+				{
+					Guid:     "domain-0",
+					Name:     "EXAMPLE.COM",
+					Internal: false,
+				},
+			}, nil)
+			fakeCCClient.ListDestinationsForRouteReturnsOnCall(0, []ccclient.Destination{}, nil)
+
+			expectedSnapshot = &models.RouteSnapshot{
+				Routes: []models.Route{
+					models.Route{
+						Guid: "uppercase-route-guid",
+						Host: "uppercase-host",
+						Path: "/PATH",
+						Url:  "uppercase-host.example.com/PATH",
+						Domain: models.Domain{
+							Guid:     "domain-0",
+							Name:     "example.com",
+							Internal: false,
+						},
+						Destinations: nil,
+					},
+				},
+			}
+
+			err := fetcher.FetchOnce()
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(fakeSnapshotRepo.PutCallCount()).To(Equal(1))
+			Expect(fakeSnapshotRepo.PutArgsForCall(0)).To(Equal(expectedSnapshot))
+		})
 	})
 
 	Context("when there is an error getting the token from UAA", func() {
