@@ -8,7 +8,7 @@ function main() {
 
   tmp_dir="$(mktemp -d /tmp/kubernetes-certs.XXXXXXXX)"
 
-  pushd bbl-state > /dev/null
+  pushd "bbl-state/${BBL_STATE_DIR}" > /dev/null
     bosh_director_name="$(bbl outputs | bosh int - --path=/director_name)"
     k8s_host_url="$(bbl outputs | bosh int - --path=/k8s_host_url)"
     k8s_service_username="$(bbl outputs | bosh int - --path=/k8s_service_username)"
