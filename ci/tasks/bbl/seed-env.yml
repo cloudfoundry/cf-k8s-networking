@@ -15,7 +15,7 @@ outputs:
   - name: updated-bbl-state
 
 run:
-  path: cf-k8s-networking/ci/tasks/seed-env/task.sh
+  path: cf-k8s-networking/ci/tasks/bbl/seed-env.sh
 
 params:
   BBL_STATE_DIR:

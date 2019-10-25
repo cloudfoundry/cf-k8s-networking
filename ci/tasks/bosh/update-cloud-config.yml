@@ -12,7 +12,7 @@ inputs:
   - name: bbl-state
 
 run:
-  path: cf-k8s-networking/ci/tasks/update-cloud-config/task.sh
+  path: cf-k8s-networking/ci/tasks/bosh/update-cloud-config.sh
 
 params:
   BBL_STATE_DIR:

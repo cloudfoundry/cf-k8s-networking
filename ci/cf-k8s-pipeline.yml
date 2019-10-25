@@ -88,7 +88,7 @@ jobs:
         - get: networking-oss-deployments
         - get: bosh-deployment
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/seed-env/task.yml
+      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -200,7 +200,7 @@ jobs:
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/extract-kubeconfig/task.yml
+      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -230,7 +230,7 @@ jobs:
         - get: bosh-bootloader
         - get: eirini-bosh-release-git
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/seed-env/task.yml
+      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -246,7 +246,7 @@ jobs:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
     - task: merge-bbl-config
-      file: cf-k8s-networking/ci/tasks/merge-bbl-config/task.yml
+      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
       params:
         SOURCE1_DIR: plan-patches/bosh-lite-gcp
         SOURCE2_DIR: ci/bbl-configs/add-parent-dns-lite
@@ -282,7 +282,7 @@ jobs:
           repository: updated-bbl-state
           rebase: true
     - task: update-cloud-config
-      file: cf-k8s-networking/ci/tasks/update-cloud-config/task.yml
+      file: cf-k8s-networking/ci/tasks/bosh/update-cloud-config.yml
       input_mapping:
         bbl-state: updated-bbl-state
         cloud-config: cf-deployment
