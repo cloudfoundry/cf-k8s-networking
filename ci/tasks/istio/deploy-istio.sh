@@ -19,6 +19,7 @@ function main() {
 
     # Install Istio CRDs
     helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
+    sleep 5
 
     # Install Istio
     helm template install/kubernetes/helm/istio --name istio --namespace istio-system | kubectl apply -f -
