@@ -1,0 +1,13 @@
+# Default values for cf-k8s-networking.
+# This is a YAML-formatted file.
+
+system_namespace: cf-system
+workloads_namespace: cf-workloads
+
+# The values below are placeholders for configuring templates/cfroutesync-secret.yaml
+cfroutesync:
+  ca: 'ca_cert'
+  ccBaseUrl: 'api.example.com'
+  clientName: 'clientName'
+  clientSecret: 'clientSecret'
+  uaaBaseUrl: 'uaa.example.com'
