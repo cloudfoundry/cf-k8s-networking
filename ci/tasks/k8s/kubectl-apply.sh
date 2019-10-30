@@ -16,7 +16,7 @@ function kubectl_apply_all() {
     for file in ${FILES_TO_APPLY}
     do
         echo "Applying ${file}"
-        kubectl apply -f file
+        kubectl apply -f $file
         sleep 5  # give k8s time to converge
     done
   popd
