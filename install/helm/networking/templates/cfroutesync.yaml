@@ -38,14 +38,12 @@ spec:
     spec:
       containers:
         - name: cfroutesync
-          image: gcr.io/cf-routing-desserts/cfroutesync:latest
+          image: gcr.io/cf-routing/cf-k8s-networking/cfroutesync:{{ .Values.cfroutesync.version }}
           args: [ "-c", "/etc/cfroutesync-config"]
           volumeMounts:
             - name: cfroutesync-config
               mountPath: /etc/cfroutesync-config
               readOnly: true
-      imagePullSecrets:
-        - name: gcr-image-registry
       volumes:
         - name: cfroutesync-config
           secret:

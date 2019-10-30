@@ -4,8 +4,9 @@
 system_namespace: cf-system
 workloads_namespace: cf-workloads
 
-# The values below are placeholders for configuring templates/cfroutesync-secret.yaml
 cfroutesync:
+  version: latest
+  # The values below are placeholders for configuring templates/cfroutesync-secret.yaml
   ccCA: 'path_to_cloud_controller_ca'
   ccBaseURL: 'https://api.example.com'
   uaaCA: 'path_to_uaa_ca'
