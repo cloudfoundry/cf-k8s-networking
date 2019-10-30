@@ -27,10 +27,11 @@ uaa_base_url = "https://uaa.#{domain}"
 
 puts YAML.dump({
         'cfroutesync' => {
-          'ca' => Base64.strict_encode64(lb_cert_ca),
-          'ccBaseUrl' => Base64.strict_encode64(cc_base_url),
+          'ccCA' => Base64.strict_encode64(lb_cert_ca),
+          'ccBaseURL' => Base64.strict_encode64(cc_base_url),
+          'uaaCA' => Base64.strict_encode64(lb_cert_ca),
+          'uaaBaseURL' => Base64.strict_encode64(uaa_base_url),
           'clientName' => Base64.strict_encode64(client_name),
           'clientSecret' => Base64.strict_encode64(client_secret),
-          'uaaBaseUrl' => Base64.strict_encode64(uaa_base_url),
         }
   })

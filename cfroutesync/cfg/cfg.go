@@ -36,12 +36,12 @@ type Config struct {
 }
 
 const (
-	FileUAABaseURL      = "uaaBaseUrl"
+	FileUAABaseURL      = "uaaBaseURL"
 	FileUAAClientName   = "clientName"
 	FileUAAClientSecret = "clientSecret"
-	FileUAACA           = "ca"
-	FileCCBaseURL       = "ccBaseUrl"
-	FileCCCA            = "ca" // currently we expect 1 CA for both UAA and CC
+	FileUAACA           = "uaaCA"
+	FileCCBaseURL       = "ccBaseURL"
+	FileCCCA            = "ccCA"
 )
 
 // FromDir loads a Config from files within a directory on disk
@@ -55,7 +55,7 @@ func FromDir(configDir string) (*Config, error) {
 		}
 		return strings.TrimSpace(string(bytes)), nil
 	}
-	uaaBaseUrl, err := readFile(FileUAABaseURL)
+	uaaBaseURL, err := readFile(FileUAABaseURL)
 	if err != nil {
 		return nil, err
 	}
@@ -74,7 +74,7 @@ func FromDir(configDir string) (*Config, error) {
 	}
 
 	c := &Config{}
-	c.UAA.BaseURL = uaaBaseUrl
+	c.UAA.BaseURL = uaaBaseURL
 	c.UAA.ClientName = clientName
 	c.UAA.ClientSecret = clientSecret
 	c.UAA.CAFile = getPath(FileUAACA)

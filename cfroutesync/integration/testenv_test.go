@@ -92,12 +92,14 @@ func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
 	testEnv.FakeUAA.Server = httptest.NewTLSServer(testEnv.FakeUAA.Handler)
 
 	testEnv.FakeCC.Handler = http.HandlerFunc(testEnv.FakeCCServeHTTP)
-	testEnv.FakeCC.Server = httptest.NewUnstartedServer(testEnv.FakeCC.Handler)
-	// hack: ensure FakeCC uses same server cert as FakeUAA
-	testEnv.FakeCC.Server.Config.TLSConfig = testEnv.FakeUAA.Server.TLS
-	testEnv.FakeCC.Server.StartTLS()
+	testEnv.FakeCC.Server = httptest.NewTLSServer(testEnv.FakeCC.Handler)
 
 	fakeUAACertBytes, err := tlsCertToPem(testEnv.FakeUAA.Server.Certificate())
+	if err != nil {
+		return nil, err
+	}
+
+	fakeCCCertBytes, err := tlsCertToPem(testEnv.FakeCC.Server.Certificate())
 	if err != nil {
 		return nil, err
 	}
@@ -108,7 +110,7 @@ func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
 		cfg.FileUAAClientSecret: "fake-uaa-client-secret",
 		cfg.FileUAACA:           string(fakeUAACertBytes),
 		cfg.FileCCBaseURL:       testEnv.FakeCC.Server.URL,
-		//cfg.FileCCCA:            string(fakeUAACertBytes), // currently same as UAA CA
+		cfg.FileCCCA:            string(fakeCCCertBytes),
 	} {
 		if err := ioutil.WriteFile(filepath.Join(testEnv.ConfigDir, filename), []byte(contents), 0644); err != nil {
 			return nil, err

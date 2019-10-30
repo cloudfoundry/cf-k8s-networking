@@ -6,8 +6,9 @@ workloads_namespace: cf-workloads
 
 # The values below are placeholders for configuring templates/cfroutesync-secret.yaml
 cfroutesync:
-  ca: 'ca_cert'
-  ccBaseUrl: 'api.example.com'
-  clientName: 'clientName'
-  clientSecret: 'clientSecret'
-  uaaBaseUrl: 'uaa.example.com'
+  ccCA: 'path_to_cloud_controller_ca'
+  ccBaseURL: 'https://api.example.com'
+  uaaCA: 'path_to_uaa_ca'
+  uaaBaseURL: 'https://uaa.example.com'
+  clientName: 'uaaClientName'
+  clientSecret: 'uaaClientSecret'
