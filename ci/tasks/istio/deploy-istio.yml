@@ -15,6 +15,7 @@ run:
 
 params:
   KUBECONFIG_CONTEXT:
+  # - kubectl k8s context to use from kubeconfig
   SHARED_DNS_ZONE_NAME:
   DNS_DOMAIN:
   GCP_DNS_SERVICE_ACCOUNT_KEY:

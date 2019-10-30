@@ -66,6 +66,14 @@ resources:
     uri: git@github.com:istio/istio.git
     private_key: ((github_private_key.private_key))
 
+- name: metacontroller
+  type: git
+  icon: github-box
+  source:
+    branch: v0.4.0
+    uri: git@github.com:GoogleCloudPlatform/metacontroller.git
+    private_key: ((github_private_key.private_key))
+
 - name: eirini-bosh-release
   type: bosh-io-release
   source:
@@ -123,6 +131,58 @@ jobs:
           repository: updated-bbl-state
           rebase: true
 
+- name: eirini-dev-1-deploy-istio
+  serial: true
+  serial_groups: [eirini-dev-1]
+  plan:
+    - in_parallel:
+        - get: istio
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-1-bbl-up]
+    - task: extract-kubeconfig
+      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+    - task: deploy-istio
+      file: cf-k8s-networking/ci/tasks/istio/deploy-istio.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
+        SHARED_DNS_ZONE_NAME: "routing-lol"
+        DNS_DOMAIN: "eirini-dev-1.routing.lol"
+        GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
+        GCP_PROJECT_ID: "cf-routing"
+
+- name: eirini-dev-1-install-metacontroller
+  serial: true
+  serial_groups: [eirini-dev-1]
+  plan:
+    - in_parallel:
+        - get: metacontroller
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-1-bbl-up]
+    - task: extract-kubeconfig
+      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+    - task: install-metacontroller
+      file: cf-k8s-networking/ci/tasks/k8s/kubectl-apply.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
+        FILES_TO_APPLY: |
+          manifests/metacontroller-namespace.yaml
+          manifests/metacontroller-rbac.yaml
+          manifests/metacontroller.yaml
+
 - name: eirini-dev-1-deploy-cf
   serial: true
   serial_groups: [eirini-dev-1]
@@ -134,6 +194,7 @@ jobs:
           resource: cf-deployment
         - get: cf-k8s-networking
         - get: networking-oss-deployments
+          passed: [eirini-dev-1-deploy-istio, eirini-dev-1-install-metacontroller]
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
@@ -189,32 +250,6 @@ jobs:
       params:
         ERRAND_NAME: configure-eirini-bosh
         BBL_STATE_DIR: "environments/eirini-dev-1"
-
-- name: eirini-dev-1-deploy-istio
-  serial: true
-  serial_groups: [eirini-dev-1]
-  plan:
-    - in_parallel:
-        - get: istio
-        - get: cf-k8s-networking
-        - get: networking-oss-deployments
-          passed: [eirini-dev-1-bbl-up]
-    - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
-      input_mapping:
-        bbl-state: networking-oss-deployments
-      params:
-        BBL_STATE_DIR: "environments/eirini-dev-1"
-    - task: deploy-istio
-      file: cf-k8s-networking/ci/tasks/istio/deploy-istio.yml
-      input_mapping:
-        bbl-state: networking-oss-deployments
-      params:
-        KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
-        SHARED_DNS_ZONE_NAME: "routing-lol"
-        DNS_DOMAIN: "eirini-dev-1.routing.lol"
-        GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
-        GCP_PROJECT_ID: "cf-routing"
 
 - name: eirini-lite-1-bbl-up
   serial: true
