@@ -1,8 +1,8 @@
 # Default values for cf-k8s-networking.
 # This is a YAML-formatted file.
 
-system_namespace: cf-system
-workloads_namespace: cf-workloads
+systemNamespace: cf-system
+workloadsNamespace: cf-workloads
 
 cfroutesync:
   version: latest

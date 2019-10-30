@@ -19,13 +19,13 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://cfroutesync.{{ .Values.system_namespace }}/sync
+        url: http://cfroutesync.{{ .Values.systemNamespace }}/sync
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cfroutesync
-  namespace: {{ .Values.system_namespace }}
+  namespace: {{ .Values.systemNamespace }}
 spec:
   selector:
     matchLabels:
@@ -53,7 +53,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cfroutesync
-  namespace: {{ .Values.system_namespace }}
+  namespace: {{ .Values.systemNamespace }}
 spec:
   selector:
     app: cfroutesync
@@ -65,7 +65,7 @@ apiVersion: "apps.cloudfoundry.org/v1alpha1"
 kind: RouteBulkSync
 metadata:
   name: route-bulk-sync
-  namespace: {{ .Values.workloads_namespace }}
+  namespace: {{ .Values.workloadsNamespace }}
 spec:
   selector:
     matchLabels:
