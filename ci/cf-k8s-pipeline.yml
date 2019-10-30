@@ -176,6 +176,7 @@ jobs:
       file: cf-k8s-networking/ci/tasks/k8s/kubectl-apply.yml
       input_mapping:
         bbl-state: networking-oss-deployments
+        k8s-config-dir: metacontroller
       params:
         KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
         FILES_TO_APPLY: |
