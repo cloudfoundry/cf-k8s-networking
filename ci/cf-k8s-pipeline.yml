@@ -359,6 +359,7 @@ jobs:
           resource: cf-deployment
         - get: cf-k8s-networking
         - get: networking-oss-deployments
+          passed: [eirini-lite-1-bbl-up]
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
