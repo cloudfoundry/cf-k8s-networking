@@ -23,10 +23,6 @@ function install_istio() {
 
     # Install Istio
     helm template install/kubernetes/helm/istio --name istio --namespace istio-system | kubectl apply -f -
-
-    # Create default ingress gateway for Cloud Foundry
-    kubectl create namespace cf-workloads || true
-    kubectl apply -f "${workspace}/cf-k8s-networking/ci/istio-config/cf-workloads-gateway.yml"
   popd
 }
 
