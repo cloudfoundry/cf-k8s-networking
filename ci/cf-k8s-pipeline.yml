@@ -184,6 +184,28 @@ jobs:
           manifests/metacontroller-rbac.yaml
           manifests/metacontroller.yaml
 
+- name: eirini-dev-1-install-cf-networking
+  serial: true
+  serial_groups: [eirini-dev-1]
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-1-deploy-cf]
+    - task: extract-kubeconfig
+      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+    - task: install-cf-networking
+      file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+
 - name: eirini-dev-1-deploy-cf
   serial: true
   serial_groups: [eirini-dev-1]
