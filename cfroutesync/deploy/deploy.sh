@@ -18,8 +18,8 @@ popd
 echo 'Building image...'
 img=$(docker build -q -f "${script_dir}/Dockerfile" "${cfroutesync_dir}")
 echo 'Tagging and pushing image'
-docker tag $img gcr.io/cf-routing/cf-k8s-networking/cfroutesync
-docker push gcr.io/cf-routing/cf-k8s-networking/cfroutesync
+docker tag $img gcr.io/cf-routing/cf-k8s-networking/cfroutesync:${environment}
+docker push gcr.io/cf-routing/cf-k8s-networking/cfroutesync:${environment}
 
 echo 'Applying routebulksync CRD...'
 kubectl apply -f "${cfroutesync_dir}/crds/routebulksync.yaml"

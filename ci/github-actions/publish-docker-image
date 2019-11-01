@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+# ENV
+: "${GITHUB_SHA:?}"
+: "${GITHUB_REF:?}"
+: "${GCR_SERVICE_ACCOUNT_JSON:?}"
+: "${IMAGE_REPO:?}"
+
+# docker login
+echo "${GCR_SERVICE_ACCOUNT_JSON}" | docker login -u _json_key --password-stdin https://gcr.io
+
+# build image
+img=$(docker build -q -f "cfroutesync/deploy/Dockerfile" cfroutesync)
+
+docker tag ${img} ${IMAGE_REPO}:${GITHUB_SHA}
+docker push ${IMAGE_REPO}:${GITHUB_SHA}
+
+# To extract the branch name from refs/heads/feature-branch-1
+# https://stackoverflow.com/a/58034787
+branch_name=${GITHUB_REF##*/}
+echo "Tagging and pushing image for branch ${branch_name}"
+docker tag ${img} ${IMAGE_REPO}:${branch_name}
+docker push ${IMAGE_REPO}:${branch_name}
+
+if [ ${branch_name} == "master" ]; then
+  echo "Tagging and pushing image latest on master branch"
+  docker tag ${img} ${IMAGE_REPO}:latest
+  docker push ${IMAGE_REPO}:latest
+fi
+

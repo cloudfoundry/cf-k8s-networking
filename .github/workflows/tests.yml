@@ -1,15 +1,13 @@
-name: Tests
+name: Test and Tag
 on: [push]
 jobs:
-  build:
-
-    name: CF Route Syncer
+  tests:
+    name: CF Route Syncer Tests
     runs-on: ubuntu-latest
     container:
       image: gcr.io/cf-routing/cf-k8s-networking/cfroutesync-integration-test-env
 
     steps:
-
     - name: Set up Go
       uses: actions/setup-go@v1
       with:
@@ -21,3 +19,20 @@ jobs:
     - name: Run tests
       working-directory: cfroutesync
       run: bin/test local
+
+  docker_push:
+    name: CF Route Syncer Docker Push
+    needs: [tests]
+    runs-on: ubuntu-latest
+    container:
+      image: "concourse/docker-image-resource:ubuntu"
+
+    steps:
+      - name: Check out code
+        uses: actions/checkout@v1
+
+      - name: Create Docker Image
+        run: ci/github-actions/publish-docker-image
+        env:
+          GCR_SERVICE_ACCOUNT_JSON: ${{ secrets.GCR_SERVICE_ACCOUNT_JSON }}
+          IMAGE_REPO: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
