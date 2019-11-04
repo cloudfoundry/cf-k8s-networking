@@ -95,6 +95,7 @@ jobs:
         - get: cf-k8s-networking
         - get: networking-oss-deployments
         - get: bosh-deployment
+        - get: eirini-bosh-release-git
     - task: seed-bbl-env
       file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
       input_mapping:
@@ -111,12 +112,23 @@ jobs:
       input_mapping:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
+    - task: merge-bbl-config
+      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
+      params:
+        SOURCE1_DIR: plan-patches/gcp
+        SOURCE2_DIR: plan-patches/shared
+        SOURCE3_DIR: ci/bbl-configs/add-parent-dns-full
+      input_mapping:
+        source1: eirini-bosh-release-git
+        source2: eirini-bosh-release-git
+        source3: cf-k8s-networking
     - task: bbl-up-eirini-dev-1
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
         bbl-state: updated-bbl-state
-        bbl-config: updated-bbl-state
+        bbl-config: merged-bbl-config
       params: &bbl-up-eirini-dev-1-params
+        BBL_CONFIG_DIR: .
         BBL_STATE_DIR: "environments/eirini-dev-1"
         BBL_IAAS: "gcp"
         BBL_LB_CERT: "certs/load-balancer/server.crt"
