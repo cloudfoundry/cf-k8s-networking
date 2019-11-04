@@ -22,7 +22,8 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 * Install [Metacontroller](https://metacontroller.app/guide/install/) to the Kubernetes cluster
 ​
 ### CF-K8s-Networking
-1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must configure the following properties in `install/helm/networking/values.yaml`:
+1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must override the following properties from `install/helm/networking/values.yaml`.
+    You can do this by creating a new file `/tmp/secrets.yaml` that contains the following information:
     
     ```yaml
     cfroutesync:
@@ -48,5 +49,5 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 1. Deploy the cf-k8s-networking components using `helm` and `kubectl`:
     
     ```bash
-    helm template install/helm/networking/ | kubectl apply -f-
+    helm template install/helm/networking/ --values /tmp/secrets.yaml | kubectl apply -f-
     ```

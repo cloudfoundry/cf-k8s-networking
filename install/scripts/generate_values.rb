@@ -1,20 +1,27 @@
 #!/usr/bin/env ruby
 
 require 'json'
-require 'yaml'
 require 'base64'
+require 'yaml'
 
 puts "# Generating values to use with helm template"
 
 if ARGV.length == 0
     puts "Usage: ./generate_values.rb [PATH_TO_BBL_STATE_FILE]"
+    puts "Make sure you load CREDHUB env vars via bbl print-env prior to running"
     exit
 end
 
-# Path to bbl state
-ARGV[0]
+bbl_state_file = ARGV[0]
+bbl_state_dir = File.dirname(bbl_state_file)
 
-bbl_state = JSON.parse(File.read(ARGV[0]))
+unless ENV['CREDHUB_PROXY']
+ puts "CREDHUB_PROXY must be set. Have you run 'eval \"$(bbl print-env --state-dir=#{bbl_state_dir})\"'?"
+ exit 1
+end
+
+# Path to bbl state
+bbl_state = JSON.parse(File.read(bbl_state_file))
 
 director_name = bbl_state['bosh']['directorName']
 lb_cert_ca = bbl_state['lb']['cert']
