@@ -336,7 +336,7 @@ jobs:
       input_mapping:
         integration-config: updated-integration-configs
       params:
-        NODES: 3
+        NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-1/cats_integration_config.json"
         CAPTURE_LOGS: true
 
