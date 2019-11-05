@@ -47,7 +47,7 @@ function write_cats_config() {
     "include_ssh": false,
     "include_zipkin": false,
     "use_existing_user": false,
-    "keep_user_at_suite_end": false,
+    "keep_user_at_suite_end": false
 }
 EOF
   fi
@@ -76,7 +76,7 @@ function commit_bbl_state() {
     git config user.email "cf-networking@pivotal.io"
 
     git add .
-    git commit -m "Create LB certs for '${BBL_STATE_DIR}'"
+    git commit -m "Seeding CATS config, certs, etc. in '${BBL_STATE_DIR}'"
   fi
 }
 
