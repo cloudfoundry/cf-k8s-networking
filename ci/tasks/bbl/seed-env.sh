@@ -53,6 +53,18 @@ EOF
   fi
 }
 
+apps_domain_vars_file="apps_domains_vars.yml"
+function write_apps_domains_vars_file() {
+  if [ ! -f "${apps_domain_vars_file}" ]; then
+    cat <<- EOF > "${apps_domain_vars_file}"
+app_domains:
+- ${SYSTEM_DOMAIN} # DNS points to gorouter
+- ${APPS_DOMAIN} # DNS points to istio ingress router
+smoke_test_app_domain: ${APPS_DOMAIN}
+EOF
+  fi
+}
+
 function write_load_balancer_certs() {
   if [ ! -d "${lb_output_path}" ]; then
     mkdir -p "${lb_output_path}"
@@ -86,6 +98,7 @@ output_path="updated-bbl-state/${BBL_STATE_DIR}"
 mkdir -p "${output_path}"
 pushd ${output_path}
     write_cats_config
+    write_apps_domains_vars_file
     write_load_balancer_certs
 
     commit_bbl_state
