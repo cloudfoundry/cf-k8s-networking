@@ -1,8 +1,9 @@
 package webhook
 
 import (
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"fmt"
+
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -26,8 +27,9 @@ func routeToServices(route models.Route, template Template) []Service {
 			ApiVersion: "v1",
 			Kind:       "Service",
 			ObjectMeta: metav1.ObjectMeta{
-				Name:   serviceName(dest),
-				Labels: cloneLabels(template.ObjectMeta.Labels),
+				Name:        serviceName(dest),
+				Labels:      cloneLabels(template.ObjectMeta.Labels),
+				Annotations: map[string]string{},
 			},
 			Spec: ServiceSpec{
 				Selector: map[string]string{
@@ -40,7 +42,7 @@ func routeToServices(route models.Route, template Template) []Service {
 		service.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
 		service.ObjectMeta.Labels["cloudfoundry.org/process"] = dest.App.Process.Type
 		service.ObjectMeta.Labels["cloudfoundry.org/route"] = route.Guid
-		service.ObjectMeta.Labels["cloudfoundry.org/route-fqdn"] = route.FQDN()
+		service.ObjectMeta.Annotations["cloudfoundry.org/route-fqdn"] = route.FQDN()
 		services = append(services, service)
 	}
 	return services

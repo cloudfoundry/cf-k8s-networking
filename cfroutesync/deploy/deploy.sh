@@ -25,7 +25,9 @@ echo 'Applying routebulksync CRD...'
 kubectl apply -f "${cfroutesync_dir}/crds/routebulksync.yaml"
 
 echo 'Deploying to Kubernetes...'
-helm template "${cf_k8s_networking_dir}/install/helm/networking/" --values <("${cf_k8s_networking_dir}/install/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json") | kubectl apply -f-
+helm template "${cf_k8s_networking_dir}/install/helm/networking/" \
+    --values <("${cf_k8s_networking_dir}/install/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json") \
+    --set cfroutesync.version=$environment | kubectl apply -f-
 
 echo restarting...
 kubectl delete pods -ncf-system -l app=cfroutesync

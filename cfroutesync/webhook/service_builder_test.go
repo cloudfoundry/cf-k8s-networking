@@ -116,7 +116,9 @@ var _ = Describe("ServiceBuilder", func() {
 						"cloudfoundry.org/route":           "route-guid-0",
 						"cloudfoundry.org/app":             "app-guid-0",
 						"cloudfoundry.org/process":         "process-type-1",
-						"cloudfoundry.org/route-fqdn":      "test0.domain0.example.com",
+					},
+					Annotations: map[string]string{
+						"cloudfoundry.org/route-fqdn": "test0.domain0.example.com",
 					},
 				},
 				Spec: webhook.ServiceSpec{
@@ -143,7 +145,9 @@ var _ = Describe("ServiceBuilder", func() {
 						"cloudfoundry.org/route":           "route-guid-0",
 						"cloudfoundry.org/app":             "app-guid-1",
 						"cloudfoundry.org/process":         "process-type-1",
-						"cloudfoundry.org/route-fqdn":      "test0.domain0.example.com",
+					},
+					Annotations: map[string]string{
+						"cloudfoundry.org/route-fqdn": "test0.domain0.example.com",
 					},
 				},
 				Spec: webhook.ServiceSpec{
@@ -170,7 +174,9 @@ var _ = Describe("ServiceBuilder", func() {
 						"cloudfoundry.org/route":           "route-guid-1",
 						"cloudfoundry.org/app":             "app-guid-2",
 						"cloudfoundry.org/process":         "process-type-2",
-						"cloudfoundry.org/route-fqdn":      "test1.domain1.apps.internal",
+					},
+					Annotations: map[string]string{
+						"cloudfoundry.org/route-fqdn": "test1.domain1.apps.internal",
 					},
 				},
 				Spec: webhook.ServiceSpec{
@@ -197,7 +203,9 @@ var _ = Describe("ServiceBuilder", func() {
 						"cloudfoundry.org/route":           "route-guid-2",
 						"cloudfoundry.org/app":             "app-guid-1",
 						"cloudfoundry.org/process":         "process-type-1",
-						"cloudfoundry.org/route-fqdn":      "test0.domain0.example.com",
+					},
+					Annotations: map[string]string{
+						"cloudfoundry.org/route-fqdn": "test0.domain0.example.com",
 					},
 				},
 				Spec: webhook.ServiceSpec{

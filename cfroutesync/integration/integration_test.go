@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
@@ -65,7 +66,7 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		te.Cleanup()
 	})
 
-	Specify("cfroutesync boots and stays running", func() {
+	Specify("cfroutesync creates the expected k8s resources", func() {
 		cmd := exec.Command("metacontroller", "-logtostderr", "-client-config-path", te.KubeConfigPath, "-v", "6")
 		metacontrollerSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
@@ -127,9 +128,13 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		}
 		Expect(vsMap).To(HaveKey("route-0-host.domain0.example.com"))
 		Expect(vsMap).To(HaveKey("route-1-host.domain1.apps.internal"))
-		Expect(vsMap).To(HaveKey("route-2-host.domain1.apps.internal"))
+		Expect(vsMap).To(HaveKey(fmt.Sprintf("%s.domain1.apps.internal", longHostname)))
 	})
 })
+
+const DNSLabelMaxLength = 63
+
+var longHostname = strings.Repeat("a", DNSLabelMaxLength)
 
 func initializeFakeData(te *TestEnv) {
 	te.FakeCC.Data.Routes = []ccclient.Route{
@@ -147,7 +152,7 @@ func initializeFakeData(te *TestEnv) {
 		},
 		ccclient.Route{
 			Guid: "route-2-guid",
-			Host: "route-2-host",
+			Host: longHostname,
 			Path: "route-2-path",
 			Url:  "route-2-url",
 		},
