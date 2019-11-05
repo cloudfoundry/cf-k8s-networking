@@ -19,4 +19,5 @@ run:
 
 params:
   BBL_STATE_DIR:
-  DOMAIN:
+  SYSTEM_DOMAIN:
+  APPS_DOMAIN:

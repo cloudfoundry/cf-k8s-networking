@@ -102,7 +102,8 @@ jobs:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-1"
-        DOMAIN: &eirini-dev-1-domain "eirini-dev-1.routing.cf-app.com"
+        SYSTEM_DOMAIN: &eirini-dev-1-domain "eirini-dev-1.routing.cf-app.com"
+        APPS_DOMAIN: &eirini-dev-1-istio-domain "eirini-dev-1.routing.lol"
     - put: networking-oss-deployments
       params:
         repository: updated-bbl-state
@@ -286,6 +287,37 @@ jobs:
         ERRAND_NAME: configure-eirini-bosh
         BBL_STATE_DIR: "environments/eirini-dev-1"
 
+- name: eirini-dev-1-acceptance-tests
+  serial: true
+  serial_groups: [eirini-dev-1]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-1-install-cf-networking]
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/eirini-dev-1/cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: acceptance-tests
+      file: cf-deployment-concourse-tasks/run-cats/task.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        NODES: 3
+        CONFIG_FILE_PATH: "environments/eirini-dev-1/cats_integration_config.json"
+        CAPTURE_LOGS: true
+
 - name: eirini-lite-1-bbl-up
   serial: true
   serial_groups: [eirini-lite-1]
@@ -305,7 +337,8 @@ jobs:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-lite-1"
-        DOMAIN: &eirini-lite-1-domain "eirini-lite-1.routing.cf-app.com"
+        SYSTEM_DOMAIN: &eirini-lite-1-domain "eirini-lite-1.routing.cf-app.com"
+        APPS_DOMAIN: &eirini-lite-1-istio-domain "eirini-lite-1.routing.lol"
     - put: networking-oss-deployments
       params:
         repository: updated-bbl-state
