@@ -42,6 +42,13 @@ resources:
     private_key: ((github_private_key.private_key))
     branch: release-candidate
 
+- name: cf-acceptance-tests
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/cf-acceptance-tests.git
+    private_key: ((github_private_key.private_key))
+    branch: release-candidate
+
 - name: bosh-bootloader
   type: git
   icon: github-box
@@ -83,6 +90,20 @@ resources:
   type: bosh-io-release
   source:
     repository: cloudfoundry-incubator/bits-service-release
+
+groups:
+  - name: eirini-dev-1
+    jobs:
+    - eirini-dev-1-bbl-up
+    - eirini-dev-1-deploy-istio
+    - eirini-dev-1-install-metacontroller
+    - eirini-dev-1-install-cf-networking
+    - eirini-dev-1-deploy-cf
+    - eirini-dev-1-acceptance-tests
+  - name: eirini-lite-1
+    jobs:
+    - eirini-lite-1-bbl-up
+    - eirini-lite-1-deploy-cf
 
 jobs:
 - name: eirini-dev-1-bbl-up
@@ -204,7 +225,7 @@ jobs:
     - in_parallel:
         - get: cf-k8s-networking
         - get: networking-oss-deployments
-          passed: [eirini-dev-1-deploy-cf]
+          passed: [eirini-dev-1-bbl-up]
     - task: extract-kubeconfig
       file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
@@ -230,7 +251,7 @@ jobs:
           resource: cf-deployment
         - get: cf-k8s-networking
         - get: networking-oss-deployments
-          passed: [eirini-dev-1-deploy-istio, eirini-dev-1-install-metacontroller]
+          passed: [eirini-dev-1-bbl-up]
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
@@ -293,9 +314,10 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-deployment-concourse-tasks
+        - get: cf-acceptance-tests
         - get: cf-k8s-networking
         - get: networking-oss-deployments
-          passed: [eirini-dev-1-install-cf-networking]
+          passed: [eirini-dev-1-bbl-up]
     - task: updated-integration-configs
       file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
       input_mapping:
