@@ -24,9 +24,12 @@ function install() {
   echo 'Applying CRDs...'
   kubectl apply -f "cf-k8s-networking/cfroutesync/crds/routebulksync.yaml"
 
-  echo 'Deploying to Kubernetes...'
-  image_digest="$(cat cfroutesync-image/digest)"
-  image_repo="gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync@${image_digest}"
+  pushd cf-k8s-networking > /dev/null
+    git_sha="$(cat .git/ref)"
+  popd
+  image_repo="gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:${git_sha}"
+
+  echo "Deploying image '${image_repo}' to Kubernetes..."
   helm template cf-k8s-networking/install/helm/networking/ --values $secrets_yaml --set cfroutesync.image=${image_repo} | kubectl apply -f-
 }
 
