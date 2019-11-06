@@ -1,26 +1,26 @@
 package integration_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"os/exec"
 	"strings"
 	"time"
 
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
-	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
-	"code.cloudfoundry.org/cf-networking-helpers/testsupport/ports"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
 	"github.com/onsi/gomega/gexec"
+
+	"code.cloudfoundry.org/cf-networking-helpers/testsupport/ports"
+
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 )
 
 var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", func() {
 	var (
-		te                              *TestEnv
-		metacontrollerWebhookListenAddr string
+		te                 *TestEnv
+		cfroutesyncSession *gexec.Session
 	)
 
 	BeforeEach(func() {
@@ -28,109 +28,86 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		te, err = NewTestEnv(GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = te.kubectl("apply", "-f", "fixtures/crds/istio_crds.yaml")
-		Expect(err).NotTo(HaveOccurred())
-
-		_, err = te.kubectl("apply", "-f", "fixtures/istio-validating-admission-webhook.yaml")
+		_, err = te.kubectl("apply", "-f", "fixtures/crds/routebulksync.yaml")
 		Expect(err).NotTo(HaveOccurred())
 
 		_, err = te.kubectl("create", "namespace", "cf-workloads")
-		Expect(err).NotTo(HaveOccurred())
-
-		Expect(te.GalleySession).NotTo(gexec.Exit()) // cheap check that it is alive
-		Eventually(te.checkAdmissionWebhookRunning, "10s", "5s").Should(Succeed())
-
-		metacontrollerWebhookListenAddr = fmt.Sprintf("127.0.0.1:%d", ports.PickAPort())
-
-		// apply the CRDs for metacontroller, istio, and cfroutesync
-		_, err = te.kubectl("apply", "-f", "fixtures/crds/metacontroller_crds.yaml")
-		Expect(err).NotTo(HaveOccurred())
-
-		_, err = te.kubectl("apply", "-f", "fixtures/crds/routebulksync.yaml")
 		Expect(err).NotTo(HaveOccurred())
 
 		// apply the parent object that metacontroller watches
 		_, err = te.kubectl("apply", "-f", "fixtures/routebulksync.yaml")
 		Expect(err).NotTo(HaveOccurred())
 
-		compositefile, err := createCompositeController(metacontrollerWebhookListenAddr)
-		Expect(err).NotTo(HaveOccurred())
-
-		_, err = te.kubectl("apply", "-f", compositefile)
-		Expect(err).NotTo(HaveOccurred())
-
 		initializeFakeData(te)
+
+		cfroutesyncSession = startAndRegister(te)
 	})
 
 	AfterEach(func() {
+		cfroutesyncSession.Terminate().Wait("2s")
 		te.Cleanup()
 	})
 
 	Specify("cfroutesync creates the expected k8s resources", func() {
-		cmd := exec.Command("metacontroller", "-logtostderr", "-client-config-path", te.KubeConfigPath, "-v", "6")
-		metacontrollerSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-		Expect(err).NotTo(HaveOccurred())
-		defer func() {
-			metacontrollerSession.Terminate().Wait("2s")
-		}()
-
-		cmd = exec.Command(binaryPathCFRouteSync, "-c", te.ConfigDir, "-l", metacontrollerWebhookListenAddr, "-v", "6")
-		session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
-		Expect(err).NotTo(HaveOccurred())
-		defer func() {
-			session.Terminate().Wait("2s")
-		}()
-
-		Eventually(session.Out).Should(gbytes.Say("starting webhook server"))
-		Eventually(session.Out).Should(gbytes.Say("starting cc fetch loop"))
-		Eventually(session.Out, 10*time.Second).Should(gbytes.Say("Fetched and put snapshot"))
-		Eventually(session.Out, 10*time.Second).Should(gbytes.Say("metacontroller"))
-
-		kubectlGetResources := func(output interface{}, resourceType string, namespace string) error {
-			out, err := te.kubectl("get", resourceType, "-n", namespace, "-o", "json")
-			if err != nil {
-				return err
-			}
-			return json.Unmarshal(out, output)
-		}
-
-		actualServicesResponse := &struct {
-			Items []webhook.Service `json:"items"`
-		}{}
-		Eventually(func() ([]webhook.Service, error) {
-			err := kubectlGetResources(actualServicesResponse, "services", "cf-workloads")
-			if err != nil {
-				return nil, err
-			}
-			return actualServicesResponse.Items, nil
-		}, "1s", "0.1s").Should(HaveLen(3))
 		serviceMap := map[string]webhook.Service{}
-		for _, s := range actualServicesResponse.Items {
-			serviceMap[s.Name] = s
-		}
+		Eventually(func() (map[string]webhook.Service, error) {
+			err := te.getResourcesByName("services", "cf-workloads", serviceMap)
+			return serviceMap, err
+		}, "1s", "0.1s").Should(HaveLen(3))
 		Expect(serviceMap).To(HaveKey("s-destination-0"))
 		Expect(serviceMap).To(HaveKey("s-destination-1"))
 		Expect(serviceMap).To(HaveKey("s-destination-2"))
 
-		actualVirtualServicesResponse := &struct {
-			Items []webhook.VirtualService `json:"items"`
-		}{}
-		Eventually(func() ([]webhook.VirtualService, error) {
-			err := kubectlGetResources(actualVirtualServicesResponse, "virtualservices", "cf-workloads")
-			if err != nil {
-				return nil, err
-			}
-			return actualVirtualServicesResponse.Items, nil
+		virtualServiceMap := map[string]webhook.VirtualService{}
+		Eventually(func() (map[string]webhook.VirtualService, error) {
+			err := te.getResourcesByName("virtualservices", "cf-workloads", virtualServiceMap)
+			return virtualServiceMap, err
 		}, "1s", "0.1s").Should(HaveLen(3))
-		vsMap := map[string]webhook.VirtualService{}
-		for _, vs := range actualVirtualServicesResponse.Items {
-			vsMap[vs.Name] = vs
-		}
-		Expect(vsMap).To(HaveKey("route-0-host.domain0.example.com"))
-		Expect(vsMap).To(HaveKey("route-1-host.domain1.apps.internal"))
-		Expect(vsMap).To(HaveKey(fmt.Sprintf("%s.domain1.apps.internal", longHostname)))
+		Expect(virtualServiceMap).To(HaveKey("route-0-host.domain0.example.com"))
+		Expect(virtualServiceMap).To(HaveKey("route-1-host.domain1.apps.internal"))
+		Expect(virtualServiceMap).To(HaveKey(fmt.Sprintf("%s.domain1.apps.internal", longHostname)))
 	})
 })
+
+func startAndRegister(te *TestEnv) *gexec.Session {
+	webhookListenAddr := fmt.Sprintf("127.0.0.1:%d", ports.PickAPort())
+	cmd := exec.Command(binaryPathCFRouteSync,
+		"-c", te.CfRouteSyncConfigDir,
+		"-l", webhookListenAddr,
+		"-v", "6")
+	cfroutesyncSession, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(cfroutesyncSession.Out).Should(gbytes.Say("starting webhook server"))
+	Eventually(cfroutesyncSession.Out).Should(gbytes.Say("starting cc fetch loop"))
+	Eventually(cfroutesyncSession.Out, 10*time.Second).Should(gbytes.Say("Fetched and put snapshot"))
+
+	compositeController := fmt.Sprintf(`---
+apiVersion: metacontroller.k8s.io/v1alpha1
+kind: CompositeController
+metadata:
+  name: cfroutesync
+spec:
+  resyncPeriodSeconds: 5
+  parentResource:
+    apiVersion: apps.cloudfoundry.org/v1alpha1
+    resource: routebulksyncs
+  childResources:
+    - apiVersion: v1
+      resource: services
+      updateStrategy:
+        method: InPlace
+    - apiVersion: networking.istio.io/v1alpha3
+      resource: virtualservices
+      updateStrategy:
+        method: InPlace
+  hooks:
+    sync:
+      webhook:
+        url: http://%s/sync`, webhookListenAddr)
+	Expect(te.kubectlApplyResource(compositeController)).To(Succeed())
+	Eventually(cfroutesyncSession.Out, 10*time.Second).Should(gbytes.Say("metacontroller webhook request received"))
+	return cfroutesyncSession
+}
 
 const DNSLabelMaxLength = 63
 

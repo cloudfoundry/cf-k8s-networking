@@ -13,25 +13,27 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"reflect"
 	"regexp"
 	"strings"
 	"sync"
-
-	"k8s.io/client-go/rest"
+	"time"
 
 	"github.com/onsi/gomega/gexec"
+	log "github.com/sirupsen/logrus"
+	"k8s.io/client-go/rest"
+	k8sApiServer "sigs.k8s.io/controller-runtime/pkg/envtest"
+	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/cfg"
-	log "github.com/sirupsen/logrus"
-	fakeapiserver "sigs.k8s.io/controller-runtime/pkg/envtest"
-	logf "sigs.k8s.io/controller-runtime/pkg/runtime/log"
 )
 
 type TestEnv struct {
 	lock sync.Mutex
 
-	ConfigDir string
+	TempDir              string
+	CfRouteSyncConfigDir string
 
 	FakeUAA struct {
 		Handler http.Handler
@@ -46,11 +48,11 @@ type TestEnv struct {
 			Destinations map[string][]ccclient.Destination
 		}
 	}
-	FakeApiServerEnv *fakeapiserver.Environment
-	KubeCtlHome      string
-	KubeConfigPath   string
+	K8sApiServerEnv *k8sApiServer.Environment
+	KubeConfigPath  string
 
-	GalleySession *gexec.Session
+	GalleySession         *gexec.Session
+	MetaControllerSession *gexec.Session
 
 	TestOutput io.Writer
 }
@@ -83,71 +85,110 @@ func (te *TestEnv) FakeCCServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func NewTestEnv(testOutput io.Writer) (*TestEnv, error) {
-	configDir, err := ioutil.TempDir("", "cfroutesync-integ-test-config-dir")
+	tempDir, err := ioutil.TempDir("", "cfroutesync-integ-test")
 	if err != nil {
 		return nil, err
 	}
 
-	testEnv := &TestEnv{
-		ConfigDir:  configDir,
+	te := &TestEnv{
+		TempDir:    tempDir,
 		TestOutput: testOutput,
 	}
 
-	testEnv.FakeUAA.Handler = http.HandlerFunc(testEnv.FakeUAAServeHTTP)
-	testEnv.FakeUAA.Server = httptest.NewTLSServer(testEnv.FakeUAA.Handler)
+	te.FakeUAA.Handler = http.HandlerFunc(te.FakeUAAServeHTTP)
+	te.FakeUAA.Server = httptest.NewTLSServer(te.FakeUAA.Handler)
+	te.FakeCC.Handler = http.HandlerFunc(te.FakeCCServeHTTP)
+	te.FakeCC.Server = httptest.NewTLSServer(te.FakeCC.Handler)
 
-	testEnv.FakeCC.Handler = http.HandlerFunc(testEnv.FakeCCServeHTTP)
-	testEnv.FakeCC.Server = httptest.NewTLSServer(testEnv.FakeCC.Handler)
-
-	fakeUAACertBytes, err := tlsCertToPem(testEnv.FakeUAA.Server.Certificate())
-	if err != nil {
-		return nil, err
+	if err := te.setupConfigDirForCfroutesync(); err != nil {
+		return nil, fmt.Errorf("setup config for cfroutesync: %w", err)
 	}
 
-	fakeCCCertBytes, err := tlsCertToPem(testEnv.FakeCC.Server.Certificate())
-	if err != nil {
-		return nil, err
-	}
-
-	for filename, contents := range map[string]string{
-		cfg.FileUAABaseURL:      testEnv.FakeUAA.Server.URL,
-		cfg.FileUAAClientName:   "fake-uaa-client-name",
-		cfg.FileUAAClientSecret: "fake-uaa-client-secret",
-		cfg.FileUAACA:           string(fakeUAACertBytes),
-		cfg.FileCCBaseURL:       testEnv.FakeCC.Server.URL,
-		cfg.FileCCCA:            string(fakeCCCertBytes),
-	} {
-		if err := ioutil.WriteFile(filepath.Join(testEnv.ConfigDir, filename), []byte(contents), 0644); err != nil {
-			return nil, err
-		}
-	}
-
-	logf.SetLogger(logf.ZapLoggerTo(testEnv.TestOutput /* development */, true))
-	testEnv.FakeApiServerEnv = &fakeapiserver.Environment{
+	logf.SetLogger(logf.ZapLoggerTo(te.TestOutput, true /* development */))
+	te.K8sApiServerEnv = &k8sApiServer.Environment{
 		KubeAPIServerFlags: getApiServerFlags(),
 	}
-	testEnvConfig, err = testEnv.FakeApiServerEnv.Start()
+	apiServerConfig, err := te.K8sApiServerEnv.Start()
 	if err != nil {
 		return nil, fmt.Errorf("starting fake api server: %w", err)
 	}
-
-	testEnv.KubeCtlHome, err = ioutil.TempDir("", "kubectl-home")
-	if err != nil {
-		return nil, fmt.Errorf("creating home dir for kubectl: %w", err)
-	}
-	if err := testEnv.createKubeConfig(testEnvConfig); err != nil {
+	if err := te.createKubeConfig(apiServerConfig); err != nil {
 		return nil, fmt.Errorf("writing kube config: %w", err)
 	}
 
-	if err := testEnv.startGalley(); err != nil {
+	if _, err = te.kubectl("apply", "-f", "fixtures/crds/istio_crds.yaml"); err != nil {
+		return nil, err
+	}
+	if err := te.startGalley(); err != nil {
 		return nil, fmt.Errorf("starting galley: %w", err)
 	}
-	return testEnv, nil
+	if _, err = te.kubectl("apply", "-f", "fixtures/istio-validating-admission-webhook.yaml"); err != nil {
+		return nil, err
+	}
+
+	if err = te.setupAndStartMetaController(); err != nil {
+		return nil, fmt.Errorf("starting metacontroller: %w", err)
+	}
+
+	if te.GalleySession.ExitCode() >= 0 {
+		return nil, fmt.Errorf("galley exited unexpectedly with code: %d", te.GalleySession.ExitCode())
+	}
+
+	if err := te.eventuallyGalleyIsValidating(10, 2*time.Second); err != nil {
+		return nil, err
+	}
+
+	return te, nil
+}
+
+func (te *TestEnv) setupConfigDirForCfroutesync() error {
+	te.CfRouteSyncConfigDir = filepath.Join(te.TempDir, "cfroutesync-config")
+	if err := os.MkdirAll(te.CfRouteSyncConfigDir, 0644); err != nil {
+		return err
+	}
+
+	fakeUAACertBytes, err := tlsCertToPem(te.FakeUAA.Server.Certificate())
+	if err != nil {
+		return err
+	}
+
+	fakeCCCertBytes, err := tlsCertToPem(te.FakeCC.Server.Certificate())
+	if err != nil {
+		return err
+	}
+
+	for filename, contents := range map[string]string{
+		cfg.FileUAABaseURL:      te.FakeUAA.Server.URL,
+		cfg.FileUAAClientName:   "fake-uaa-client-name",
+		cfg.FileUAAClientSecret: "fake-uaa-client-secret",
+		cfg.FileUAACA:           string(fakeUAACertBytes),
+		cfg.FileCCBaseURL:       te.FakeCC.Server.URL,
+		cfg.FileCCCA:            string(fakeCCCertBytes),
+	} {
+		if err := ioutil.WriteFile(filepath.Join(te.CfRouteSyncConfigDir, filename), []byte(contents), 0644); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (te *TestEnv) setupAndStartMetaController() error {
+	var err error
+	if _, err = te.kubectl("apply", "-f", "fixtures/crds/metacontroller_crds.yaml"); err != nil {
+		return err
+	}
+	cmd := exec.Command("metacontroller",
+		"-logtostderr",
+		"-client-config-path", te.KubeConfigPath,
+		"-v", "6",
+		"-discovery-interval", "1s")
+	te.MetaControllerSession, err = gexec.Start(cmd, te.TestOutput, te.TestOutput)
+	return err
 }
 
 func getApiServerFlags() []string {
-	apiServerFlags := make([]string, len(fakeapiserver.DefaultKubeAPIServerFlags))
-	copy(apiServerFlags, fakeapiserver.DefaultKubeAPIServerFlags)
+	apiServerFlags := make([]string, len(k8sApiServer.DefaultKubeAPIServerFlags))
+	copy(apiServerFlags, k8sApiServer.DefaultKubeAPIServerFlags)
 	for i, current := range apiServerFlags {
 		if strings.HasPrefix(current, "--admission-control") {
 			apiServerFlags[i] = "--enable-admission-plugins=ValidatingAdmissionWebhook"
@@ -176,7 +217,7 @@ func (te *TestEnv) startGalley() error {
 	return nil
 }
 
-func (te *TestEnv) checkAdmissionWebhookRunning() error {
+func (te *TestEnv) checkGalleyIsValidating() error {
 	// attempt to apply invalid data
 	outBytes, err := te.kubectl("apply", "-f", "./fixtures/invalid-virtual-service.yaml")
 	out := string(outBytes)
@@ -198,6 +239,18 @@ func (te *TestEnv) checkAdmissionWebhookRunning() error {
 	return fmt.Errorf("unexpected condition while applying invalid VirtualService: %w: %s", err, out)
 }
 
+func (te *TestEnv) eventuallyGalleyIsValidating(numPolls int, pollInterval time.Duration) error {
+	var err error
+	for i := 0; i < numPolls; i++ {
+		err = te.checkGalleyIsValidating()
+		if err == nil {
+			return nil
+		}
+		time.Sleep(pollInterval)
+	}
+	return fmt.Errorf("timed out waiting for galley to start validating.  last error: %w", err)
+}
+
 func (te *TestEnv) Cleanup() {
 	if te == nil {
 		return
@@ -205,9 +258,9 @@ func (te *TestEnv) Cleanup() {
 	te.lock.Lock()
 	defer te.lock.Unlock()
 
-	if len(te.ConfigDir) > 0 {
-		os.RemoveAll(te.ConfigDir)
-		te.ConfigDir = ""
+	if len(te.TempDir) > 0 {
+		os.RemoveAll(te.TempDir)
+		te.TempDir = ""
 	}
 
 	if te.FakeUAA.Server != nil {
@@ -220,14 +273,19 @@ func (te *TestEnv) Cleanup() {
 		te.FakeCC.Server = nil
 	}
 
-	if te.FakeApiServerEnv != nil {
-		te.FakeApiServerEnv.Stop()
-		te.FakeApiServerEnv = nil
+	if te.K8sApiServerEnv != nil {
+		te.K8sApiServerEnv.Stop()
+		te.K8sApiServerEnv = nil
 	}
 
 	if te.GalleySession != nil {
 		te.GalleySession.Terminate().Wait("2s")
 		te.GalleySession = nil
+	}
+
+	if te.MetaControllerSession != nil {
+		te.MetaControllerSession.Terminate().Wait("2s")
+		te.MetaControllerSession = nil
 	}
 }
 
@@ -250,12 +308,26 @@ func (te *TestEnv) kubectl(args ...string) ([]byte, error) {
 	cmd.Env = []string{
 		fmt.Sprintf("KUBECONFIG=%s", te.KubeConfigPath),
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
-		fmt.Sprintf("HOME=%s", te.KubeCtlHome),
+		fmt.Sprintf("HOME=%s", filepath.Dir(te.KubeConfigPath)),
 	}
 	fmt.Fprintf(te.TestOutput, "+ kubectl %s\n", strings.Join(args, " "))
 	output, err := cmd.CombinedOutput()
 	te.TestOutput.Write(output)
 	return output, err
+}
+
+func (te *TestEnv) kubectlApplyResource(resource string) error {
+	cmd := exec.Command("kubectl", "apply", "-f", "-")
+	cmd.Env = []string{
+		fmt.Sprintf("KUBECONFIG=%s", te.KubeConfigPath),
+		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+		fmt.Sprintf("HOME=%s", filepath.Dir(te.KubeConfigPath)),
+	}
+	cmd.Stdin = bytes.NewReader([]byte(resource))
+	fmt.Fprintf(te.TestOutput, "+ kubectl apply with string input\n")
+	output, err := cmd.CombinedOutput()
+	te.TestOutput.Write(output)
+	return err
 }
 
 func (te *TestEnv) createKubeConfig(config *rest.Config) error {
@@ -275,46 +347,37 @@ users:
 - name: test-user
   user:
     token: %s`, config.Host, config.BearerToken)
-	te.KubeConfigPath = filepath.Join(te.KubeCtlHome, "config")
+	te.KubeConfigPath = filepath.Join(te.TempDir, "kube", "config")
+	if err := os.MkdirAll(filepath.Dir(te.KubeConfigPath), 0644); err != nil {
+		return err
+	}
 	fmt.Fprintf(te.TestOutput, "saving kubecfg to %s\n", te.KubeConfigPath)
 	return ioutil.WriteFile(te.KubeConfigPath, []byte(payload), 0644)
 }
 
-func createCompositeController(webhookHost string) (string, error) {
-	compositeControllerYAML, err := ioutil.TempFile("", "compositecontroller.yaml")
+func (te *TestEnv) getResourcesByName(resourceType, namespace string, outMap interface{}) error {
+	out, err := te.kubectl("get", resourceType, "-n", namespace, "-o", "json")
 	if err != nil {
-		return "", err
+		return err
 	}
-	defer compositeControllerYAML.Close()
+	return k8sListResponseByName(out, outMap)
+}
 
-	payload := fmt.Sprintf(`---
-apiVersion: metacontroller.k8s.io/v1alpha1
-kind: CompositeController
-metadata:
-  name: cfroutesync
-spec:
-  resyncPeriodSeconds: 5
-  parentResource:
-    apiVersion: apps.cloudfoundry.org/v1alpha1
-    resource: routebulksyncs
-  childResources:
-    - apiVersion: v1
-      resource: services
-      updateStrategy:
-        method: InPlace
-    - apiVersion: networking.istio.io/v1alpha3
-      resource: virtualservices
-      updateStrategy:
-        method: InPlace
-  hooks:
-    sync:
-      webhook:
-        url: http://%s/sync`, webhookHost)
-
-	_, err = compositeControllerYAML.Write([]byte(payload))
-	if err != nil {
-		return "", nil
+func k8sListResponseByName(rawJSON []byte, outMap interface{}) error {
+	k8sApiListResponse := reflect.New(reflect.StructOf([]reflect.StructField{
+		{
+			Name: "Items",
+			Type: reflect.SliceOf(reflect.TypeOf(outMap).Elem()),
+		},
+	})).Interface()
+	if err := json.Unmarshal(rawJSON, k8sApiListResponse); err != nil {
+		return err
 	}
-
-	return compositeControllerYAML.Name(), nil
+	itemsVal := reflect.ValueOf(k8sApiListResponse).Elem().Field(0)
+	outMapVal := reflect.ValueOf(outMap)
+	for i := 0; i < itemsVal.Len(); i++ {
+		item := itemsVal.Index(i)
+		outMapVal.SetMapIndex(item.FieldByName("Name"), item)
+	}
+	return nil
 }

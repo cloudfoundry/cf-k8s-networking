@@ -36,7 +36,7 @@ func (r *SyncHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		return
 	}
 
-	log.WithFields(log.Fields{"request": syncRequest}).Info("metacontroller request received")
+	log.WithFields(log.Fields{"request": syncRequest}).Info("metacontroller webhook request received")
 
 	response, err := r.Syncer.Sync(*syncRequest)
 	if err != nil {
