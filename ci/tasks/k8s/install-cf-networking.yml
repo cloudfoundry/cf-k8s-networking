@@ -9,6 +9,7 @@ inputs:
   - name: cf-k8s-networking
   - name: bbl-state
   - name: kubeconfig
+  - name: cfroutesync-image
 
 run:
   path: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.sh

@@ -91,6 +91,18 @@ resources:
   source:
     repository: cloudfoundry-incubator/bits-service-release
 
+- name: cfroutesync-image-master
+  type: registry-image
+  source:
+    repository: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
+    tag: master
+
+- name: cfroutesync-image-latest
+  type: registry-image
+  source:
+    repository: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
+    tag: latest
+
 groups:
   - name: good-acceptance
     jobs:
@@ -233,6 +245,7 @@ jobs:
   serial_groups: [eirini-dev-1]
   plan:
     - in_parallel:
+        - get: cfroutesync-image-latest
         - get: cf-k8s-networking
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
@@ -246,6 +259,7 @@ jobs:
       file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
+        cfroutesync-image: cfroutesync-image-latest
       params:
         KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
         BBL_STATE_DIR: "environments/eirini-dev-1"
@@ -474,8 +488,9 @@ jobs:
   serial_groups: [good-acceptance]
   plan:
     - in_parallel:
-        - get: cf-k8s-networking
+        - get: cfroutesync-image-master
           trigger: true
+        - get: cf-k8s-networking
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf, good-acceptance-install-metacontroller, good-acceptance-deploy-istio]
           trigger: true
@@ -489,6 +504,7 @@ jobs:
       file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
+        cfroutesync-image: cfroutesync-image-master
       params:
         KUBECONFIG_CONTEXT: "bosh-good-acceptance-cluster"
         BBL_STATE_DIR: "environments/good-acceptance"
