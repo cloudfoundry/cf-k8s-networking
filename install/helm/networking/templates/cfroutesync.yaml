@@ -38,7 +38,7 @@ spec:
     spec:
       containers:
         - name: cfroutesync
-          image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:{{ .Values.cfroutesync.version }}
+          image: {{ .Values.cfroutesync.image }}
           args: [ "-c", "/etc/cfroutesync-config"]
           volumeMounts:
             - name: cfroutesync-config
