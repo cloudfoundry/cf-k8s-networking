@@ -58,8 +58,8 @@ function write_apps_domains_vars_file() {
   if [ ! -f "${apps_domain_vars_file}" ]; then
     cat <<- EOF > "${apps_domain_vars_file}"
 app_domains:
-- ${SYSTEM_DOMAIN} # DNS points to gorouter
 - ${APPS_DOMAIN} # DNS points to istio ingress router
+- ${SYSTEM_DOMAIN} # DNS points to gorouter
 smoke_test_app_domain: ${APPS_DOMAIN}
 EOF
   fi
