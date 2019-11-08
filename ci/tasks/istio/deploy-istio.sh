@@ -19,10 +19,16 @@ function install_istio() {
 
     # Install Istio CRDs
     helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
-    sleep 5
+
+    # Give the CRDs time to apply
+    sleep 10
 
     # Install Istio
-    helm template install/kubernetes/helm/istio --name istio --namespace istio-system | kubectl apply -f -
+    istio_value_overrides="${workspace}/cf-k8s-networking/ci/istio-config/overrides.yml"
+    helm template install/kubernetes/helm/istio --name istio --namespace istio-system --values ${istio_value_overrides} | kubectl apply -f -
+
+    # Enable Istio Sidecar Injection for app workloads
+    kubectl label namespace cf-workloads istio-injection=enabled --overwrite=true
   popd
 }
 

@@ -16,12 +16,19 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 - `helm` installed
 
 ### Istio
-* Install [Istio](https://istio.io/docs/setup/install/kubernetes/) to the Kubernetes cluster
-
-    **Note:** As an example, in our CI we are installing Istio via the [deploy-istio.sh](ci/tasks/istio/deploy-istio.sh) task.
+* Install [Istio](https://istio.io/docs/setup/install/kubernetes/) on the Kubernetes cluster
+    
+    * We are testing with the "default" configuration using [these config overrides](ci/istio-config/overrides.yaml).
+    * As an example, in our CI we are installing Istio using the [deploy-istio.sh](ci/tasks/istio/deploy-istio.sh) task.
+    
+ * Enable [automatic sidecar injection](https://istio.io/docs/setup/additional-setup/sidecar-injection/#automatic-sidecar-injection) for the workloads namespace
+    
+    ```bash
+    kubectl label namespace cf-workloads istio-injection=enabled
+    ```
 ​
 ### Metacontroller
-* Install [Metacontroller](https://metacontroller.app/guide/install/) to the Kubernetes cluster
+* Install [Metacontroller](https://metacontroller.app/guide/install/) on the Kubernetes cluster
 ​
 ### CF-K8s-Networking
 1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must override the following properties from `install/helm/networking/values.yaml`.

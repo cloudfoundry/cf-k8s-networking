@@ -1,0 +1,5 @@
+# Enable Sidecar Access Logging
+# https://istio.io/docs/tasks/telemetry/logs/access-log/
+global:
+  proxy:
+    accessLogFile: /dev/stdout
