@@ -130,6 +130,7 @@ var _ = Describe("ServiceBuilder", func() {
 					Ports: []webhook.ServicePort{
 						webhook.ServicePort{
 							Port: 9000,
+							Name: "http",
 						},
 					},
 				},
@@ -159,6 +160,7 @@ var _ = Describe("ServiceBuilder", func() {
 					Ports: []webhook.ServicePort{
 						webhook.ServicePort{
 							Port: 9001,
+							Name: "http",
 						},
 					},
 				},
@@ -188,6 +190,7 @@ var _ = Describe("ServiceBuilder", func() {
 					Ports: []webhook.ServicePort{
 						webhook.ServicePort{
 							Port: 8080,
+							Name: "http",
 						},
 					},
 				},
@@ -217,6 +220,7 @@ var _ = Describe("ServiceBuilder", func() {
 					Ports: []webhook.ServicePort{
 						webhook.ServicePort{
 							Port: 8080,
+							Name: "http",
 						},
 					},
 				},

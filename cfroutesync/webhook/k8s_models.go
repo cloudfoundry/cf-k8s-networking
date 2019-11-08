@@ -37,7 +37,8 @@ type ServiceSpec struct {
 }
 
 type ServicePort struct {
-	Port int `json:"port"`
+	Port int    `json:"port"`
+	Name string `json:"name"`
 }
 
 type HTTPPrefixMatch struct {

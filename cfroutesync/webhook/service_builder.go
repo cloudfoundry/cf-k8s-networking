@@ -21,6 +21,7 @@ func (b *ServiceBuilder) Build(routes []models.Route, template Template) []K8sRe
 }
 
 func routeToServices(route models.Route, template Template) []Service {
+	const httpPortName = "http"
 	services := []Service{}
 	for _, dest := range route.Destinations {
 		service := Service{
@@ -36,7 +37,11 @@ func routeToServices(route models.Route, template Template) []Service {
 					"app_guid":     dest.App.Guid,
 					"process_type": dest.App.Process.Type,
 				},
-				Ports: []ServicePort{{Port: dest.Port}},
+				Ports: []ServicePort{
+					{
+						Port: dest.Port,
+						Name: httpPortName,
+					}},
 			},
 		}
 		service.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
