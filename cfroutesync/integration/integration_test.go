@@ -63,9 +63,9 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 			err := te.getResourcesByName("virtualservices", "cf-workloads", virtualServiceMap)
 			return virtualServiceMap, err
 		}, "1s", "0.1s").Should(HaveLen(3))
-		Expect(virtualServiceMap).To(HaveKey("route-0-host.domain0.example.com"))
-		Expect(virtualServiceMap).To(HaveKey("route-1-host.domain1.apps.internal"))
-		Expect(virtualServiceMap).To(HaveKey(fmt.Sprintf("%s.domain1.apps.internal", longHostname)))
+		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName("route-0-host.domain0.example.com")))
+		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName("route-1-host.domain1.apps.internal")))
+		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName(fmt.Sprintf("%s.domain1.apps.internal", longHostname))))
 	})
 })
 

@@ -3,6 +3,8 @@ package webhook_test
 import (
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
+	"fmt"
+	"strings"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -87,10 +89,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				ApiVersion: "networking.istio.io/v1alpha3",
 				Kind:       "VirtualService",
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "test0.domain0.example.com",
+					Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 					Labels: map[string]string{
 						"cloudfoundry.org/bulk-sync-route": "true",
 						"label-for-routes":                 "cool-label",
+					},
+					Annotations: map[string]string{
+						"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 					},
 				},
 				Spec: webhook.VirtualServiceSpec{
@@ -117,10 +122,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				ApiVersion: "networking.istio.io/v1alpha3",
 				Kind:       "VirtualService",
 				ObjectMeta: metav1.ObjectMeta{
-					Name: "test1.domain1.example.com",
+					Name: webhook.VirtualServiceName("test1.domain1.example.com"),
 					Labels: map[string]string{
 						"cloudfoundry.org/bulk-sync-route": "true",
 						"label-for-routes":                 "cool-label",
+					},
+					Annotations: map[string]string{
+						"cloudfoundry.org/fqdn": "test1.domain1.example.com",
 					},
 				},
 				Spec: webhook.VirtualServiceSpec{
@@ -201,10 +209,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							ApiVersion: "networking.istio.io/v1alpha3",
 							Kind:       "VirtualService",
 							ObjectMeta: metav1.ObjectMeta{
-								Name: "test0.domain0.example.com",
+								Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
 									"label-for-routes":                 "cool-label",
+								},
+								Annotations: map[string]string{
+									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 								},
 							},
 							Spec: webhook.VirtualServiceSpec{
@@ -268,10 +279,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							ApiVersion: "networking.istio.io/v1alpha3",
 							Kind:       "VirtualService",
 							ObjectMeta: metav1.ObjectMeta{
-								Name: "test0.domain0.example.com",
+								Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
 									"label-for-routes":                 "cool-label",
+								},
+								Annotations: map[string]string{
+									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 								},
 							},
 							Spec: webhook.VirtualServiceSpec{
@@ -316,10 +330,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							ApiVersion: "networking.istio.io/v1alpha3",
 							Kind:       "VirtualService",
 							ObjectMeta: metav1.ObjectMeta{
-								Name: "test0.domain0.example.com",
+								Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
 									"label-for-routes":                 "cool-label",
+								},
+								Annotations: map[string]string{
+									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 								},
 							},
 							Spec: webhook.VirtualServiceSpec{
@@ -395,10 +412,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							ApiVersion: "networking.istio.io/v1alpha3",
 							Kind:       "VirtualService",
 							ObjectMeta: metav1.ObjectMeta{
-								Name: "test0.domain0.example.com",
+								Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
 									"label-for-routes":                 "cool-label",
+								},
+								Annotations: map[string]string{
+									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 								},
 							},
 							Spec: webhook.VirtualServiceSpec{
@@ -474,10 +494,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							ApiVersion: "networking.istio.io/v1alpha3",
 							Kind:       "VirtualService",
 							ObjectMeta: metav1.ObjectMeta{
-								Name: "test0.domain0.example.com",
+								Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 								Labels: map[string]string{
 									"cloudfoundry.org/bulk-sync-route": "true",
 									"label-for-routes":                 "cool-label",
+								},
+								Annotations: map[string]string{
+									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 								},
 							},
 							Spec: webhook.VirtualServiceSpec{
@@ -547,10 +570,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					ApiVersion: "networking.istio.io/v1alpha3",
 					Kind:       "VirtualService",
 					ObjectMeta: metav1.ObjectMeta{
-						Name: "test0.domain0.apps.internal",
+						Name: webhook.VirtualServiceName("test0.domain0.apps.internal"),
 						Labels: map[string]string{
 							"cloudfoundry.org/bulk-sync-route": "true",
 							"label-for-routes":                 "cool-label",
+						},
+						Annotations: map[string]string{
+							"cloudfoundry.org/fqdn": "test0.domain0.apps.internal",
 						},
 					},
 					Spec: webhook.VirtualServiceSpec{
@@ -632,10 +658,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					ApiVersion: "networking.istio.io/v1alpha3",
 					Kind:       "VirtualService",
 					ObjectMeta: metav1.ObjectMeta{
-						Name: "test0.domain0.example.com",
+						Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 						Labels: map[string]string{
 							"cloudfoundry.org/bulk-sync-route": "true",
 							"label-for-routes":                 "cool-label",
+						},
+						Annotations: map[string]string{
+							"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 						},
 					},
 					Spec: webhook.VirtualServiceSpec{
@@ -715,10 +744,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						ApiVersion: "networking.istio.io/v1alpha3",
 						Kind:       "VirtualService",
 						ObjectMeta: metav1.ObjectMeta{
-							Name: "test0.domain0.example.com",
+							Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 							Labels: map[string]string{
 								"cloudfoundry.org/bulk-sync-route": "true",
 								"label-for-routes":                 "cool-label",
+							},
+							Annotations: map[string]string{
+								"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 							},
 						},
 						Spec: webhook.VirtualServiceSpec{
@@ -823,10 +855,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						ApiVersion: "networking.istio.io/v1alpha3",
 						Kind:       "VirtualService",
 						ObjectMeta: metav1.ObjectMeta{
-							Name: "test1.domain1.example.com",
+							Name: webhook.VirtualServiceName("test1.domain1.example.com"),
 							Labels: map[string]string{
 								"cloudfoundry.org/bulk-sync-route": "true",
 								"label-for-routes":                 "cool-label",
+							},
+							Annotations: map[string]string{
+								"cloudfoundry.org/fqdn": "test1.domain1.example.com",
 							},
 						},
 						Spec: webhook.VirtualServiceSpec{
@@ -909,10 +944,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					ApiVersion: "networking.istio.io/v1alpha3",
 					Kind:       "VirtualService",
 					ObjectMeta: metav1.ObjectMeta{
-						Name: "test0.domain0.example.com",
+						Name: webhook.VirtualServiceName("test0.domain0.example.com"),
 						Labels: map[string]string{
 							"cloudfoundry.org/bulk-sync-route": "true",
 							"label-for-routes":                 "cool-label",
+						},
+						Annotations: map[string]string{
+							"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 						},
 					},
 					Spec: webhook.VirtualServiceSpec{
@@ -937,5 +975,31 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			}
 			Expect(builder.Build(routes, template)).To(Equal(expectedVirtualServices))
 		})
+	})
+})
+
+var _ = Describe("VirtualServiceName", func() {
+	It("creates consistent and distinct resource names based on FQDN", func() {
+		Expect(webhook.VirtualServiceName("domain0.example.com")).To(
+			Equal("vs-674da971dcc8ee9403167e2a3e77e7a95f609d2825b838fc29a50e48c8dfeaea"))
+		Expect(webhook.VirtualServiceName("domain1.example.com")).To(
+			Equal("vs-68ff4f202372d7fde0b8ef285fa884cf8d88a0b2af81bd0ac0a11d785e06be21"))
+	})
+
+	It("removes special characters from FQDNs to create valid k8s resource names", func() {
+		Expect(webhook.VirtualServiceName("*.wildcard-host.example.com")).To(
+			Equal("vs-216d6f90aff241b01b456c94351f77221d9c238057fd4e4394ca5deadc1aae24"))
+
+		Expect(webhook.VirtualServiceName("🙂.unicode-host.example.com")).To(
+			Equal("vs-3b0a745e60e76cc7f14e5e22d37fc7af2c2b529c5be43e99551d9fa892ca3573"))
+	})
+
+	It("condenses long FQDNs to be under 253 characters to create valid k8s resource names", func() {
+		const DNSLabelMaxLength = 63
+		var longDNSLabel = strings.Repeat("a", DNSLabelMaxLength)
+
+		longFQDN := fmt.Sprintf("%s.%s.%s.%s.example.com", longDNSLabel, longDNSLabel, longDNSLabel, longDNSLabel)
+		Expect(webhook.VirtualServiceName(longFQDN)).To(
+			Equal("vs-b2b7f04662a35e5d54b33c988c8ee4ddfdbcd33c5fbd0eb11e5c011009641015"))
 	})
 })

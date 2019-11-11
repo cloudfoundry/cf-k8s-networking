@@ -2,6 +2,7 @@ package webhook
 
 import (
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/models"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"sort"
@@ -48,8 +49,11 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []model
 		ApiVersion: "networking.istio.io/v1alpha3",
 		Kind:       "VirtualService",
 		ObjectMeta: metav1.ObjectMeta{
-			Name:   fqdn,
+			Name:   VirtualServiceName(fqdn),
 			Labels: cloneLabels(template.ObjectMeta.Labels),
+			Annotations: map[string]string{
+				"cloudfoundry.org/fqdn": fqdn,
+			},
 		},
 		Spec: VirtualServiceSpec{Hosts: []string{fqdn}},
 	}
@@ -200,4 +204,10 @@ func validateRoutesForFQDN(routes []models.Route) error {
 	}
 
 	return nil
+}
+
+// virtual service names cannot contain special characters
+func VirtualServiceName(fqdn string) string {
+	sum := sha256.Sum256([]byte(fqdn))
+	return fmt.Sprintf("vs-%x", sum)
 }
