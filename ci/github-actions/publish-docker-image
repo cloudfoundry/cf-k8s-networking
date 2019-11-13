@@ -8,6 +8,11 @@ set -euo pipefail
 : "${GCR_SERVICE_ACCOUNT_JSON:?}"
 : "${IMAGE_REPO:?}"
 
+if [ ${branch_name} == "master" ]; then
+  echo "Pushes to master are handled by Concourse"
+  exit 0
+fi
+
 # docker login
 echo "${GCR_SERVICE_ACCOUNT_JSON}" | docker login -u _json_key --password-stdin https://gcr.io
 
@@ -23,10 +28,4 @@ branch_name=${GITHUB_REF##*/}
 echo "Tagging and pushing image for branch ${branch_name}"
 docker tag ${img} ${IMAGE_REPO}:${branch_name}
 docker push ${IMAGE_REPO}:${branch_name}
-
-if [ ${branch_name} == "master" ]; then
-  echo "Tagging and pushing image latest on master branch"
-  docker tag ${img} ${IMAGE_REPO}:latest
-  docker push ${IMAGE_REPO}:latest
-fi
 

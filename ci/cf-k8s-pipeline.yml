@@ -92,10 +92,11 @@ resources:
     repository: cloudfoundry-incubator/bits-service-release
 
 - name: cfroutesync-image-master
-  type: registry-image
+  type: docker-image
   source:
     repository: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
-    tag: master
+    username: _json_key
+    password: ((gcp_gcr_service_account_key))
 
 - name: cfroutesync-image-latest
   type: registry-image
@@ -104,6 +105,10 @@ resources:
     tag: latest
 
 groups:
+  - name: build
+    jobs:
+      - run-units
+      - publish-master-image
   - name: good-acceptance
     jobs:
     - good-acceptance-bbl-up
@@ -483,14 +488,37 @@ jobs:
           manifests/metacontroller-rbac.yaml
           manifests/metacontroller.yaml
 
+- name: run-units
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+          trigger: true
+    - task: run-unit-tests
+      file: cf-k8s-networking/ci/tasks/tests/run-units.yml
+
+
+- name: publish-master-image
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+          passed: [run-units]
+          trigger: true
+    - task: build-tag-file
+      file: cf-k8s-networking/ci/tasks/docker/build-tag-file-for-image.yml
+    - put: cfroutesync-image-master
+      params:
+        build: cf-k8s-networking/cfroutesync
+        dockerfile: cf-k8s-networking/cfroutesync/deploy/Dockerfile
+        additional_tags: docker-info/tags
+        tag_as_latest: true
+
 - name: good-acceptance-install-cf-networking
   serial: true
   serial_groups: [good-acceptance]
   plan:
     - in_parallel:
-        - get: cfroutesync-image-master
-          trigger: true
         - get: cf-k8s-networking
+          passed: [publish-master-image]
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf, good-acceptance-install-metacontroller, good-acceptance-deploy-istio]
           trigger: true
@@ -504,7 +532,6 @@ jobs:
       file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
-        cfroutesync-image: cfroutesync-image-master
       params:
         KUBECONFIG_CONTEXT: "bosh-good-acceptance-cluster"
         BBL_STATE_DIR: "environments/good-acceptance"
