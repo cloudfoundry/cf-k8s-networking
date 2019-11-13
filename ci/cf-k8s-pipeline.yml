@@ -519,6 +519,7 @@ jobs:
     - in_parallel:
         - get: cf-k8s-networking
           passed: [publish-master-image]
+          trigger: true
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf, good-acceptance-install-metacontroller, good-acceptance-deploy-istio]
           trigger: true
