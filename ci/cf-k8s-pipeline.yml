@@ -379,6 +379,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-1/cats_integration_config.json"
         CAPTURE_LOGS: true
+        FLAKE_ATTEMPTS: 0
 
 # eirini-dev-2
 
