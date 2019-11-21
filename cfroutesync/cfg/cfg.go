@@ -41,12 +41,13 @@ type Config struct {
 }
 
 const (
-	FileUAABaseURL      = "uaaBaseURL"
-	FileUAAClientName   = "clientName"
-	FileUAAClientSecret = "clientSecret"
-	FileUAACA           = "uaaCA"
-	FileCCBaseURL       = "ccBaseURL"
-	FileCCCA            = "ccCA"
+	FileUAABaseURL           = "uaaBaseURL"
+	FileUAAClientName        = "clientName"
+	FileUAAClientSecret      = "clientSecret"
+	FileUAACA                = "uaaCA"
+	FileCCBaseURL            = "ccBaseURL"
+	FileCCCA                 = "ccCA"
+	FileEiriniPodLabelPrefix = "eiriniPodLabelPrefix"
 )
 
 // FromDir loads a Config from files within a directory on disk
@@ -60,6 +61,11 @@ func FromDir(configDir string) (*Config, error) {
 		}
 		return strings.TrimSpace(string(bytes)), nil
 	}
+
+	ccBaseUrl, err := readFile(FileCCBaseURL)
+	if err != nil {
+		return nil, err
+	}
 	uaaBaseURL, err := readFile(FileUAABaseURL)
 	if err != nil {
 		return nil, err
@@ -72,8 +78,7 @@ func FromDir(configDir string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
-
-	ccBaseUrl, err := readFile(FileCCBaseURL)
+	podLabelPrefix, err := readFile(FileEiriniPodLabelPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -86,5 +91,6 @@ func FromDir(configDir string) (*Config, error) {
 	c.CC.BaseURL = ccBaseUrl
 	c.CC.CAFile = getPath(FileCCCA)
 	c.Istio.Gateways = []string{"istio-ingress"}
+	c.Experimental.EiriniPodLabelPrefix = podLabelPrefix
 	return c, nil
 }

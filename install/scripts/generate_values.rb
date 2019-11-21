@@ -32,6 +32,9 @@ client_name = "network-policy"
 cc_base_url = "https://api.#{domain}"
 uaa_base_url = "https://uaa.#{domain}"
 
+# for Eirini 1.0+ set this to cloudfoundry.org/
+eirini_pod_label_prefix = ''
+
 puts YAML.dump({
         'cfroutesync' => {
           'ccCA' => Base64.strict_encode64(lb_cert_ca),
@@ -40,5 +43,6 @@ puts YAML.dump({
           'uaaBaseURL' => Base64.strict_encode64(uaa_base_url),
           'clientName' => Base64.strict_encode64(client_name),
           'clientSecret' => Base64.strict_encode64(client_secret),
+          'eiriniPodLabelPrefix' => Base64.strict_encode64(eirini_pod_label_prefix),
         }
   })
