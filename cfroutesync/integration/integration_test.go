@@ -13,6 +13,8 @@ import (
 
 	"code.cloudfoundry.org/cf-networking-helpers/testsupport/ports"
 
+	"encoding/json"
+
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/webhook"
 )
@@ -68,14 +70,30 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName(fmt.Sprintf("%s.domain1.apps.internal", longHostname))))
 
 		// check that there isn't a hot-loop: https://github.com/GoogleCloudPlatform/metacontroller/issues/171
-		getLastLine := func() string {
+		getParentGenerations := func() map[int64]bool {
 			lines := strings.Split(strings.TrimSpace(string(cfroutesyncSession.Out.Contents())), "\n")
-			return lines[len(lines)-1]
+			generations := map[int64]bool{}
+			for _, line := range lines {
+				structured := parseLogLine(line)
+				generations[structured.Request.Parent.ObjectMeta.Generation] = true
+			}
+			return generations
 		}
-		snapshot := getLastLine()
-		Consistently(getLastLine, "2s", "0.5s").Should(Equal(snapshot))
+		expectedParentGenerations := map[int64]bool{0: true, 1: true} // a hot loop would make many more generations
+		Consistently(getParentGenerations, "2s", "0.5s").Should(Equal(expectedParentGenerations))
 	})
 })
+
+type WebhookRequestLogLine struct {
+	Msg     string
+	Request webhook.SyncRequest
+}
+
+func parseLogLine(logLine string) WebhookRequestLogLine {
+	var res WebhookRequestLogLine
+	json.Unmarshal([]byte(logLine), &res)
+	return res
+}
 
 func startAndRegister(te *TestEnv) *gexec.Session {
 	webhookListenAddr := fmt.Sprintf("127.0.0.1:%d", ports.PickAPort())
