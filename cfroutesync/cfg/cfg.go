@@ -33,6 +33,11 @@ type Config struct {
 		// List of Istio Gateway names to use for workload ingress
 		Gateways []string
 	}
+
+	Experimental struct {
+		// Controls compatibility with Eirini pre-1.0 vs post-1.0
+		EiriniPodLabelPrefix string
+	}
 }
 
 const (

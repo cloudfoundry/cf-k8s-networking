@@ -8,19 +8,21 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
-type ServiceBuilder struct{}
+type ServiceBuilder struct {
+	PodLabelPrefix string
+}
 
 func (b *ServiceBuilder) Build(routes []models.Route, template Template) []K8sResource {
 	resources := []K8sResource{}
 	for _, route := range routes {
-		for _, s := range routeToServices(route, template) {
+		for _, s := range b.routeToServices(route, template) {
 			resources = append(resources, s)
 		}
 	}
 	return resources
 }
 
-func routeToServices(route models.Route, template Template) []Service {
+func (b *ServiceBuilder) routeToServices(route models.Route, template Template) []Service {
 	const httpPortName = "http"
 	services := []Service{}
 	for _, dest := range route.Destinations {
@@ -34,8 +36,8 @@ func routeToServices(route models.Route, template Template) []Service {
 			},
 			Spec: ServiceSpec{
 				Selector: map[string]string{
-					"app_guid":     dest.App.Guid,
-					"process_type": dest.App.Process.Type,
+					b.PodLabelPrefix + "app_guid":     dest.App.Guid,
+					b.PodLabelPrefix + "process_type": dest.App.Process.Type,
 				},
 				Ports: []ServicePort{
 					{
