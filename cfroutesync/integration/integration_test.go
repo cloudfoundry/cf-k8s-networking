@@ -28,18 +28,18 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		te, err = NewTestEnv(GinkgoWriter)
 		Expect(err).NotTo(HaveOccurred())
 
-		_, err = te.kubectl("apply", "-f", "fixtures/crds/routebulksync.yaml")
-		Expect(err).NotTo(HaveOccurred())
-
 		_, err = te.kubectl("create", "namespace", "cf-workloads")
 		Expect(err).NotTo(HaveOccurred())
 
-		// apply the parent object that metacontroller watches
-		_, err = te.kubectl("apply", "-f", "fixtures/routebulksync.yaml")
+		_, err = te.kubectl("apply", "-f", "../crds/routebulksync.yaml")
 		Expect(err).NotTo(HaveOccurred())
 
-		initializeFakeData(te)
+		Eventually(func() error {
+			_, err = te.kubectl("apply", "-f", "fixtures/routebulksync.yaml")
+			return err
+		}).Should(Succeed())
 
+		initializeFakeData(te)
 		cfroutesyncSession = startAndRegister(te)
 	})
 
@@ -66,6 +66,14 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName("route-0-host.domain0.example.com")))
 		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName("route-1-host.domain1.apps.internal")))
 		Expect(virtualServiceMap).To(HaveKey(webhook.VirtualServiceName(fmt.Sprintf("%s.domain1.apps.internal", longHostname))))
+
+		// check that there isn't a hot-loop: https://github.com/GoogleCloudPlatform/metacontroller/issues/171
+		getLastLine := func() string {
+			lines := strings.Split(strings.TrimSpace(string(cfroutesyncSession.Out.Contents())), "\n")
+			return lines[len(lines)-1]
+		}
+		snapshot := getLastLine()
+		Consistently(getLastLine, "2s", "0.5s").Should(Equal(snapshot))
 	})
 })
 

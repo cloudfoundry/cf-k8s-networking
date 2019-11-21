@@ -13,6 +13,8 @@ spec:
     plural: routebulksyncs
     singular: routebulksync
     kind: RouteBulkSync
+  subresources:
+    status: {}
   validation:
     openAPIV3Schema:
       type: object
