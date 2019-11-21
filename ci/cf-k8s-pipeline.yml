@@ -379,7 +379,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-1/cats_integration_config.json"
         CAPTURE_LOGS: true
-        FLAKE_ATTEMPTS: 0
+        FLAKE_ATTEMPTS: 1
 
 # eirini-dev-2
 
@@ -625,6 +625,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-2/cats_integration_config.json"
         CAPTURE_LOGS: true
+        FLAKE_ATTEMPTS: 1
 
 # good-acceptance
 
@@ -895,6 +896,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/good-acceptance/cats_integration_config.json"
         CAPTURE_LOGS: true
+        FLAKE_ATTEMPTS: 1
 
 # eirini-lite-1
 
