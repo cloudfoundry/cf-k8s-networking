@@ -29,12 +29,12 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     
     ```yaml
     cfroutesync:
-      ccCA: 'path_to_cloud_controller_ca'
-      ccBaseURL: 'https://api.example.com'
-      uaaCA: 'path_to_uaa_ca'
-      uaaBaseURL: 'https://uaa.example.com'
-      clientName: 'uaaClientName'
-      clientSecret: 'uaaClientSecret'
+      ccCA: 'Base64 encoded cloud controller CA certificate'
+      ccBaseURL: 'Base64 encoded https://api.example.com'
+      uaaCA: 'Base64 encoded path UAA CA certificate'
+      uaaBaseURL: 'Base64 encoded https://uaa.example.com'
+      clientName: 'Base64 encoded uaaClientName'
+      clientSecret: 'Base64 encoded uaaClientSecret'
     ```
     
     The UAA client specified by `clientName` is used for fetching routing data from Cloud Controller. It must have permission to access all routes and domains in the deployment. We recommend using a client with at least the `cloud_controller.admin_read_only` authority.
