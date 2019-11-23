@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: some-cf-component
+  namespace: cf-system
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: some-cf-component
+  template:
+    metadata:
+      labels:
+        app: some-cf-component
+    spec:
+      containers:
+      - image: kennethreitz/httpbin:latest
+        name: some-cf-component
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: some-cf-component
+  namespace: cf-system
+spec:
+  ports:
+  - name: http
+    port: 80
+  selector:
+    app: some-cf-component
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: external-route-for-some-cf-system-component
+  namespace: cf-system
+spec:
+  gateways:
+  - istio-ingress
+  hosts:
+  - some-cf-component.sys.eirini-dev-1.routing.lol
+  http:
+  - route:
+    - destination:
+        host: some-cf-component.cf-system.svc.cluster.local
+
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-ingress
+  namespace: cf-system
+spec:
+  selector:
+    istio: ingressgateway
+  servers:
+  - hosts:
+    - '*.sys.eirini-dev-1.routing.lol'
+    port:
+      name: http
+      number: 80
+      protocol: HTTP
+  - hosts:
+    - '*.sys.eirini-dev-1.routing.lol'
+    port:
+      name: https
+      number: 443
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+      privateKey: /etc/istio/ingressgateway-certs/tls.key
+
