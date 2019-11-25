@@ -1100,6 +1100,7 @@ jobs:
       params:
         BBL_STATE_DIR: "environments/good-acceptance"
         CATS_INTEGRATION_CONFIG_FILE: "environments/good-acceptance/cats_integration_config.json"
+        SKIP_REGEXP: "Routing Transparency"
       ensure:
         put: networking-oss-deployments
         params:
