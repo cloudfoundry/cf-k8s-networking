@@ -51,8 +51,21 @@ type HTTPMatchRequest struct {
 type VirtualServiceDestination struct {
 	Host string `json:"host"`
 }
+
+type VirtualServiceHeaders struct {
+	Request  VirtualServiceHeaderOperations `json:"request,omitempty"`
+	Response VirtualServiceHeaderOperations `json:"response,omitempty"`
+}
+
+type VirtualServiceHeaderOperations struct {
+	Set    map[string]string `json:"set,omitempty"`
+	Add    map[string]string `json:"add,omitempty"`
+	Remove []string          `json:"remove,omitempty"`
+}
+
 type HTTPRouteDestination struct {
 	Destination VirtualServiceDestination `json:"destination"`
+	Headers     VirtualServiceHeaders     `json:"headers,omitempty"`
 	Weight      *int                      `json:"weight,omitempty"`
 }
 

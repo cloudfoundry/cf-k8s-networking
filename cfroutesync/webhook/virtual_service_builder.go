@@ -141,7 +141,16 @@ func destinationsToHttpRouteDestinations(route models.Route, destinations []mode
 	httpDestinations := make([]HTTPRouteDestination, 0)
 	for _, destination := range destinations {
 		httpDestination := HTTPRouteDestination{
-			Destination: VirtualServiceDestination{Host: serviceName(destination)},
+			Destination: VirtualServiceDestination{
+				Host: serviceName(destination),
+			},
+			Headers: VirtualServiceHeaders{
+				Request: VirtualServiceHeaderOperations{
+					Set: map[string]string{
+						"App-Id": destination.App.Guid,
+					},
+				},
+			},
 		}
 		if destination.Weight != nil {
 			httpDestination.Weight = destination.Weight
