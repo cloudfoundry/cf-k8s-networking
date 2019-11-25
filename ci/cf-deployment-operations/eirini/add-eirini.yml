@@ -144,8 +144,13 @@
   path: /releases/name=bits-service/version?
   value: latest
 - type: replace
-  path: /releases/name=eirini?/version?
-  value: latest
+  path: /releases/name=eirini?
+  value:
+    name: eirini
+    url: https://storage.googleapis.com/eirini-cf-routing/eirini-bosh-release-1.0.0-dev.1.tgz
+    version: 1.0.0-dev.1
+    sha1: a359da261ab5e861bf88bd36ae8f95c5079f9813
+
 # Enable OPI in CC
 - type: replace
   path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/opi?/enabled?
