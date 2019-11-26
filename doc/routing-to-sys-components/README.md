@@ -14,7 +14,7 @@
 3. install an istio gateway for your system domain
    (customize the yaml with the system domain for your environment)
     ```
-    kubectl apply -f sys-gateway.yaml
+    kubectl apply -f example-sys-gateway.yaml
     ```
 
 4. install your system component
