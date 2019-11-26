@@ -11,6 +11,11 @@
     kubectl create -n istio-system secret tls istio-ingressgateway-certs --cert sys-wildcard.crt --key sys-wildcard.key
     ```
 
+    This command isn't idempotent.  To change, you'd need to first `kubectl delete` and then re-create this secret.
+    In addition, changes may not be picked-up by a running ingress pod.  So to change the certs on an ingress, you may
+    delete the pod (and let the deployment recreate it): `kubectl delete pod -n istio-system -l istio=ingressgateway`
+
+
 3. install an istio gateway for your system domain
    (customize the yaml with the system domain for your environment)
     ```
