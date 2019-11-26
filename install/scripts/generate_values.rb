@@ -33,7 +33,7 @@ cc_base_url = "https://api.#{domain}"
 uaa_base_url = "https://uaa.#{domain}"
 
 # for Eirini 1.0+ set this to cloudfoundry.org/
-eirini_pod_label_prefix = ''
+eirini_pod_label_prefix = "cloudfoundry.org/"
 
 puts YAML.dump({
         'cfroutesync' => {
