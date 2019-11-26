@@ -327,6 +327,7 @@ jobs:
       params:
         NEW_OPS_FILES: &eirini-dev-1-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
+          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -573,6 +574,7 @@ jobs:
       params:
         NEW_OPS_FILES: &eirini-dev-2-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
+          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -738,6 +740,7 @@ jobs:
       params:
         NEW_OPS_FILES: &dont-smoke-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
+          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -972,6 +975,7 @@ jobs:
       params:
         NEW_OPS_FILES: &good-acceptance-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
+          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -1264,6 +1268,7 @@ jobs:
       params:
         NEW_OPS_FILES: &eirini-lite-1-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
+          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip-bosh-lite.yml
     - task: deploy
