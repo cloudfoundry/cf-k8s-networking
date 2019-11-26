@@ -341,6 +341,7 @@ jobs:
         SYSTEM_DOMAIN: *eirini-dev-1-domain
         OPS_FILES: &eirini-dev-1-ops-files |
           capi-skip-cert-verify.yml
+          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -588,6 +589,7 @@ jobs:
         SYSTEM_DOMAIN: *eirini-dev-2-domain
         OPS_FILES: &eirini-dev-2-ops-files |
           capi-skip-cert-verify.yml
+          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -754,6 +756,7 @@ jobs:
         SYSTEM_DOMAIN: *dont-smoke-domain
         OPS_FILES: &dont-smoke-ops-files |
           capi-skip-cert-verify.yml
+          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -989,6 +992,7 @@ jobs:
         SYSTEM_DOMAIN: *good-acceptance-domain
         OPS_FILES: &good-acceptance-ops-files |
           capi-skip-cert-verify.yml
+          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -1282,6 +1286,7 @@ jobs:
         SYSTEM_DOMAIN: *eirini-lite-1-domain
         OPS_FILES: &eirini-lite-1-ops-files |
           capi-skip-cert-verify.yml
+          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bosh-lite.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
