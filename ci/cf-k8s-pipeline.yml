@@ -862,7 +862,7 @@ jobs:
     - task: run-cf-smoke-tests
       file: cf-deployment-concourse-tasks/run-errand/task.yml
       input_mapping:
-        bbl-state: updated-integration-configs
+        bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: environments/dont-smoke
         DEPLOYMENT_NAME: cf
