@@ -69,4 +69,8 @@ RUN curl -L -O  "https://github.com/GoogleCloudPlatform/metacontroller/archive/v
 # Install galley for the validating admission controller
 COPY --from=docker.io/istio/galley:1.3.3 /usr/local/bin/galley /usr/local/bin/galley
 
-
+# Cache go modules
+# Copy used packages only
+COPY ./go.* /go/src/cfroutesync/
+WORKDIR /go/src/cfroutesync/
+RUN go mod download
