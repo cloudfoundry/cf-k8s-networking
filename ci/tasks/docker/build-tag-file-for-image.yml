@@ -12,4 +12,4 @@ outputs:
   - name: docker-info
 
 run:
-  path: cf-k8s-networking/ci/tasks/docker/build-tag-file-for-image.sh
+  path: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.sh

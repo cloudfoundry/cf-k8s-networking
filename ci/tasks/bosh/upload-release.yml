@@ -12,7 +12,7 @@ inputs:
     # Input mapping to directory containing .tgz files
 
 run:
-  path: cf-k8s-networking/ci/tasks/bosh/upload-release.sh
+  path: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.sh
 
 params:
   BBL_STATE_DIR:

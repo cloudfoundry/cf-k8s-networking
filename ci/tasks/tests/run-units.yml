@@ -9,7 +9,7 @@ inputs:
   - name: cf-k8s-networking
 
 run:
-  path: cf-k8s-networking/cfroutesync/bin/test
+  path: cf-k8s-networking-ci/cfroutesync/bin/test
   args:
   - "local"
 

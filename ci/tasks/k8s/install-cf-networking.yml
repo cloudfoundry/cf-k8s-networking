@@ -11,7 +11,7 @@ inputs:
   - name: kubeconfig
 
 run:
-  path: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.sh
+  path: cf-k8s-networking-ci/ci/tasks/k8s/install-cf-networking.sh
 
 params:
   KUBECONFIG_CONTEXT:

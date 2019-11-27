@@ -29,4 +29,4 @@ params:
   SOURCE5_DIR: ~
 
 run:
-  path: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.sh
+  path: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.sh

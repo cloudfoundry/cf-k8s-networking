@@ -9,6 +9,18 @@ resources:
     branch: master
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    ignore_paths:
+      - ci
+
+- name: cf-k8s-networking-ci
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - ci
 
 - name: cf-k8s-networking-mod
   type: git
@@ -176,11 +188,12 @@ jobs:
         - get: cf-deployment-concourse-tasks
           resource: cf-deployment-concourse-tasks
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
         - get: bosh-deployment
         - get: eirini-bosh-release-git
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -197,7 +210,7 @@ jobs:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
     - task: merge-bbl-config
-      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
@@ -234,16 +247,17 @@ jobs:
     - in_parallel:
         - get: istio
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: deploy-istio
-      file: cf-k8s-networking/ci/tasks/istio/deploy-istio.yml
+      file: cf-k8s-networking-ci/ci/tasks/istio/deploy-istio.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -260,16 +274,17 @@ jobs:
     - in_parallel:
         - get: metacontroller
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: install-metacontroller
-      file: cf-k8s-networking/ci/tasks/k8s/kubectl-apply.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/kubectl-apply.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         k8s-config-dir: metacontroller
@@ -287,16 +302,17 @@ jobs:
     - in_parallel:
         - get: cfroutesync-image-latest
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: install-cf-networking
-      file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         cfroutesync-image: cfroutesync-image-latest
@@ -314,19 +330,20 @@ jobs:
         - get: cf-deployment
           resource: cf-deployment
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: eirini-bosh-release
       params:
         BBL_STATE_DIR: "environments/eirini-dev-1"
     - task: upload-bits-service-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: bits-service-release
@@ -418,11 +435,12 @@ jobs:
         - get: cf-deployment-concourse-tasks
           resource: cf-deployment-concourse-tasks
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
         - get: bosh-deployment
         - get: eirini-bosh-release-git
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -439,7 +457,7 @@ jobs:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
     - task: merge-bbl-config
-      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
@@ -476,16 +494,17 @@ jobs:
     - in_parallel:
         - get: istio
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-2-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-2"
     - task: deploy-istio
-      file: cf-k8s-networking/ci/tasks/istio/deploy-istio.yml
+      file: cf-k8s-networking-ci/ci/tasks/istio/deploy-istio.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -495,7 +514,7 @@ jobs:
         GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
         GCP_PROJECT_ID: "cf-routing"
     - task: enable-sidecar-injection
-      file: cf-k8s-networking/ci/tasks/istio/enable-sidecar-injection.yml
+      file: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.yml
       params:
         KUBECONFIG_CONTEXT: "bosh-eirini-dev-2-cluster"
 
@@ -506,16 +525,17 @@ jobs:
     - in_parallel:
         - get: metacontroller
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-2-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-2"
     - task: install-metacontroller
-      file: cf-k8s-networking/ci/tasks/k8s/kubectl-apply.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/kubectl-apply.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         k8s-config-dir: metacontroller
@@ -533,16 +553,17 @@ jobs:
     - in_parallel:
         - get: cfroutesync-image-latest
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-2-bbl-up]
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/eirini-dev-2"
     - task: install-cf-networking
-      file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         cfroutesync-image: cfroutesync-image-latest
@@ -560,19 +581,20 @@ jobs:
         - get: cf-deployment
           resource: cf-deployment
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-2-bbl-up]
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: eirini-bosh-release
       params:
         BBL_STATE_DIR: "environments/eirini-dev-2"
     - task: upload-bits-service-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: bits-service-release
@@ -663,11 +685,12 @@ jobs:
         - get: cf-deployment-concourse-tasks
           resource: cf-deployment-concourse-tasks
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
         - get: bosh-deployment
         - get: eirini-bosh-release-git
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -684,7 +707,7 @@ jobs:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
     - task: merge-bbl-config
-      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
@@ -724,20 +747,21 @@ jobs:
         - get: cf-deployment
           resource: cf-deployment
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [dont-smoke-bbl-up]
           trigger: true
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: eirini-bosh-release
       params:
         BBL_STATE_DIR: "environments/dont-smoke"
     - task: upload-bits-service-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: bits-service-release
@@ -794,17 +818,18 @@ jobs:
     - in_parallel:
         - get: istio
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [dont-smoke-deploy-cf]
           trigger: true
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/dont-smoke"
     - task: deploy-istio
-      file: cf-k8s-networking/ci/tasks/istio/deploy-istio.yml
+      file: cf-k8s-networking-ci/ci/tasks/istio/deploy-istio.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -821,17 +846,18 @@ jobs:
     - in_parallel:
         - get: metacontroller
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [dont-smoke-deploy-cf]
           trigger: true
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/dont-smoke"
     - task: install-metacontroller
-      file: cf-k8s-networking/ci/tasks/k8s/kubectl-apply.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/kubectl-apply.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         k8s-config-dir: metacontroller
@@ -851,17 +877,18 @@ jobs:
         - get: cf-k8s-networking
           passed: [publish-image]
           trigger: true
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [dont-smoke-install-metacontroller, dont-smoke-deploy-istio]
           trigger: true
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/dont-smoke"
     - task: install-cf-networking
-      file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -912,11 +939,12 @@ jobs:
         - get: cf-deployment-concourse-tasks
           resource: cf-deployment-concourse-tasks
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
         - get: bosh-deployment
         - get: eirini-bosh-release-git
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -933,7 +961,7 @@ jobs:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
     - task: merge-bbl-config
-      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
@@ -973,20 +1001,21 @@ jobs:
         - get: cf-deployment
           resource: cf-deployment
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [good-acceptance-bbl-up]
           trigger: true
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: eirini-bosh-release
       params:
         BBL_STATE_DIR: "environments/good-acceptance"
     - task: upload-bits-service-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: bits-service-release
@@ -1042,17 +1071,18 @@ jobs:
     - in_parallel:
         - get: istio
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf]
           trigger: true
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/good-acceptance"
     - task: deploy-istio
-      file: cf-k8s-networking/ci/tasks/istio/deploy-istio.yml
+      file: cf-k8s-networking-ci/ci/tasks/istio/deploy-istio.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -1069,17 +1099,18 @@ jobs:
     - in_parallel:
         - get: metacontroller
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf]
           trigger: true
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/good-acceptance"
     - task: install-metacontroller
-      file: cf-k8s-networking/ci/tasks/k8s/kubectl-apply.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/kubectl-apply.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         k8s-config-dir: metacontroller
@@ -1098,17 +1129,18 @@ jobs:
         - get: cf-k8s-networking
           passed: [dont-smoke-smoke-tests]
           trigger: true
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [good-acceptance-install-metacontroller, good-acceptance-deploy-istio]
           trigger: true
     - task: extract-kubeconfig
-      file: cf-k8s-networking/ci/tasks/k8s/extract-kubeconfig.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
         BBL_STATE_DIR: "environments/good-acceptance"
     - task: install-cf-networking
-      file: cf-k8s-networking/ci/tasks/k8s/install-cf-networking.yml
+      file: cf-k8s-networking-ci/ci/tasks/k8s/install-cf-networking.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -1125,6 +1157,7 @@ jobs:
         - get: cf-k8s-networking
           passed: [good-acceptance-install-cf-networking]
           trigger: true
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
     - task: updated-integration-configs
       file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
@@ -1159,7 +1192,7 @@ jobs:
         - get: cf-k8s-networking
           trigger: true
     - task: run-unit-tests
-      file: cf-k8s-networking/ci/tasks/tests/run-units.yml
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-units.yml
 
 
 - name: publish-image
@@ -1169,7 +1202,7 @@ jobs:
           passed: [run-units]
           trigger: true
     - task: build-tag-file
-      file: cf-k8s-networking/ci/tasks/docker/build-tag-file-for-image.yml
+      file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
     - put: cfroutesync-image
       params:
         build: cf-k8s-networking/cfroutesync
@@ -1201,13 +1234,14 @@ jobs:
         - get: cf-deployment-concourse-tasks
           resource: cf-deployment-concourse-tasks
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: cf-deployment
         - get: networking-oss-deployments
         - get: bosh-deployment
         - get: bosh-bootloader
         - get: eirini-bosh-release-git
     - task: seed-bbl-env
-      file: cf-k8s-networking/ci/tasks/bbl/seed-env.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/seed-env.yml
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -1224,7 +1258,7 @@ jobs:
         base-ops-files: bosh-deployment
         new-ops-files: cf-k8s-networking
     - task: merge-bbl-config
-      file: cf-k8s-networking/ci/tasks/bbl/merge-bbl-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
         SOURCE1_DIR: plan-patches/bosh-lite-gcp
         SOURCE2_DIR: ci/bbl-configs/add-parent-dns-lite
@@ -1260,7 +1294,7 @@ jobs:
           repository: updated-bbl-state
           rebase: true
     - task: update-cloud-config
-      file: cf-k8s-networking/ci/tasks/bosh/update-cloud-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/update-cloud-config.yml
       input_mapping:
         bbl-state: updated-bbl-state
         cloud-config: cf-deployment
@@ -1278,19 +1312,20 @@ jobs:
         - get: cf-deployment
           resource: cf-deployment
         - get: cf-k8s-networking
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-lite-1-bbl-up]
         - get: eirini-bosh-release
         - get: bits-service-release
     - task: upload-eirini-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: eirini-bosh-release
       params:
         BBL_STATE_DIR: "environments/eirini-lite-1"
     - task: upload-bits-service-release-tarball
-      file: cf-k8s-networking/ci/tasks/bosh/upload-release.yml
+      file: cf-k8s-networking-ci/ci/tasks/bosh/upload-release.yml
       input_mapping:
         bbl-state: networking-oss-deployments
         release-tarball: bits-service-release

@@ -10,7 +10,7 @@ inputs:
   - name: kubeconfig
 
 run:
-  path: cf-k8s-networking/ci/tasks/istio/enable-sidecar-injection.sh
+  path: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.sh
 
 params:
   KUBECONFIG_CONTEXT:
