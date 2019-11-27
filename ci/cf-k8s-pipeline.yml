@@ -22,18 +22,6 @@ resources:
     paths:
       - ci
 
-- name: cf-k8s-networking-mod
-  type: git
-  icon: github-box
-  source:
-    branch: master
-    private_key: ((github_private_key.private_key))
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    paths:
-      - cfroutesync/go.mod
-      - cfroutesync/go.sum
-      - cfroutesync/integration/Dockerfile
-
 - name: networking-oss-deployments
   type: git
   icon: github-box
@@ -129,20 +117,11 @@ resources:
     repository: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
     tag: latest
 
-- name: cfroutesync-integration-test-env
-  type: docker-image
-  icon: docker
-  source:
-    repository: gcr.io/cf-networking-images/cfroutesync-integration-test-env
-    username: _json_key
-    password: ((gcp_gcr_service_account_key))
-
 groups:
   - name: build
     jobs:
       - run-units
       - publish-image
-      - build-and-publish-integration-test-env-image
   - name: dont-smoke
     jobs:
     - dont-smoke-bbl-up
@@ -1211,23 +1190,6 @@ jobs:
       params:
         build: cf-k8s-networking/cfroutesync
         dockerfile: cf-k8s-networking/cfroutesync/deploy/Dockerfile
-        additional_tags: docker-info/tags
-        tag_as_latest: true
-
-- name: build-and-publish-integration-test-env-image
-  plan:
-    - in_parallel:
-      - get: cf-k8s-networking-mod
-        trigger: true
-      - get: cf-k8s-networking-ci
-    - task: build-tag-file
-      file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
-      input_mapping:
-        cf-k8s-networking: cf-k8s-networking-mod
-    - put: cfroutesync-integration-test-env
-      params:
-        build: cf-k8s-networking-mod/cfroutesync
-        dockerfile: cf-k8s-networking-mod/cfroutesync/integration/Dockerfile
         additional_tags: docker-info/tags
         tag_as_latest: true
 
