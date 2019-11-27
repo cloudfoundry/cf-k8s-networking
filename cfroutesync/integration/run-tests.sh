@@ -7,7 +7,7 @@ cfroutesync_dir="${script_dir}/.."
 
 usage="Usage: $0 {local|docker|docker-shell}"
 
-image="gcr.io/cf-routing/cf-k8s-networking/cfroutesync-integration-test-env"
+image="gcr.io/cf-networking-images/cfroutesync-integration-test-env"
 
 if [ $# -ne 1 ]; then
   echo 1>&2 "$usage"

@@ -133,7 +133,7 @@ resources:
   type: docker-image
   icon: docker
   source:
-    repository: gcr.io/cf-routing/cf-k8s-networking/cfroutesync-integration-test-env
+    repository: gcr.io/cf-networking-images/cfroutesync-integration-test-env
     username: _json_key
     password: ((gcp_gcr_service_account_key))
 

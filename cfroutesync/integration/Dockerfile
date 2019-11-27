@@ -1,4 +1,4 @@
-# gcr.io/cf-routing/cf-k8s-networking/cfroutesync-integration-test-env
+# gcr.io/cf-networking-images/cfroutesync-integration-test-env
 FROM cloudfoundry/cflinuxfs3
 
 ENV GO_VERSION 1.13.1
