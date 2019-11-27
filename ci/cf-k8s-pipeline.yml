@@ -30,8 +30,9 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
-      - go.mod
-      - go.sum
+      - cfroutesync/go.mod
+      - cfroutesync/go.sum
+      - cfroutesync/integration/Dockerfile
 
 - name: networking-oss-deployments
   type: git
@@ -1213,14 +1214,18 @@ jobs:
 
 - name: build-and-publish-integration-test-env-image
   plan:
-    - get: cf-k8s-networking-mod
-      trigger: true
+    - in_parallel:
+      - get: cf-k8s-networking-mod
+        trigger: true
+      - get: cf-k8s-networking-ci
     - task: build-tag-file
-      file: cf-k8s-networking/ci/tasks/docker/build-tag-file-for-image.yml
+      file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
+      input_mapping:
+        cf-k8s-networking: cf-k8s-networking-mod
     - put: cfroutesync-integration-test-env
       params:
-        build: cf-k8s-networking/cfroutesync
-        dockerfile: cf-k8s-networking/cfroutesync/integration/Dockerfile
+        build: cf-k8s-networking-mod/cfroutesync
+        dockerfile: cf-k8s-networking-mod/cfroutesync/integration/Dockerfile
         additional_tags: docker-info/tags
         tag_as_latest: true
 
