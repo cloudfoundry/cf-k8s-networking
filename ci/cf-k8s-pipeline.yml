@@ -865,14 +865,28 @@ jobs:
         passed: [dont-smoke-install-cf-networking]
         trigger: true
       - get: networking-oss-deployments
-    - task: run-cf-smoke-tests
-      file: cf-deployment-concourse-tasks/run-errand/task.yml
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
       input_mapping:
         bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
       params:
-        BBL_STATE_DIR: environments/dont-smoke
-        DEPLOYMENT_NAME: cf
-        ERRAND_NAME: smoke-tests
+        BBL_STATE_DIR: "environments/dont-smoke"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/dont-smoke/smoke_cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: run-smoke-acceptance-tests
+      file: cf-deployment-concourse-tasks/run-cats/task.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        NODES: 2
+        CONFIG_FILE_PATH: "environments/dont-smoke/smoke_cats_integration_config.json"
+        CAPTURE_LOGS: true
+        FLAKE_ATTEMPTS: 2
 
 # good-acceptance
 
