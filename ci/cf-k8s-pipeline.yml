@@ -861,6 +861,7 @@ jobs:
   plan:
     - in_parallel:
       - get: cf-deployment-concourse-tasks
+      - get: cf-acceptance-tests
       - get: cf-k8s-networking
         passed: [dont-smoke-install-cf-networking]
         trigger: true
