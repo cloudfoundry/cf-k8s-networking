@@ -1,0 +1,39 @@
+global:
+  proxy:
+    accessLogFile: "/dev/stdout"
+    accessLogFormat: >-
+      {
+        "response_flags": "%RESPONSE_FLAGS%",
+        "app_id": "%REQ(APP-ID)%",
+        "response_code": "%RESPONSE_CODE%",
+        "upstream_transport_failure_reason": "%UPSTREAM_TRANSPORT_FAILURE_REASON%",
+        "downstream_remote_address": "%DOWNSTREAM_REMOTE_ADDRESS%",
+        "upstream_host": "%UPSTREAM_HOST%",
+        "bytes_sent": "%BYTES_SENT%",
+        "protocol": "%PROTOCOL%",
+        "downstream_local_address": "%DOWNSTREAM_LOCAL_ADDRESS%",
+        "authority": "%REQ(:AUTHORITY)%",
+        "request_id": "%REQ(X-REQUEST-ID)%",
+        "upstream_service_time": "%RESP(X-ENVOY-UPSTREAM-SERVICE-TIME)%",
+        "duration": "%DURATION%",
+        "response_duration": "%RESPONSE_DURATION%",
+        "response_tx_duration": "%RESPONSE_TX_DURATION%",
+        "path": "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%",
+        "method": "%REQ(:METHOD)%",
+        "istio_policy_status": "%DYNAMIC_METADATA(istio.mixer:status)%",
+        "requested_server_name": "%REQUESTED_SERVER_NAME%",
+        "upstream_local_address": "%UPSTREAM_LOCAL_ADDRESS%",
+        "upstream_cluster": "%UPSTREAM_CLUSTER%",
+        "user_agent": "%REQ(USER-AGENT)%",
+        "route_name": "%ROUTE_NAME%",
+        "start_time": "%START_TIME%",
+        "x_forwarded_for": "%REQ(X-FORWARDED-FOR)%",
+        "x_forwarded_proto": "%REQ(X-FORWARDED-PROTO)%",
+        "bytes_received": "%BYTES_RECEIVED%",
+        "referer": "%REQ(REFERER)%",
+        "x_b3_traceid": "%REQ(X-B3-TRACEID)%",
+        "x_b3_spanid": "%REQ(X-B3-SPANID)%",
+        "x_b3_parentspanid": "%REQ(X-B3-PARENTSPANID)%",
+        "process_type": "%REQ(APP-PROCESS-TYPE)%"
+      }
+    accessLogEncoding: 'JSON'
