@@ -147,7 +147,7 @@ func destinationsToHttpRouteDestinations(route models.Route, destinations []mode
 			Headers: VirtualServiceHeaders{
 				Request: VirtualServiceHeaderOperations{
 					Set: map[string]string{
-						"App-Id": destination.App.Guid,
+						"App-Id":           destination.App.Guid,
 						"App-Process-Type": destination.App.Process.Type,
 					},
 				},
