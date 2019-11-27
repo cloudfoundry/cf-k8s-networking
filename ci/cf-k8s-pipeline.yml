@@ -327,7 +327,6 @@ jobs:
       params:
         NEW_OPS_FILES: &eirini-dev-1-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
-          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -341,7 +340,6 @@ jobs:
         SYSTEM_DOMAIN: *eirini-dev-1-domain
         OPS_FILES: &eirini-dev-1-ops-files |
           capi-skip-cert-verify.yml
-          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -575,7 +573,6 @@ jobs:
       params:
         NEW_OPS_FILES: &eirini-dev-2-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
-          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -589,7 +586,6 @@ jobs:
         SYSTEM_DOMAIN: *eirini-dev-2-domain
         OPS_FILES: &eirini-dev-2-ops-files |
           capi-skip-cert-verify.yml
-          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -742,7 +738,6 @@ jobs:
       params:
         NEW_OPS_FILES: &dont-smoke-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
-          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -756,7 +751,6 @@ jobs:
         SYSTEM_DOMAIN: *dont-smoke-domain
         OPS_FILES: &dont-smoke-ops-files |
           capi-skip-cert-verify.yml
-          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -993,7 +987,6 @@ jobs:
       params:
         NEW_OPS_FILES: &good-acceptance-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
-          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip.yml
     - task: deploy
@@ -1007,7 +1000,6 @@ jobs:
         SYSTEM_DOMAIN: *good-acceptance-domain
         OPS_FILES: &good-acceptance-ops-files |
           capi-skip-cert-verify.yml
-          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
           add-eirini.yml
@@ -1287,7 +1279,6 @@ jobs:
       params:
         NEW_OPS_FILES: &eirini-lite-1-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
-          ci/cf-deployment-operations/skip-loggregator-smoke-tests.yml
           ci/cf-deployment-operations/eirini/add-eirini.yml
           ci/cf-deployment-operations/eirini/hardcode-doppler-ip-bosh-lite.yml
     - task: deploy
@@ -1301,7 +1292,6 @@ jobs:
         SYSTEM_DOMAIN: *eirini-lite-1-domain
         OPS_FILES: &eirini-lite-1-ops-files |
           capi-skip-cert-verify.yml
-          skip-loggregator-smoke-tests.yml
           base-ops-files/operations/use-compiled-releases.yml
           base-ops-files/operations/bosh-lite.yml
           base-ops-files/operations/bits-service/use-bits-service.yml
