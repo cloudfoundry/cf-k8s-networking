@@ -1184,6 +1184,7 @@ jobs:
         - get: cf-k8s-networking
           passed: [run-units]
           trigger: true
+        - get: cf-k8s-networking-ci
     - task: build-tag-file
       file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
     - put: cfroutesync-image
