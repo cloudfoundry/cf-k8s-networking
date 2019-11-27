@@ -7,10 +7,9 @@ image_resource:
 
 inputs:
   - name: cf-k8s-networking
-  - name: cf-k8s-networking-ci
 
 run:
-  path: cf-k8s-networking-ci/cfroutesync/bin/test
+  path: cf-k8s-networking/cfroutesync/bin/test
   args:
   - "local"
 
