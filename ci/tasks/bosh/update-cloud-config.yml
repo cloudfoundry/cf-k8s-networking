@@ -8,6 +8,7 @@ image_resource:
 
 inputs:
   - name: cf-k8s-networking
+  - name: cf-k8s-networking-ci
   - name: cloud-config
   - name: bbl-state
 
