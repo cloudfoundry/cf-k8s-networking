@@ -12,7 +12,7 @@ set -euo pipefail
 function install_istio() {
   workspace=${PWD}
   export KUBECONFIG="${PWD}/kubeconfig/config"
-  istio_values_file="${PWD}/cf-k8s-networking-ci/ci/tasks/istio/istio-values.yaml"
+  istio_values_file="${PWD}/cf-k8s-networking/install/istio-values.yaml"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
