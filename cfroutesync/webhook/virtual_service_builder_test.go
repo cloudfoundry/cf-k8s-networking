@@ -109,7 +109,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 									Headers: webhook.VirtualServiceHeaders{
 										Request: webhook.VirtualServiceHeaderOperations{
-											Set: map[string]string{"App-Id": "app-guid-0"},
+											Set: map[string]string{
+												"App-Id":           "app-guid-0",
+												"App-Process-Type": "process-type-1",
+											},
 										},
 									},
 									Weight: models.IntPtr(91),
@@ -118,7 +121,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
 									Headers: webhook.VirtualServiceHeaders{
 										Request: webhook.VirtualServiceHeaderOperations{
-											Set: map[string]string{"App-Id": "app-guid-1"},
+											Set: map[string]string{
+												"App-Id":           "app-guid-1",
+												"App-Process-Type": "process-type-1",
+											},
 										},
 									},
 									Weight: models.IntPtr(9),
@@ -151,7 +157,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									Destination: webhook.VirtualServiceDestination{Host: "s-route-1-destination-guid-0"},
 									Headers: webhook.VirtualServiceHeaders{
 										Request: webhook.VirtualServiceHeaderOperations{
-											Set: map[string]string{"App-Id": "app-guid-1"},
+											Set: map[string]string{
+												"App-Id":           "app-guid-1",
+												"App-Process-Type": "process-type-1",
+											},
 										},
 									},
 									Weight: models.IntPtr(100),
@@ -244,7 +253,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-0"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-0",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(34),
@@ -253,7 +265,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-1"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-1",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(33),
@@ -262,7 +277,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-2"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-2"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-2",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(33),
@@ -329,7 +347,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-0"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-0",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(50),
@@ -338,7 +359,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-1"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-1",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(50),
@@ -390,7 +414,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-0"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-0",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(70),
@@ -399,7 +426,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-1"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-1",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(20),
@@ -408,7 +438,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-2"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-2"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-2",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(10),
@@ -487,7 +520,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-0"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-0",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(34),
@@ -496,7 +532,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-1"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-1",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(33),
@@ -505,7 +544,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-2"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-2"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-2",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(33),
@@ -584,7 +626,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-0"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-0",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(34),
@@ -593,7 +638,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-1"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-1"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-1",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(33),
@@ -602,7 +650,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-2"},
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
-														Set: map[string]string{"App-Id": "app-guid-2"},
+														Set: map[string]string{
+															"App-Id":           "app-guid-2",
+															"App-Process-Type": "process-type-1",
+														},
 													},
 												},
 												Weight: models.IntPtr(33),
@@ -674,7 +725,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
-												Set: map[string]string{"App-Id": "app-guid-0"},
+												Set: map[string]string{
+													"App-Id":           "app-guid-0",
+													"App-Process-Type": "process-type-0",
+												},
 											},
 										},
 										Weight: models.IntPtr(100),
@@ -768,7 +822,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Destination: webhook.VirtualServiceDestination{Host: "s-route-1-destination-guid-0"},
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
-												Set: map[string]string{"App-Id": "app-guid-1"},
+												Set: map[string]string{
+													"App-Id":           "app-guid-1",
+													"App-Process-Type": "process-type-1",
+												},
 											},
 										},
 										Weight: nil,
@@ -782,7 +839,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
-												Set: map[string]string{"App-Id": "app-guid-0"},
+												Set: map[string]string{
+													"App-Id":           "app-guid-0",
+													"App-Process-Type": "process-type-1",
+												},
 											},
 										},
 										Weight: models.IntPtr(100),
@@ -864,7 +924,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 											Headers: webhook.VirtualServiceHeaders{
 												Request: webhook.VirtualServiceHeaderOperations{
-													Set: map[string]string{"App-Id": "app-guid-0"},
+													Set: map[string]string{
+														"App-Id":           "app-guid-0",
+														"App-Process-Type": "process-type-1",
+													},
 												},
 											},
 											Weight: models.IntPtr(100),
@@ -979,7 +1042,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Destination: webhook.VirtualServiceDestination{Host: "s-route-1-destination-guid-0"},
 											Headers: webhook.VirtualServiceHeaders{
 												Request: webhook.VirtualServiceHeaderOperations{
-													Set: map[string]string{"App-Id": "app-guid-1"},
+													Set: map[string]string{
+														"App-Id":           "app-guid-1",
+														"App-Process-Type": "process-type-1",
+													},
 												},
 											},
 											Weight: models.IntPtr(100),
@@ -1073,7 +1139,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Destination: webhook.VirtualServiceDestination{Host: "s-route-0-destination-guid-0"},
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
-												Set: map[string]string{"App-Id": "app-guid-1"},
+												Set: map[string]string{
+													"App-Id":           "app-guid-1",
+													"App-Process-Type": "process-type-1",
+												},
 											},
 										},
 										Weight: nil,
@@ -1088,6 +1157,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			builder := webhook.VirtualServiceBuilder{
 				IstioGateways: []string{"some-gateway0", "some-gateway1"},
 			}
+
 			Expect(builder.Build(routes, template)).To(Equal(expectedVirtualServices))
 		})
 	})
