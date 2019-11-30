@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: cfroutesync
+  namespace: {{ .Values.systemNamespace }}
+data:
+  ccBaseURL: {{.Values.cfroutesync.ccBaseURL}}
+  uaaBaseURL: {{.Values.cfroutesync.uaaBaseURL}}
+  ccCA: |
+{{.Values.cfroutesync.ccCA | indent 4 }}
+  uaaCA: |
+{{.Values.cfroutesync.uaaCA | indent 4 }}
+  clientName: {{.Values.cfroutesync.clientName}}
+  {{/* quotes are required to support empty values */}}
+  eiriniPodLabelPrefix: "{{.Values.cfroutesync.eiriniPodLabelPrefix}}"

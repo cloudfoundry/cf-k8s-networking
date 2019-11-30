@@ -40,12 +40,15 @@ spec:
         - name: cfroutesync
           image: {{ .Values.cfroutesync.image }}
           args: [ "-c", "/etc/cfroutesync-config"]
+          envFrom:
+            - configMapRef:
+                name: cfroutesync
           volumeMounts:
-            - name: cfroutesync-config
+            - name: cfroutesync-credentials
               mountPath: /etc/cfroutesync-config
               readOnly: true
       volumes:
-        - name: cfroutesync-config
+        - name: cfroutesync-credentials
           secret:
             secretName: cfroutesync
 ---

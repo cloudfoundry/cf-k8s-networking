@@ -7,12 +7,10 @@ workloadsNamespace: cf-workloads
 cfroutesync:
   image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:latest
 
-  # The values below are placeholders for configuring templates/cfroutesync-secret.yaml
-  # real values should be base64 encoded
-  ccCA: 'cloud_controller_ca'
+  ccCA: 'base64_encoded_cloud_controller_ca'
   ccBaseURL: 'https://api.example.com'
-  uaaCA: 'uaa_ca'
+  uaaCA: 'base64_encoded_uaa_ca'
   uaaBaseURL: 'https://uaa.example.com'
   clientName: 'uaaClientName'
-  clientSecret: 'uaaClientSecret'
+  clientSecret: 'base64_encoded_uaaClientSecret'
   eiriniPodLabelPrefix: 'eiriniPodLabelPrefix'

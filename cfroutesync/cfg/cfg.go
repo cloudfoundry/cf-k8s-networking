@@ -2,6 +2,7 @@ package cfg
 
 import (
 	"io/ioutil"
+	"os"
 	"path/filepath"
 	"strings"
 )
@@ -50,35 +51,26 @@ const (
 	FileEiriniPodLabelPrefix = "eiriniPodLabelPrefix"
 )
 
-// FromDir loads a Config from files within a directory on disk
+// Load loads a Config from environment variables or files within a directory on disk
 // When running inside a K8s Cluster, this directory should probably be a volume mount of a K8s Secret
-func FromDir(configDir string) (*Config, error) {
-	getPath := func(filename string) string { return filepath.Join(configDir, filename) }
-	readFile := func(filename string) (string, error) {
-		bytes, err := ioutil.ReadFile(getPath(filename))
-		if err != nil {
-			return "", err
-		}
-		return strings.TrimSpace(string(bytes)), nil
-	}
-
-	ccBaseUrl, err := readFile(FileCCBaseURL)
+func Load(configDir string) (*Config, error) {
+	ccBaseUrl, err := loadValue(configDir, FileCCBaseURL)
 	if err != nil {
 		return nil, err
 	}
-	uaaBaseURL, err := readFile(FileUAABaseURL)
+	uaaBaseURL, err := loadValue(configDir, FileUAABaseURL)
 	if err != nil {
 		return nil, err
 	}
-	clientName, err := readFile(FileUAAClientName)
+	clientName, err := loadValue(configDir, FileUAAClientName)
 	if err != nil {
 		return nil, err
 	}
-	clientSecret, err := readFile(FileUAAClientSecret)
+	clientSecret, err := loadValue(configDir, FileUAAClientSecret)
 	if err != nil {
 		return nil, err
 	}
-	podLabelPrefix, err := readFile(FileEiriniPodLabelPrefix)
+	podLabelPrefix, err := loadValue(configDir, FileEiriniPodLabelPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -87,10 +79,30 @@ func FromDir(configDir string) (*Config, error) {
 	c.UAA.BaseURL = uaaBaseURL
 	c.UAA.ClientName = clientName
 	c.UAA.ClientSecret = clientSecret
-	c.UAA.CAFile = getPath(FileUAACA)
+	c.UAA.CAFile = getPath(configDir, FileUAACA)
 	c.CC.BaseURL = ccBaseUrl
-	c.CC.CAFile = getPath(FileCCCA)
+	c.CC.CAFile = getPath(configDir, FileCCCA)
 	c.Istio.Gateways = []string{"istio-ingress"}
 	c.Experimental.EiriniPodLabelPrefix = podLabelPrefix
 	return c, nil
+}
+
+func loadValue(configDir string, key string) (string, error) {
+	value, exists := os.LookupEnv(key)
+	if exists {
+		return value, nil
+	}
+	return readFile(configDir, key)
+}
+
+func readFile(configDir string, filename string) (string, error) {
+	bytes, err := ioutil.ReadFile(getPath(configDir, filename))
+	if err != nil {
+		return "", err
+	}
+	return strings.TrimSpace(string(bytes)), nil
+}
+
+func getPath(configDir string, filename string) string {
+	return filepath.Join(configDir, filename)
 }

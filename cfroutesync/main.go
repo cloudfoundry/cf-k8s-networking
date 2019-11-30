@@ -31,9 +31,12 @@ func mainWithError() error {
 	log.SetFormatter(&log.JSONFormatter{})
 	log.SetOutput(os.Stdout)
 
-	var configDir string
-	var listenAddr string
-	var verbosity int
+	var (
+		configDir  string
+		listenAddr string
+		verbosity  int
+	)
+
 	flag.StringVar(&configDir, "c", "", "config directory")
 	flag.StringVar(&listenAddr, "l", ":8080", "listen address for serving webhook to metacontroller")
 	flag.IntVar(&verbosity, "v", 4, "log verbosity")
@@ -44,7 +47,7 @@ func mainWithError() error {
 		return fmt.Errorf("missing required flag for config dir")
 	}
 
-	config, err := cfg.FromDir(configDir)
+	config, err := cfg.Load(configDir)
 	if err != nil {
 		return fmt.Errorf("loading config: %w", err)
 	}

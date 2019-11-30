@@ -37,12 +37,12 @@ eirini_pod_label_prefix = "cloudfoundry.org/"
 
 puts YAML.dump({
         'cfroutesync' => {
-          'ccCA' => Base64.strict_encode64(lb_cert_ca),
-          'ccBaseURL' => Base64.strict_encode64(cc_base_url),
-          'uaaCA' => Base64.strict_encode64(lb_cert_ca),
-          'uaaBaseURL' => Base64.strict_encode64(uaa_base_url),
-          'clientName' => Base64.strict_encode64(client_name),
+          'ccCA' => lb_cert_ca,
+          'ccBaseURL' => cc_base_url,
+          'uaaCA' => lb_cert_ca,
+          'uaaBaseURL' => uaa_base_url,
+          'clientName' => client_name,
           'clientSecret' => Base64.strict_encode64(client_secret),
-          'eiriniPodLabelPrefix' => Base64.strict_encode64(eirini_pod_label_prefix),
+          'eiriniPodLabelPrefix' => eirini_pod_label_prefix,
         }
   })
