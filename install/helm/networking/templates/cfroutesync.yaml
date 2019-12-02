@@ -40,6 +40,7 @@ spec:
         - name: cfroutesync
           image: {{ .Values.cfroutesync.image }}
           args: [ "-c", "/etc/cfroutesync-config"]
+          imagePullPolicy: Always
           envFrom:
             - configMapRef:
                 name: cfroutesync
