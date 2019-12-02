@@ -122,10 +122,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									Headers: webhook.VirtualServiceHeaders{
 										Request: webhook.VirtualServiceHeaderOperations{
 											Set: map[string]string{
-												"App-Id":           "app-guid-0",
-												"App-Process-Type": "process-type-1",
-												"Space-Id":         "space-guid-0",
-												"Organization-Id":  "org-guid-0",
+												"CF-App-Id":           "app-guid-0",
+												"CF-App-Process-Type": "process-type-1",
+												"CF-Space-Id":         "space-guid-0",
+												"CF-Organization-Id":  "org-guid-0",
 											},
 										},
 									},
@@ -136,10 +136,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									Headers: webhook.VirtualServiceHeaders{
 										Request: webhook.VirtualServiceHeaderOperations{
 											Set: map[string]string{
-												"App-Id":           "app-guid-1",
-												"App-Process-Type": "process-type-1",
-												"Space-Id":         "space-guid-0",
-												"Organization-Id":  "org-guid-0",
+												"CF-App-Id":           "app-guid-1",
+												"CF-App-Process-Type": "process-type-1",
+												"CF-Space-Id":         "space-guid-0",
+												"CF-Organization-Id":  "org-guid-0",
 											},
 										},
 									},
@@ -174,10 +174,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									Headers: webhook.VirtualServiceHeaders{
 										Request: webhook.VirtualServiceHeaderOperations{
 											Set: map[string]string{
-												"App-Id":           "app-guid-1",
-												"App-Process-Type": "process-type-1",
-												"Space-Id":         "space-guid-1",
-												"Organization-Id":  "org-guid-1",
+												"CF-App-Id":           "app-guid-1",
+												"CF-App-Process-Type": "process-type-1",
+												"CF-Space-Id":         "space-guid-1",
+												"CF-Organization-Id":  "org-guid-1",
 											},
 										},
 									},
@@ -278,10 +278,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-0",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-0",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -292,10 +292,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-1",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-1",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -306,10 +306,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-2",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-2",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -378,10 +378,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-0",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-0",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -392,10 +392,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-1",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-1",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -449,10 +449,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-0",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-0",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -463,10 +463,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-1",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-1",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -477,10 +477,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-2",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-2",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -567,10 +567,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-0",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-0",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -581,10 +581,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-1",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-1",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -595,10 +595,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-2",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-2",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -685,10 +685,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-0",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-0",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -699,10 +699,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-1",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-1",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -713,10 +713,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Headers: webhook.VirtualServiceHeaders{
 													Request: webhook.VirtualServiceHeaderOperations{
 														Set: map[string]string{
-															"App-Id":           "app-guid-2",
-															"App-Process-Type": "process-type-1",
-															"Space-Id":         "space-guid-0",
-															"Organization-Id":  "org-guid-0",
+															"CF-App-Id":           "app-guid-2",
+															"CF-App-Process-Type": "process-type-1",
+															"CF-Space-Id":         "space-guid-0",
+															"CF-Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -796,10 +796,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
 												Set: map[string]string{
-													"App-Id":           "app-guid-0",
-													"App-Process-Type": "process-type-0",
-													"Space-Id":         "space-guid-0",
-													"Organization-Id":  "org-guid-0",
+													"CF-App-Id":           "app-guid-0",
+													"CF-App-Process-Type": "process-type-0",
+													"CF-Space-Id":         "space-guid-0",
+													"CF-Organization-Id":  "org-guid-0",
 												},
 											},
 										},
@@ -907,10 +907,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
 												Set: map[string]string{
-													"App-Id":           "app-guid-1",
-													"App-Process-Type": "process-type-1",
-													"Space-Id":         "space-guid-0",
-													"Organization-Id":  "org-guid-0",
+													"CF-App-Id":           "app-guid-1",
+													"CF-App-Process-Type": "process-type-1",
+													"CF-Space-Id":         "space-guid-0",
+													"CF-Organization-Id":  "org-guid-0",
 												},
 											},
 										},
@@ -926,10 +926,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
 												Set: map[string]string{
-													"App-Id":           "app-guid-0",
-													"App-Process-Type": "process-type-1",
-													"Space-Id":         "space-guid-0",
-													"Organization-Id":  "org-guid-0",
+													"CF-App-Id":           "app-guid-0",
+													"CF-App-Process-Type": "process-type-1",
+													"CF-Space-Id":         "space-guid-0",
+													"CF-Organization-Id":  "org-guid-0",
 												},
 											},
 										},
@@ -1025,10 +1025,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Headers: webhook.VirtualServiceHeaders{
 												Request: webhook.VirtualServiceHeaderOperations{
 													Set: map[string]string{
-														"App-Id":           "app-guid-0",
-														"App-Process-Type": "process-type-1",
-														"Space-Id":         "space-guid-0",
-														"Organization-Id":  "org-guid-0",
+														"CF-App-Id":           "app-guid-0",
+														"CF-App-Process-Type": "process-type-1",
+														"CF-Space-Id":         "space-guid-0",
+														"CF-Organization-Id":  "org-guid-0",
 													},
 												},
 											},
@@ -1163,10 +1163,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Headers: webhook.VirtualServiceHeaders{
 												Request: webhook.VirtualServiceHeaderOperations{
 													Set: map[string]string{
-														"App-Id":           "app-guid-1",
-														"App-Process-Type": "process-type-1",
-														"Space-Id":         "space-guid-0",
-														"Organization-Id":  "org-guid-0",
+														"CF-App-Id":           "app-guid-1",
+														"CF-App-Process-Type": "process-type-1",
+														"CF-Space-Id":         "space-guid-0",
+														"CF-Organization-Id":  "org-guid-0",
 													},
 												},
 											},
@@ -1274,10 +1274,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										Headers: webhook.VirtualServiceHeaders{
 											Request: webhook.VirtualServiceHeaderOperations{
 												Set: map[string]string{
-													"App-Id":           "app-guid-1",
-													"App-Process-Type": "process-type-1",
-													"Space-Id":         "space-guid-0",
-													"Organization-Id":  "org-guid-0",
+													"CF-App-Id":           "app-guid-1",
+													"CF-App-Process-Type": "process-type-1",
+													"CF-Space-Id":         "space-guid-0",
+													"CF-Organization-Id":  "org-guid-0",
 												},
 											},
 										},
