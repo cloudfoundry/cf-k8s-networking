@@ -55,14 +55,14 @@ func mainWithError() error {
 
 	uaaTLSConfig, err := tlsconfig.
 		Build(tlsconfig.WithInternalServiceDefaults()).
-		Client(tlsconfig.WithAuthorityFromFile(config.UAA.CAFile))
+		Client(tlsconfig.WithAuthority(config.UAA.CA))
 	if err != nil {
 		return fmt.Errorf("building UAA TLS config: %w", err)
 	}
 
 	ccTLSConfig, err := tlsconfig.
 		Build(tlsconfig.WithInternalServiceDefaults()).
-		Client(tlsconfig.WithAuthorityFromFile(config.CC.CAFile))
+		Client(tlsconfig.WithAuthority(config.CC.CA))
 	if err != nil {
 		return fmt.Errorf("building CC TLS config: %w", err)
 	}

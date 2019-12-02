@@ -1,6 +1,8 @@
 package cfg
 
 import (
+	"crypto/x509"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -18,16 +20,16 @@ type Config struct {
 		// Client secret matching the client name
 		ClientSecret string
 
-		// PEM file path for the certificate authority that signed the UAA server cert
-		CAFile string
+		// Certificate authority that signed the UAA server cert
+		CA *x509.CertPool
 	}
 
 	CC struct {
 		// Base URL for Cloud Controller, e.g. api.sys.example.com or api.cf.system.internal
 		BaseURL string
 
-		// PEM file path for the certificate authority that signed the CC server cert
-		CAFile string
+		// Certificate authority that signed the Cloud Controller server cert
+		CA *x509.CertPool
 	}
 
 	Istio struct {
@@ -75,16 +77,40 @@ func Load(configDir string) (*Config, error) {
 		return nil, err
 	}
 
+	uaaCA, err := loadCert(configDir, FileUAACA)
+	if err != nil {
+		return nil, err
+	}
+
+	ccCA, err := loadCert(configDir, FileCCCA)
+	if err != nil {
+		return nil, err
+	}
+
 	c := &Config{}
 	c.UAA.BaseURL = uaaBaseURL
 	c.UAA.ClientName = clientName
 	c.UAA.ClientSecret = clientSecret
-	c.UAA.CAFile = getPath(configDir, FileUAACA)
+	c.UAA.CA = uaaCA
 	c.CC.BaseURL = ccBaseUrl
-	c.CC.CAFile = getPath(configDir, FileCCCA)
+	c.CC.CA = ccCA
 	c.Istio.Gateways = []string{"istio-ingress"}
 	c.Experimental.EiriniPodLabelPrefix = podLabelPrefix
 	return c, nil
+}
+
+func loadCert(configDir string, key string) (*x509.CertPool, error) {
+	caContent, err := loadValue(configDir, key)
+
+	if err != nil {
+		return nil, err
+	}
+
+	caCertPool := x509.NewCertPool()
+	if ok := caCertPool.AppendCertsFromPEM([]byte(caContent)); !ok {
+		return nil, fmt.Errorf("unable to load CA certificate")
+	}
+	return caCertPool, nil
 }
 
 func loadValue(configDir string, key string) (string, error) {

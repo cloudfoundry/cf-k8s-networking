@@ -30,9 +30,9 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     
     ```yaml
     cfroutesync:
-      ccCA: 'path_to_cloud_controller_ca'
+      ccCA: 'pem_encoded_cloud_controller_ca'
       ccBaseURL: 'https://api.example.com'
-      uaaCA: 'path_to_uaa_ca'
+      uaaCA: 'pem_encoded_uaa_ca'
       uaaBaseURL: 'https://uaa.example.com'
       clientName: 'uaaClientName'
       clientSecret: 'uaaClientSecret'
