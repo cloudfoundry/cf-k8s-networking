@@ -5,6 +5,8 @@ global:
       {
         "response_flags": "%RESPONSE_FLAGS%",
         "app_id": "%REQ(APP-ID)%",
+        "space_id": "%REQ(SPACE-ID)%",
+        "organization_id": "%REQ(ORGANIZATION-ID)%",
         "response_code": "%RESPONSE_CODE%",
         "upstream_transport_failure_reason": "%UPSTREAM_TRANSPORT_FAILURE_REASON%",
         "downstream_remote_address": "%DOWNSTREAM_REMOTE_ADDRESS%",

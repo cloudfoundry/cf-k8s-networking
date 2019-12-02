@@ -48,6 +48,19 @@ type CCClient struct {
 		result1 []ccclient.Route
 		result2 error
 	}
+	ListSpacesStub        func(string) ([]ccclient.Space, error)
+	listSpacesMutex       sync.RWMutex
+	listSpacesArgsForCall []struct {
+		arg1 string
+	}
+	listSpacesReturns struct {
+		result1 []ccclient.Space
+		result2 error
+	}
+	listSpacesReturnsOnCall map[int]struct {
+		result1 []ccclient.Space
+		result2 error
+	}
 	invocations      map[string][][]interface{}
 	invocationsMutex sync.RWMutex
 }
@@ -242,6 +255,69 @@ func (fake *CCClient) ListRoutesReturnsOnCall(i int, result1 []ccclient.Route, r
 	}{result1, result2}
 }
 
+func (fake *CCClient) ListSpaces(arg1 string) ([]ccclient.Space, error) {
+	fake.listSpacesMutex.Lock()
+	ret, specificReturn := fake.listSpacesReturnsOnCall[len(fake.listSpacesArgsForCall)]
+	fake.listSpacesArgsForCall = append(fake.listSpacesArgsForCall, struct {
+		arg1 string
+	}{arg1})
+	fake.recordInvocation("ListSpaces", []interface{}{arg1})
+	fake.listSpacesMutex.Unlock()
+	if fake.ListSpacesStub != nil {
+		return fake.ListSpacesStub(arg1)
+	}
+	if specificReturn {
+		return ret.result1, ret.result2
+	}
+	fakeReturns := fake.listSpacesReturns
+	return fakeReturns.result1, fakeReturns.result2
+}
+
+func (fake *CCClient) ListSpacesCallCount() int {
+	fake.listSpacesMutex.RLock()
+	defer fake.listSpacesMutex.RUnlock()
+	return len(fake.listSpacesArgsForCall)
+}
+
+func (fake *CCClient) ListSpacesCalls(stub func(string) ([]ccclient.Space, error)) {
+	fake.listSpacesMutex.Lock()
+	defer fake.listSpacesMutex.Unlock()
+	fake.ListSpacesStub = stub
+}
+
+func (fake *CCClient) ListSpacesArgsForCall(i int) string {
+	fake.listSpacesMutex.RLock()
+	defer fake.listSpacesMutex.RUnlock()
+	argsForCall := fake.listSpacesArgsForCall[i]
+	return argsForCall.arg1
+}
+
+func (fake *CCClient) ListSpacesReturns(result1 []ccclient.Space, result2 error) {
+	fake.listSpacesMutex.Lock()
+	defer fake.listSpacesMutex.Unlock()
+	fake.ListSpacesStub = nil
+	fake.listSpacesReturns = struct {
+		result1 []ccclient.Space
+		result2 error
+	}{result1, result2}
+}
+
+func (fake *CCClient) ListSpacesReturnsOnCall(i int, result1 []ccclient.Space, result2 error) {
+	fake.listSpacesMutex.Lock()
+	defer fake.listSpacesMutex.Unlock()
+	fake.ListSpacesStub = nil
+	if fake.listSpacesReturnsOnCall == nil {
+		fake.listSpacesReturnsOnCall = make(map[int]struct {
+			result1 []ccclient.Space
+			result2 error
+		})
+	}
+	fake.listSpacesReturnsOnCall[i] = struct {
+		result1 []ccclient.Space
+		result2 error
+	}{result1, result2}
+}
+
 func (fake *CCClient) Invocations() map[string][][]interface{} {
 	fake.invocationsMutex.RLock()
 	defer fake.invocationsMutex.RUnlock()
@@ -251,6 +327,8 @@ func (fake *CCClient) Invocations() map[string][][]interface{} {
 	defer fake.listDomainsMutex.RUnlock()
 	fake.listRoutesMutex.RLock()
 	defer fake.listRoutesMutex.RUnlock()
+	fake.listSpacesMutex.RLock()
+	defer fake.listSpacesMutex.RUnlock()
 	copiedInvocations := map[string][][]interface{}{}
 	for key, value := range fake.invocations {
 		copiedInvocations[key] = value

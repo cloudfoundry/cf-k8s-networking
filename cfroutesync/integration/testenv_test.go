@@ -44,6 +44,7 @@ type TestEnv struct {
 		Server  *httptest.Server
 		Data    struct {
 			Domains      []ccclient.Domain
+			Spaces       []ccclient.Space
 			Routes       []ccclient.Route
 			Destinations map[string][]ccclient.Destination
 		}
@@ -68,6 +69,10 @@ func (te *TestEnv) FakeCCServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case strings.Contains(r.URL.Path, "domains"):
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"resources": te.FakeCC.Data.Domains,
+		})
+	case strings.Contains(r.URL.Path, "spaces"):
+		json.NewEncoder(w).Encode(map[string]interface{}{
+			"resources": te.FakeCC.Data.Spaces,
 		})
 	case strings.Contains(r.URL.Path, "destinations"):
 		routeGUIDs := regexp.MustCompile("/v3/routes/(.*)/destinations").FindStringSubmatch(r.URL.Path)

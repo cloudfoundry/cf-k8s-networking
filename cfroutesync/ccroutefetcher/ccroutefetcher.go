@@ -16,6 +16,7 @@ type ccClient interface {
 	ListRoutes(token string) ([]ccclient.Route, error)
 	ListDestinationsForRoute(routeGUID, token string) ([]ccclient.Destination, error)
 	ListDomains(token string) ([]ccclient.Domain, error)
+	ListSpaces(token string) ([]ccclient.Space, error)
 }
 
 //go:generate counterfeiter -o fakes/uaaclient.go --fake-name UAAClient . uaaClient
@@ -55,6 +56,15 @@ func (f *Fetcher) FetchOnce() error {
 		domainsMap[domain.Guid] = domain
 	}
 
+	spaces, err := f.CCClient.ListSpaces(token)
+	if err != nil {
+		return fmt.Errorf("cc list spaces: %w", err)
+	}
+	spacesMap := make(map[string]ccclient.Space)
+	for _, space := range spaces {
+		spacesMap[space.Guid] = space
+	}
+
 	var snapshotRoutes []models.Route
 	for _, route := range routes {
 		destList, err := f.CCClient.ListDestinationsForRoute(route.Guid, token)
@@ -68,7 +78,13 @@ func (f *Fetcher) FetchOnce() error {
 			return fmt.Errorf("route %s refers to missing domain %s", route.Guid, routeDomainGuid)
 		}
 
-		snapshotRoutes = append(snapshotRoutes, buildRouteForSnapshot(route, destList, domain))
+		routeSpaceGuid := route.Relationships.Space.Data.Guid
+		space, ok := spacesMap[routeSpaceGuid]
+		if !ok {
+			return fmt.Errorf("route %s refers to missing space %s", route.Guid, routeSpaceGuid)
+		}
+
+		snapshotRoutes = append(snapshotRoutes, buildRouteForSnapshot(route, destList, domain, space))
 	}
 
 	snapshot := &models.RouteSnapshot{Routes: snapshotRoutes}
@@ -80,7 +96,7 @@ func (f *Fetcher) FetchOnce() error {
 	return nil
 }
 
-func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destination, domain ccclient.Domain) models.Route {
+func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destination, domain ccclient.Domain, space ccclient.Space) models.Route {
 	var snapshotRouteDestinations []models.Destination
 	for _, ccDestination := range destinations {
 		snapshotDestination := models.Destination{
@@ -105,6 +121,10 @@ func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destina
 			Guid:     domain.Guid,
 			Name:     strings.ToLower(domain.Name),
 			Internal: domain.Internal,
+		},
+		Space: models.Space{
+			Guid:         space.Guid,
+			Organization: models.Organization{Guid: space.Relationships.Organization.Data.Guid},
 		},
 	}
 }

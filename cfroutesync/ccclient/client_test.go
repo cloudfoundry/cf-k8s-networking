@@ -60,6 +60,11 @@ var _ = Describe("Cloud Controller Client", func() {
 								"data": {
 									"guid": "fake-domain-1-guid"
 								}
+							},
+							"space": {
+								"data": {
+									"guid": "fake-space-1-guid"
+								}
 							}
 						}
 					},
@@ -72,6 +77,11 @@ var _ = Describe("Cloud Controller Client", func() {
 							"domain": {
 								"data": {
 									"guid": "fake-domain-2-guid"
+								}
+							},
+							"space": {
+								"data": {
+									"guid": "fake-space-2-guid"
 								}
 							}
 						}
@@ -94,6 +104,7 @@ var _ = Describe("Cloud Controller Client", func() {
 				Url:  "fake-host.fake-domain.com/fake_path",
 			}
 			route1.Relationships.Domain.Data.Guid = "fake-domain-1-guid"
+			route1.Relationships.Space.Data.Guid = "fake-space-1-guid"
 
 			route2 := ccclient.Route{
 				Guid: "fake-guid2",
@@ -102,6 +113,7 @@ var _ = Describe("Cloud Controller Client", func() {
 				Url:  "fake-host2.fake-domain.com/fake_path2",
 			}
 			route2.Relationships.Domain.Data.Guid = "fake-domain-2-guid"
+			route2.Relationships.Space.Data.Guid = "fake-space-2-guid"
 
 			Expect(len(routeResults)).To(Equal(2))
 			Expect(routeResults).To(ContainElement(route1))
@@ -369,7 +381,7 @@ var _ = Describe("Cloud Controller Client", func() {
 			Expect(authHeader[0]).To(Equal("bearer fake-token"))
 		})
 
-		Context("this only supports 5000 routes", func() {
+		Context("this only supports 5000 domains", func() {
 			It("requests 5000 results per page", func() {
 				_, err := ccClient.ListDomains(token)
 				Expect(err).To(Not(HaveOccurred()))
@@ -405,6 +417,142 @@ var _ = Describe("Cloud Controller Client", func() {
 
 			It("returns a helpful error", func() {
 				_, err := ccClient.ListDomains(token)
+				Expect(err).To(MatchError(ContainSubstring("invalid URL escape")))
+			})
+		})
+	})
+
+	Describe("ListSpaces", func() {
+		BeforeEach(func() {
+			body := `
+			{
+			  "pagination": {
+				"total_results": 3,
+				"total_pages": 1,
+				"first": {
+				  "href": "https://api.example.org/v3/spaces?page=1&per_page=2"
+				},
+				"last": {
+				  "href": "https://api.example.org/v3/spaces?page=2&per_page=2"
+				},
+				"next": {
+				  "href": "https://api.example.org/v3/spaces?page=2&per_page=2"
+				},
+				"previous": null
+			  },
+			  "resources": [
+				{
+				  "guid": "fake-space-1-guid",
+				  "name": "fake-space1",
+                  "relationships": {
+					"organization": {
+					  "data": {
+						"guid": "fake-org-guid-1"
+					  }
+					}
+				  },
+				  "metadata": {
+					"labels": {},
+					"annotations": {}
+				  }
+				},
+				{
+				  "guid": "fake-space-2-guid",
+				  "name": "fake-space2",
+                  "relationships": {
+					"organization": {
+					  "data": {
+						"guid": "fake-org-guid-2"
+					  }
+					}
+				  },
+				  "metadata": {
+					"labels": {},
+					"annotations": {}
+				  }
+				}
+			  ]
+			}
+			`
+			jsonClient.MakeRequestStub = func(req *http.Request, responseStruct interface{}) error {
+				return json.Unmarshal([]byte(body), responseStruct)
+			}
+		})
+
+		It("returns a list of spaces", func() {
+			spaceResults, err := ccClient.ListSpaces(token)
+			Expect(err).To(Not(HaveOccurred()))
+			space1 := ccclient.Space{
+				Guid: "fake-space-1-guid",
+			}
+			space1.Relationships.Organization.Data.Guid = "fake-org-guid-1"
+
+			space2 := ccclient.Space{
+				Guid: "fake-space-2-guid",
+			}
+			space2.Relationships.Organization.Data.Guid = "fake-org-guid-2"
+
+			Expect(len(spaceResults)).To(Equal(2))
+			Expect(spaceResults).To(ContainElement(space1))
+			Expect(spaceResults).To(ContainElement(space2))
+		})
+
+		It("forms the right request URL", func() {
+			_, err := ccClient.ListSpaces(token)
+			Expect(err).To(Not(HaveOccurred()))
+
+			receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+			Expect(receivedRequest.Method).To(Equal("GET"))
+			Expect(receivedRequest.URL.Path).To(Equal("/v3/spaces"))
+		})
+
+		It("sets the provided token as an Authorization header on the request", func() {
+			_, err := ccClient.ListSpaces(token)
+			Expect(err).To(Not(HaveOccurred()))
+
+			receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+
+			authHeader := receivedRequest.Header["Authorization"]
+			Expect(authHeader).To(HaveLen(1))
+			Expect(authHeader[0]).To(Equal("bearer fake-token"))
+		})
+
+		Context("this only supports 5000 spaces", func() {
+			It("requests 5000 results per page", func() {
+				_, err := ccClient.ListSpaces(token)
+				Expect(err).To(Not(HaveOccurred()))
+				receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+				Expect(receivedRequest.URL.Query()["per_page"]).To(Equal([]string{"5000"}))
+			})
+			It("errors if there is more than one page of results", func() {
+				body := `{ "pagination": { "total_pages": 2 } }`
+				jsonClient.MakeRequestStub = func(req *http.Request, responseStruct interface{}) error {
+					return json.Unmarshal([]byte(body), responseStruct)
+				}
+
+				_, err := ccClient.ListSpaces(token)
+				Expect(err).To(MatchError(ContainSubstring("too many results, paging not implemented")))
+			})
+		})
+
+		Context("when the json client returns an error", func() {
+			BeforeEach(func() {
+				jsonClient.MakeRequestReturns(errors.New("potato"))
+			})
+
+			It("returns a helpful error", func() {
+				_, err := ccClient.ListSpaces(token)
+				Expect(err).To(MatchError(ContainSubstring("potato")))
+			})
+		})
+
+		Context("when the url is malformed", func() {
+			BeforeEach(func() {
+				ccClient.BaseURL = "%%%%%%%"
+			})
+
+			It("returns a helpful error", func() {
+				_, err := ccClient.ListSpaces(token)
 				Expect(err).To(MatchError(ContainSubstring("invalid URL escape")))
 			})
 		})

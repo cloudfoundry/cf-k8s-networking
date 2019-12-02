@@ -69,9 +69,12 @@ var _ = Describe("Fetching once", func() {
 				Url:  "route-2-host.domain1.apps.internal/route-2-path",
 			},
 		}
-		routesList[0].Relationships.Domain.Data.Guid = "domain-0"
-		routesList[1].Relationships.Domain.Data.Guid = "domain-1"
-		routesList[2].Relationships.Domain.Data.Guid = "domain-1"
+		routesList[0].Relationships.Domain.Data.Guid = "domain-0-guid"
+		routesList[1].Relationships.Domain.Data.Guid = "domain-1-guid"
+		routesList[2].Relationships.Domain.Data.Guid = "domain-1-guid"
+		routesList[0].Relationships.Space.Data.Guid = "space-0-guid"
+		routesList[1].Relationships.Space.Data.Guid = "space-1-guid"
+		routesList[2].Relationships.Space.Data.Guid = "space-1-guid"
 		fakeCCClient.ListRoutesReturns(routesList, nil)
 
 		fakeCCClient.ListDestinationsForRouteReturnsOnCall(0, []ccclient.Destination{
@@ -85,16 +88,28 @@ var _ = Describe("Fetching once", func() {
 
 		fakeCCClient.ListDomainsReturns([]ccclient.Domain{
 			{
-				Guid:     "domain-0",
+				Guid:     "domain-0-guid",
 				Name:     "domain0.example.com",
 				Internal: false,
 			},
 			{
-				Guid:     "domain-1",
+				Guid:     "domain-1-guid",
 				Name:     "domain1.apps.internal",
 				Internal: true,
 			},
 		}, nil)
+
+		spacesList := []ccclient.Space{
+			{
+				Guid: "space-0-guid",
+			},
+			{
+				Guid: "space-1-guid",
+			},
+		}
+		spacesList[0].Relationships.Organization.Data.Guid = "org-0-guid"
+		spacesList[1].Relationships.Organization.Data.Guid = "org-1-guid"
+		fakeCCClient.ListSpacesReturns(spacesList, nil)
 
 		fakeUAAClient = &fakes.UAAClient{}
 		fakeUAAClient.GetTokenReturns("fake-uaa-token", nil)
@@ -109,9 +124,15 @@ var _ = Describe("Fetching once", func() {
 					Path: "/route-0-path",
 					Url:  "route-0-host.domain0.example.com/route-0-path",
 					Domain: models.Domain{
-						Guid:     "domain-0",
+						Guid:     "domain-0-guid",
 						Name:     "domain0.example.com",
 						Internal: false,
+					},
+					Space: models.Space{
+						Guid: "space-0-guid",
+						Organization: models.Organization{
+							Guid: "org-0-guid",
+						},
 					},
 					Destinations: []models.Destination{
 						models.Destination{
@@ -140,9 +161,15 @@ var _ = Describe("Fetching once", func() {
 					Path: "/route-1-path",
 					Url:  "route-1-host.domain1.apps.internal/route-1-path",
 					Domain: models.Domain{
-						Guid:     "domain-1",
+						Guid:     "domain-1-guid",
 						Name:     "domain1.apps.internal",
 						Internal: true,
+					},
+					Space: models.Space{
+						Guid: "space-1-guid",
+						Organization: models.Organization{
+							Guid: "org-1-guid",
+						},
 					},
 					Destinations: []models.Destination{
 						models.Destination{
@@ -162,9 +189,15 @@ var _ = Describe("Fetching once", func() {
 					Path: "/route-2-path",
 					Url:  "route-2-host.domain1.apps.internal/route-2-path",
 					Domain: models.Domain{
-						Guid:     "domain-1",
+						Guid:     "domain-1-guid",
 						Name:     "domain1.apps.internal",
 						Internal: true,
+					},
+					Space: models.Space{
+						Guid: "space-1-guid",
+						Organization: models.Organization{
+							Guid: "org-1-guid",
+						},
 					},
 					Destinations: nil,
 				},
@@ -218,12 +251,13 @@ var _ = Describe("Fetching once", func() {
 					Url:  "UPPERCASE-HOST.EXAMPLE.COM/PATH",
 				},
 			}
-			routesList[0].Relationships.Domain.Data.Guid = "domain-0"
+			routesList[0].Relationships.Domain.Data.Guid = "domain-0-guid"
+			routesList[0].Relationships.Space.Data.Guid = "space-0-guid"
 			fakeCCClient.ListRoutesReturns(routesList, nil)
 
 			fakeCCClient.ListDomainsReturns([]ccclient.Domain{
 				{
-					Guid:     "domain-0",
+					Guid:     "domain-0-guid",
 					Name:     "EXAMPLE.COM",
 					Internal: false,
 				},
@@ -238,9 +272,13 @@ var _ = Describe("Fetching once", func() {
 						Path: "/PATH",
 						Url:  "uppercase-host.example.com/PATH",
 						Domain: models.Domain{
-							Guid:     "domain-0",
+							Guid:     "domain-0-guid",
 							Name:     "example.com",
 							Internal: false,
+						},
+						Space: models.Space{
+							Guid:         "space-0-guid",
+							Organization: models.Organization{Guid: "org-0-guid"},
 						},
 						Destinations: nil,
 					},
@@ -291,13 +329,33 @@ var _ = Describe("Fetching once", func() {
 		It("returns an error", func() {
 			fakeCCClient.ListDomainsReturns([]ccclient.Domain{
 				{
-					Guid:     "domain-1",
+					Guid:     "domain-1-guid",
 					Name:     "domain1.apps.internal",
 					Internal: true,
 				},
 			}, nil)
 			err := fetcher.FetchOnce()
-			Expect(err).To(MatchError("route route-0-guid refers to missing domain domain-0"))
+			Expect(err).To(MatchError("route route-0-guid refers to missing domain domain-0-guid"))
+		})
+	})
+
+	Context("when there is an error getting Spaces from Cloud Controller", func() {
+		It("returns the error", func() {
+			fakeCCClient.ListSpacesReturns(nil, errors.New("ohno!"))
+			err := fetcher.FetchOnce()
+			Expect(err).To(MatchError("cc list spaces: ohno!"))
+		})
+	})
+
+	Context("when a route refers to a Space that was not found", func() {
+		It("returns an error", func() {
+			fakeCCClient.ListSpacesReturns([]ccclient.Space{
+				{
+					Guid: "not-space-0",
+				},
+			}, nil)
+			err := fetcher.FetchOnce()
+			Expect(err).To(MatchError("route route-0-guid refers to missing space space-0-guid"))
 		})
 	})
 })

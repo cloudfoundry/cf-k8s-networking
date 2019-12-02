@@ -12,6 +12,7 @@ type Route struct {
 	Path         string
 	Url          string
 	Domain       Domain
+	Space        Space
 	Destinations []Destination
 }
 
@@ -19,6 +20,15 @@ type Domain struct {
 	Guid     string
 	Name     string
 	Internal bool
+}
+
+type Space struct {
+	Guid         string
+	Organization Organization
+}
+
+type Organization struct {
+	Guid string
 }
 
 type Destination struct {

@@ -149,6 +149,8 @@ func destinationsToHttpRouteDestinations(route models.Route, destinations []mode
 					Set: map[string]string{
 						"App-Id":           destination.App.Guid,
 						"App-Process-Type": destination.App.Process.Type,
+						"Space-Id":         route.Space.Guid,
+						"Organization-Id":  route.Space.Organization.Guid,
 					},
 				},
 			},

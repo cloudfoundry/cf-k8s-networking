@@ -175,6 +175,21 @@ func initializeFakeData(te *TestEnv) {
 			Internal: true,
 		},
 	}
+
+	te.FakeCC.Data.Routes[0].Relationships.Space.Data.Guid = "space-0-guid"
+	te.FakeCC.Data.Routes[1].Relationships.Space.Data.Guid = "space-1-guid"
+	te.FakeCC.Data.Routes[2].Relationships.Space.Data.Guid = "space-1-guid"
+	te.FakeCC.Data.Spaces = []ccclient.Space{
+		{
+			Guid: "space-0-guid",
+		},
+		{
+			Guid: "space-1-guid",
+		},
+	}
+	te.FakeCC.Data.Spaces[0].Relationships.Organization.Data.Guid = "org-0-guid"
+	te.FakeCC.Data.Spaces[1].Relationships.Organization.Data.Guid = "org-1-guid"
+
 	te.FakeCC.Data.Destinations = map[string][]ccclient.Destination{}
 	te.FakeCC.Data.Destinations["route-0-guid"] = []ccclient.Destination{
 		{

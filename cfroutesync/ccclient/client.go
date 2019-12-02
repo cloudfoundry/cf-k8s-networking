@@ -27,6 +27,11 @@ type Route struct {
 				Guid string
 			}
 		}
+		Space struct {
+			Data struct {
+				Guid string
+			}
+		}
 	}
 }
 
@@ -46,6 +51,17 @@ type Domain struct {
 	Guid     string
 	Name     string
 	Internal bool
+}
+
+type Space struct {
+	Guid          string
+	Relationships struct {
+		Organization struct {
+			Data struct {
+				Guid string
+			}
+		}
+	}
 }
 
 // determined by CC API: https://v3-apidocs.cloudfoundry.org/version/3.76.0/index.html#get-a-route
@@ -95,6 +111,27 @@ func (c *Client) ListDomains(token string) ([]Domain, error) {
 			TotalPages int `json:"total_pages"`
 		}
 		Resources []Domain
+	}
+
+	err := c.getList(pathAndQuery, token, &response)
+	if err != nil {
+		return nil, err
+	}
+	if response.Pagination.TotalPages > 1 {
+		return nil, errors.New("too many results, paging not implemented")
+	}
+
+	return response.Resources, nil
+}
+
+func (c *Client) ListSpaces(token string) ([]Space, error) {
+	pathAndQuery := fmt.Sprintf("v3/spaces?per_page=%d", MaxResultsPerPage)
+
+	var response struct {
+		Pagination struct {
+			TotalPages int `json:"total_pages"`
+		}
+		Resources []Space
 	}
 
 	err := c.getList(pathAndQuery, token, &response)

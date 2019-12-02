@@ -59,6 +59,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Weight: models.IntPtr(9),
 					},
 				},
+				Space: models.Space{
+					Guid: "space-guid-0",
+					Organization: models.Organization{
+						Guid: "org-guid-0",
+					},
+				},
 			},
 			models.Route{
 				Guid: "route-guid-1",
@@ -79,6 +85,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						},
 						Port:   8080,
 						Weight: models.IntPtr(100),
+					},
+				},
+				Space: models.Space{
+					Guid: "space-guid-1",
+					Organization: models.Organization{
+						Guid: "org-guid-1",
 					},
 				},
 			},
@@ -112,6 +124,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Set: map[string]string{
 												"App-Id":           "app-guid-0",
 												"App-Process-Type": "process-type-1",
+												"Space-Id":         "space-guid-0",
+												"Organization-Id":  "org-guid-0",
 											},
 										},
 									},
@@ -124,6 +138,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Set: map[string]string{
 												"App-Id":           "app-guid-1",
 												"App-Process-Type": "process-type-1",
+												"Space-Id":         "space-guid-0",
+												"Organization-Id":  "org-guid-0",
 											},
 										},
 									},
@@ -160,6 +176,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 											Set: map[string]string{
 												"App-Id":           "app-guid-1",
 												"App-Process-Type": "process-type-1",
+												"Space-Id":         "space-guid-1",
+												"Organization-Id":  "org-guid-1",
 											},
 										},
 									},
@@ -191,6 +209,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Guid:     "domain-0-guid",
 						Name:     "domain0.example.com",
 						Internal: false,
+					},
+					Space: models.Space{
+						Guid: "space-guid-0",
+						Organization: models.Organization{
+							Guid: "org-guid-0",
+						},
 					},
 					Destinations: []models.Destination{
 						models.Destination{
@@ -256,6 +280,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-0",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -268,6 +294,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-1",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -280,6 +308,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-2",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -350,6 +380,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-0",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -362,6 +394,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-1",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -417,6 +451,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-0",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -429,6 +465,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-1",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -441,6 +479,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-2",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -471,6 +511,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Guid:     "domain-0-guid",
 							Name:     "domain0.example.com",
 							Internal: false,
+						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
 						},
 						Destinations: []models.Destination{
 							models.Destination{
@@ -523,6 +569,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-0",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -535,6 +583,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-1",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -547,6 +597,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-2",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -577,6 +629,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Guid:     "domain-0-guid",
 							Name:     "domain0.example.com",
 							Internal: false,
+						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
 						},
 						Destinations: []models.Destination{
 							models.Destination{
@@ -629,6 +687,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-0",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -641,6 +701,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-1",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -653,6 +715,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 														Set: map[string]string{
 															"App-Id":           "app-guid-2",
 															"App-Process-Type": "process-type-1",
+															"Space-Id":         "space-guid-0",
+															"Organization-Id":  "org-guid-0",
 														},
 													},
 												},
@@ -686,6 +750,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Guid:     "domain-0-guid",
 						Name:     "domain0.apps.internal",
 						Internal: true,
+					},
+					Space: models.Space{
+						Guid: "space-guid-0",
+						Organization: models.Organization{
+							Guid: "org-guid-0",
+						},
 					},
 					Destinations: []models.Destination{
 						models.Destination{
@@ -728,6 +798,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Set: map[string]string{
 													"App-Id":           "app-guid-0",
 													"App-Process-Type": "process-type-0",
+													"Space-Id":         "space-guid-0",
+													"Organization-Id":  "org-guid-0",
 												},
 											},
 										},
@@ -761,6 +833,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Name:     "domain0.example.com",
 						Internal: false,
 					},
+					Space: models.Space{
+						Guid: "space-guid-0",
+						Organization: models.Organization{
+							Guid: "org-guid-0",
+						},
+					},
 					Destinations: []models.Destination{
 						models.Destination{
 							Guid: "route-0-destination-guid-0",
@@ -782,6 +860,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Guid:     "domain-0-guid",
 						Name:     "domain0.example.com",
 						Internal: false,
+					},
+					Space: models.Space{
+						Guid: "space-guid-0",
+						Organization: models.Organization{
+							Guid: "org-guid-0",
+						},
 					},
 					Destinations: []models.Destination{
 						models.Destination{
@@ -825,6 +909,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Set: map[string]string{
 													"App-Id":           "app-guid-1",
 													"App-Process-Type": "process-type-1",
+													"Space-Id":         "space-guid-0",
+													"Organization-Id":  "org-guid-0",
 												},
 											},
 										},
@@ -842,6 +928,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Set: map[string]string{
 													"App-Id":           "app-guid-0",
 													"App-Process-Type": "process-type-1",
+													"Space-Id":         "space-guid-0",
+													"Organization-Id":  "org-guid-0",
 												},
 											},
 										},
@@ -873,6 +961,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Name:     "domain0.example.com",
 							Internal: false,
 						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
+						},
 						Destinations: []models.Destination{
 							models.Destination{
 								Guid: "route-0-destination-guid-0",
@@ -894,6 +988,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Guid:     "domain-0-guid",
 							Name:     "domain0.example.com",
 							Internal: false,
+						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
 						},
 						Destinations: []models.Destination{},
 					},
@@ -927,6 +1027,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 													Set: map[string]string{
 														"App-Id":           "app-guid-0",
 														"App-Process-Type": "process-type-1",
+														"Space-Id":         "space-guid-0",
+														"Organization-Id":  "org-guid-0",
 													},
 												},
 											},
@@ -960,6 +1062,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Name:     "domain0.example.com",
 							Internal: false,
 						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
+						},
 						Destinations: []models.Destination{
 							models.Destination{
 								Guid: "route-0-destination-guid-0",
@@ -982,6 +1090,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Name:     "domain0.example.com",
 							Internal: true,
 						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
+						},
 						Destinations: []models.Destination{
 							models.Destination{
 								Guid: "route-1-destination-guid-1",
@@ -1003,6 +1117,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							Guid:     "domain-1-guid",
 							Name:     "domain1.example.com",
 							Internal: false,
+						},
+						Space: models.Space{
+							Guid: "space-guid-0",
+							Organization: models.Organization{
+								Guid: "org-guid-0",
+							},
 						},
 						Destinations: []models.Destination{
 							models.Destination{
@@ -1045,6 +1165,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 													Set: map[string]string{
 														"App-Id":           "app-guid-1",
 														"App-Process-Type": "process-type-1",
+														"Space-Id":         "space-guid-0",
+														"Organization-Id":  "org-guid-0",
 													},
 												},
 											},
@@ -1077,6 +1199,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Name:     "domain0.example.com",
 						Internal: false,
 					},
+					Space: models.Space{
+						Guid: "space-guid-0",
+						Organization: models.Organization{
+							Guid: "org-guid-0",
+						},
+					},
 					Destinations: []models.Destination{},
 				},
 			}
@@ -1100,6 +1228,12 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Guid:     "domain-0-guid",
 						Name:     "domain0.example.com",
 						Internal: false,
+					},
+					Space: models.Space{
+						Guid: "space-guid-0",
+						Organization: models.Organization{
+							Guid: "org-guid-0",
+						},
 					},
 					Destinations: []models.Destination{
 						models.Destination{
@@ -1142,6 +1276,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 												Set: map[string]string{
 													"App-Id":           "app-guid-1",
 													"App-Process-Type": "process-type-1",
+													"Space-Id":         "space-guid-0",
+													"Organization-Id":  "org-guid-0",
 												},
 											},
 										},
