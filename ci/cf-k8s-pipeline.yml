@@ -22,6 +22,16 @@ resources:
     paths:
       - ci
 
+- name: cf-k8s-networking-istio-values
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - install/istio-values.yaml
+
 - name: networking-oss-deployments
   type: git
   icon: github-box
@@ -230,6 +240,8 @@ jobs:
         - get: istio
         - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking-istio-values
+          trigger: true
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
     - task: extract-kubeconfig
@@ -477,6 +489,8 @@ jobs:
         - get: istio
         - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking-istio-values
+          trigger: true
         - get: networking-oss-deployments
           passed: [eirini-dev-2-bbl-up]
     - task: extract-kubeconfig
@@ -801,6 +815,8 @@ jobs:
         - get: istio
         - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking-istio-values
+          trigger: true
         - get: networking-oss-deployments
           passed: [dont-smoke-deploy-cf]
           trigger: true
@@ -1054,6 +1070,8 @@ jobs:
         - get: istio
         - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking-istio-values
+          trigger: true
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf]
           trigger: true
