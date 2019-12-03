@@ -417,7 +417,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-1/cats_integration_config.json"
         CAPTURE_LOGS: true
-        FLAKE_ATTEMPTS: 1
+        FLAKE_ATTEMPTS: 2
 
 # eirini-dev-2
 
@@ -670,7 +670,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-2/cats_integration_config.json"
         CAPTURE_LOGS: true
-        FLAKE_ATTEMPTS: 1
+        FLAKE_ATTEMPTS: 2
 
 # good smoke 🚬
 - name: dont-smoke-bbl-up
@@ -1181,7 +1181,7 @@ jobs:
         CONFIG_FILE_PATH: "environments/good-acceptance/cats_integration_config.json"
         CAPTURE_LOGS: true
         SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none"
-        FLAKE_ATTEMPTS: 1
+        FLAKE_ATTEMPTS: 2
         
 
 # Build
@@ -1211,7 +1211,6 @@ jobs:
         dockerfile: cf-k8s-networking/cfroutesync/deploy/Dockerfile
         additional_tags: docker-info/tags
         tag_as_latest: true
-
 
 # eirini-lite-1
 
