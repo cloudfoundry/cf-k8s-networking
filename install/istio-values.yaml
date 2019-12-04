@@ -22,7 +22,6 @@ global:
         "response_tx_duration": "%RESPONSE_TX_DURATION%",
         "path": "%REQ(X-ENVOY-ORIGINAL-PATH?:PATH)%",
         "method": "%REQ(:METHOD)%",
-        "istio_policy_status": "%DYNAMIC_METADATA(istio.mixer:status)%",
         "requested_server_name": "%REQUESTED_SERVER_NAME%",
         "upstream_local_address": "%UPSTREAM_LOCAL_ADDRESS%",
         "upstream_cluster": "%UPSTREAM_CLUSTER%",
