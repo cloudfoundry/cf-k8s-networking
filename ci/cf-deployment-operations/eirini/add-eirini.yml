@@ -147,9 +147,9 @@
   path: /releases/name=eirini?
   value:
     name: eirini
-    url: https://storage.googleapis.com/eirini-cf-routing/eirini-bosh-release-1.0.0-dev.1.tgz
-    version: 1.0.0-dev.1
-    sha1: a359da261ab5e861bf88bd36ae8f95c5079f9813
+    sha1: d84f6733ce66e5266fedd1d72e31ef3680f59594
+    url: https://storage.googleapis.com/eirini-cf-routing/eirini-bosh-release-1.0.0+dev.5.tgz
+    version: 1.0.0+dev.5
 
 # Enable OPI in CC
 - type: replace
