@@ -22,4 +22,7 @@ params:
   # - Path to the directory containing the `bbl-state.json` file
   # - The path is relative to root of the `bbl-state` input
   # - If unspecified, uses the root of the `bbl-state` input
+  SYSTEM_NAMESPACE: cf-system
+  # - Optional
+  # - Namespace to use to install cfroutesync
 

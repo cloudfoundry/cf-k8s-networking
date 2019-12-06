@@ -14,10 +14,11 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 - A Cloud Foundry deployment using [Eirini](https://github.com/cloudfoundry-incubator/eirini) for app workloads
 - `kubectl` installed and access to the Kubernetes cluster backing Eirini
 - `helm` installed
+- [`kapp`](https://get-kapp.io/) installed
 
 ### Istio
 * Install [Istio](https://istio.io/docs/setup/install/kubernetes/) to the Kubernetes cluster.
-* Include the [istio-values.yaml](install/istio-values.yaml) in your Istio installation. 
+* Include the [istio-values.yaml](install/istio-values.yaml) in your Istio installation.
 
     **Note:** As an example, in our CI we are installing Istio via the [deploy-istio.sh](ci/tasks/istio/deploy-istio.sh) task.
 ​
@@ -44,13 +45,14 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     As an example, for our dev environments we are using the [generate_values.rb](install/scripts/generate_values.rb) script
     to populate these values from the `bbl-state.json` and secrets in CredHub.
     
-1. Apply the required CRDs:
+1. Deploy the cf-k8s-networking CRDs and components using `helm` and [`kapp`](https://get-kapp.io/): :
     
     ```bash
-    kubectl apply -f cfroutesync/crds/routebulksync.yaml
-    ```
-1. Deploy the cf-k8s-networking components using `helm` and `kubectl`:
-    
-    ```bash
-    helm template install/helm/networking/ --values /tmp/secrets.yaml | kubectl apply -f-
+    system_namespace="cf-system"
+
+    helm template install/helm/networking/ --values /tmp/secrets.yaml | \
+        kapp deploy -n "${system_namespace}" -a cfroutesync \
+        -f cfroutesync/crds/routebulksync.yaml \
+        -f - \
+        -y
     ```

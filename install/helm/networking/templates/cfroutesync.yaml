@@ -26,6 +26,8 @@ kind: Deployment
 metadata:
   name: cfroutesync
   namespace: {{ .Values.systemNamespace }}
+  annotations:
+    kapp.k14s.io/update-strategy: fallback-on-replace
 spec:
   selector:
     matchLabels:
@@ -43,7 +45,7 @@ spec:
           imagePullPolicy: Always
           envFrom:
             - configMapRef:
-                name: cfroutesync
+                name: cfroutesync-config
           volumeMounts:
             - name: cfroutesync-credentials
               mountPath: /etc/cfroutesync-config

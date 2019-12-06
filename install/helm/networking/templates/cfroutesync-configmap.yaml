@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: cfroutesync
+  name: cfroutesync-config
   namespace: {{ .Values.systemNamespace }}
 data:
   ccBaseURL: {{.Values.cfroutesync.ccBaseURL}}

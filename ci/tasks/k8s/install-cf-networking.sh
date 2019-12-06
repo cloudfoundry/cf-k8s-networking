@@ -5,6 +5,7 @@ set -euo pipefail
 # ENV
 : "${KUBECONFIG_CONTEXT:?}"
 : "${BBL_STATE_DIR:?}"
+: "${SYSTEM_NAMESPACE:?}"
 
 function install() {
   workspace=${PWD}
@@ -21,16 +22,19 @@ function install() {
 
   ./cf-k8s-networking/install/scripts/generate_values.rb "bbl-state/${BBL_STATE_DIR}/bbl-state.json" > $secrets_yaml
 
-  echo 'Applying CRDs...'
-  kubectl apply -f "cf-k8s-networking/cfroutesync/crds/routebulksync.yaml"
-
   pushd cf-k8s-networking > /dev/null
     git_sha="$(cat .git/ref)"
   popd
   image_repo="gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:${git_sha}"
 
   echo "Deploying image '${image_repo}' to Kubernetes..."
-  helm template cf-k8s-networking/install/helm/networking/ --values $secrets_yaml --set cfroutesync.image=${image_repo} | kubectl apply -f-
+  helm template cf-k8s-networking/install/helm/networking/ \
+    --values $secrets_yaml \
+    --set cfroutesync.image=${image_repo} | \
+    kapp deploy -n "${SYSTEM_NAMESPACE}" -a cfroutesync \
+    -f cf-k8s-networking/cfroutesync/crds/routebulksync.yaml \
+    -f - \
+    -y
 }
 
 function main() {

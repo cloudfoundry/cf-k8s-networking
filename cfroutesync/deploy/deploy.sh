@@ -20,18 +20,17 @@ img=$(docker build -q -f "${script_dir}/Dockerfile" "${cfroutesync_dir}")
 echo 'Tagging and pushing image'
 image_repo=gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:${environment}
 
-docker tag ${img} ${image_repo}
-docker push ${image_repo}
-
-echo 'Applying routebulksync CRD...'
-kubectl apply -f "${cfroutesync_dir}/crds/routebulksync.yaml"
+docker tag "${img}" "${image_repo}"
+docker push "${image_repo}"
 
 echo 'Deploying to Kubernetes...'
 helm template "${cf_k8s_networking_dir}/install/helm/networking/" \
     --values <("${cf_k8s_networking_dir}/install/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json") \
-    --set cfroutesync.image=${image_repo} | kubectl apply -f-
+    --set cfroutesync.image="${image_repo}" | \
+    kapp deploy -n "cf-system" -a cfroutesync \
+    -f "${cf_k8s_networking_dir}/cfroutesync/crds/routebulksync.yaml" \
+    -f - \
+    -y
 
-echo restarting...
-kubectl delete pods -ncf-system -l app=cfroutesync
-echo done
+echo "Done"
 
