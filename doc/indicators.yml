@@ -1,0 +1,28 @@
+---
+apiVersion: indicatorprotocol.io/v1
+kind: IndicatorDocument
+metadata:
+  labels:
+    deployment: cf
+
+spec:
+  product:
+    name: cf-k8s-networking
+    version: NA
+
+  indicators:
+    - name: cpu_usage_percent
+      promql: rate(container_cpu_usage_seconds_total{job="kubernetes-cadvisor",pod_name=~"istio-ingressgateway-.*",container_name="istio-proxy"}[1m]) * 100
+      documentation:
+        title: CPU by ingressgateway pod
+        description: |
+          Percentage CPU utilization of the Istio IngressGateway pods. This measurement is not normalized.
+          When this metric is at 100%, it means that 100% of 1vCPU of the node is being utilized. 200% means two vCPUS of the node are under heavy load, etc.
+
+          **Use**: Consistently elevated CPU utilization (close to pod limits) indicates that the platform is receiving heavy traffic and the ingressgateways
+          should be scaled horizontally.
+        recommendedMeasurement: |
+          TBD
+        recommendedResponse: |
+          TBD
+
