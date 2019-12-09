@@ -446,10 +446,12 @@ jobs:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
         SOURCE3_DIR: ci/bbl-configs/add-parent-dns-full
+        SOURCE4_DIR: ci/bbl-configs/eirini-scale-gke
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
         source3: cf-k8s-networking-ci
+        source4: cf-k8s-networking-ci
     - task: bbl-up-eirini-dev-2
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
@@ -698,10 +700,12 @@ jobs:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
         SOURCE3_DIR: ci/bbl-configs/add-parent-dns-full
+        SOURCE4_DIR: ci/bbl-configs/eirini-scale-gke
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
         source3: cf-k8s-networking-ci
+        source4: cf-k8s-networking-ci
     - task: bbl-up-dont-smoke
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
@@ -954,10 +958,12 @@ jobs:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
         SOURCE3_DIR: ci/bbl-configs/add-parent-dns-full
+        SOURCE4_DIR: ci/bbl-configs/eirini-scale-gke
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
         source3: cf-k8s-networking-ci
+        source4: cf-k8s-networking-ci
     - task: bbl-up-good-acceptance
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
