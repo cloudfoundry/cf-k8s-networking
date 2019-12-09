@@ -13,5 +13,5 @@ spec:
         - '*'
       port:
         name: http
-        number: #@ data.values.cfroutesync.service.externalPort
+        number: #@ data.values.service.externalPort
         protocol: HTTP
