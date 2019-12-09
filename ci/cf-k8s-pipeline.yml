@@ -199,8 +199,8 @@ jobs:
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
-        source3: cf-k8s-networking
-        source4: cf-k8s-networking
+        source3: cf-k8s-networking-ci
+        source4: cf-k8s-networking-ci
     - task: bbl-up-eirini-dev-1
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
@@ -449,7 +449,7 @@ jobs:
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
-        source3: cf-k8s-networking
+        source3: cf-k8s-networking-ci
     - task: bbl-up-eirini-dev-2
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
@@ -701,7 +701,7 @@ jobs:
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
-        source3: cf-k8s-networking
+        source3: cf-k8s-networking-ci
     - task: bbl-up-dont-smoke
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
@@ -957,7 +957,7 @@ jobs:
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
-        source3: cf-k8s-networking
+        source3: cf-k8s-networking-ci
     - task: bbl-up-good-acceptance
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
