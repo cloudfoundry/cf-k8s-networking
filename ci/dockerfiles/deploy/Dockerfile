@@ -55,6 +55,17 @@ RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-li
   tar -xvf /tmp/helm-v${HELM_VERSION}-linux-amd64.tar.gz -C /tmp && \
   mv /tmp/linux-amd64/helm /usr/local/bin/helm
 
+# install k14s utils (ytt, kapp)
+RUN  wget -O- https://github.com/k14s/ytt/releases/download/v0.22.0/ytt-linux-amd64 > /tmp/ytt && \
+    echo "7143f8c1300ae13fd7b5ed53abc02867a86b6329afaa85413eb767eddf189639  /tmp/ytt" | shasum -c - && \
+    mv /tmp/ytt /usr/local/bin/ytt && \
+    chmod +x /usr/local/bin/ytt && \
+
+    wget -O- https://github.com/k14s/kapp/releases/download/v0.16.0/kapp-linux-amd64 > /tmp/kapp && \
+    echo "d9d03c83a5d0b6463e1b249e14c38aceb121e46094af6040c4596fe932caf181  /tmp/kapp" | shasum -c - && \
+    mv /tmp/kapp /usr/local/bin/kapp && \
+    chmod +x /usr/local/bin/kapp
+
 # Clean up
 RUN apt-get remove -y python-dev apt-transport-https && \
 apt-get -y clean && apt-get -y autoremove --purge && rm -rf /etc/apt/ && \
