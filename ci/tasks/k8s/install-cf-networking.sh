@@ -28,7 +28,7 @@ function install() {
   image_repo="gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:${git_sha}"
 
   echo "Deploying image '${image_repo}' to Kubernetes..."
-  ytt -f cf-k8s-networking/install/ytt/networking/-f ${values_yml} \
+  ytt -f cf-k8s-networking/install/ytt/networking/ -f ${values_yml} \
     --data-value-yaml cfroutesync.image=${image_repo} | \
     kapp deploy -n "${SYSTEM_NAMESPACE}" -a cfroutesync \
     -f cf-k8s-networking/cfroutesync/crds/routebulksync.yaml \
