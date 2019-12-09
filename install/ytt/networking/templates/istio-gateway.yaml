@@ -1,8 +1,10 @@
+#@ load("@ytt:data", "data")
+---
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
 metadata:
   name: istio-ingress
-  namespace: {{ .Values.workloadsNamespace }}
+  namespace: #@ data.values.workloadsNamespace
 spec:
   selector:
     istio: ingressgateway
@@ -11,5 +13,5 @@ spec:
         - '*'
       port:
         name: http
-        number: 80
+        number: #@ data.values.cfroutesync.service.externalPort
         protocol: HTTP

@@ -1,5 +1,7 @@
-# Default values for cf-k8s-networking.
-# This is a YAML-formatted file.
+#@data/values
+---
+#! Default values for cf-k8s-networking.
+#! This is a YTT-formatted file.
 
 systemNamespace: cf-system
 workloadsNamespace: cf-workloads
@@ -14,3 +16,6 @@ cfroutesync:
   clientName: 'uaaClientName'
   clientSecret: 'base64_encoded_uaaClientSecret'
   eiriniPodLabelPrefix: 'eiriniPodLabelPrefix'
+
+service:
+  externalPort: 80

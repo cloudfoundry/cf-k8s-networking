@@ -23,14 +23,16 @@ image_repo=gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:${environme
 docker tag "${img}" "${image_repo}"
 docker push "${image_repo}"
 
+values_file="$(mktemp -u).yml" # for ytt it's important the file to have .yml extension
+"${cf_k8s_networking_dir}/install/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json" > ${values_file}
+
 echo 'Deploying to Kubernetes...'
-helm template "${cf_k8s_networking_dir}/install/helm/networking/" \
-    --values <("${cf_k8s_networking_dir}/install/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json") \
-    --set cfroutesync.image="${image_repo}" | \
+
+ytt -f "${cf_k8s_networking_dir}/install/ytt/networking/" -f "${values_file}" \
+    --data-value-yaml cfroutesync.image="${image_repo}" | \
     kapp deploy -n "cf-system" -a cfroutesync \
     -f "${cf_k8s_networking_dir}/cfroutesync/crds/routebulksync.yaml" \
     -f - \
     -y
 
 echo "Done"
-

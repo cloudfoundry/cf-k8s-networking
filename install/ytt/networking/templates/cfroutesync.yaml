@@ -1,3 +1,10 @@
+#@ load("@ytt:data", "data")
+
+#@ def labels():
+app: cfroutesync
+#@ end
+
+---
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
@@ -19,28 +26,26 @@ spec:
   hooks:
     sync:
       webhook:
-        url: http://cfroutesync.{{ .Values.systemNamespace }}/sync
+        url: #@ "http://cfroutesync.{}/sync".format(data.values.systemNamespace)
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: cfroutesync
-  namespace: {{ .Values.systemNamespace }}
+  namespace: #@ data.values.systemNamespace
   annotations:
     kapp.k14s.io/update-strategy: fallback-on-replace
 spec:
   selector:
-    matchLabels:
-      app: cfroutesync
+    matchLabels: #@ labels()
   replicas: 1
   template:
     metadata:
-      labels:
-        app: cfroutesync
+      labels: #@ labels()
     spec:
       containers:
         - name: cfroutesync
-          image: {{ .Values.cfroutesync.image }}
+          image: #@ data.values.cfroutesync.image
           args: [ "-c", "/etc/cfroutesync-config"]
           imagePullPolicy: Always
           envFrom:
@@ -59,19 +64,18 @@ apiVersion: v1
 kind: Service
 metadata:
   name: cfroutesync
-  namespace: {{ .Values.systemNamespace }}
+  namespace: #@ data.values.systemNamespace
 spec:
-  selector:
-    app: cfroutesync
+  selector: #@ labels()
   ports:
-    - port: 80
+    - port: #@ data.values.service.externalPort
       targetPort: 8080
 ---
 apiVersion: "apps.cloudfoundry.org/v1alpha1"
 kind: RouteBulkSync
 metadata:
   name: route-bulk-sync
-  namespace: {{ .Values.workloadsNamespace }}
+  namespace: #@ data.values.workloadsNamespace
 spec:
   selector:
     matchLabels:

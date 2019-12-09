@@ -13,8 +13,8 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 ### Prerequisites
 - A Cloud Foundry deployment using [Eirini](https://github.com/cloudfoundry-incubator/eirini) for app workloads
 - `kubectl` installed and access to the Kubernetes cluster backing Eirini
-- `helm` installed
 - [`kapp`](https://get-kapp.io/) installed
+- [`ytt`](https://get-ytt.io/) installed
 
 ### Istio
 * Install [Istio](https://istio.io/docs/setup/install/kubernetes/) to the Kubernetes cluster.
@@ -26,10 +26,12 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 * Install [Metacontroller](https://metacontroller.app/guide/install/) to the Kubernetes cluster
 ​
 ### CF-K8s-Networking
-1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must override the following properties from `install/helm/networking/values.yaml`.
+1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must override the following properties from `install/ytt/networking/values.yaml`.
     You can do this by creating a new file `/tmp/secrets.yaml` that contains the following information:
     
     ```yaml
+    #@data/values
+    ---
     cfroutesync:
       ccCA: 'pem_encoded_cloud_controller_ca'
       ccBaseURL: 'https://api.example.com'
@@ -50,7 +52,7 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     ```bash
     system_namespace="cf-system"
 
-    helm template install/helm/networking/ --values /tmp/secrets.yaml | \
+    ytt -f install/helm/networking/ -f /tmp/secrets.yaml | \
         kapp deploy -n "${system_namespace}" -a cfroutesync \
         -f cfroutesync/crds/routebulksync.yaml \
         -f - \

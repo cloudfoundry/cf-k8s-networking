@@ -4,7 +4,7 @@ require 'json'
 require 'base64'
 require 'yaml'
 
-puts "# Generating values to use with helm template"
+puts "#! Generating values to use with YTT/helm template"
 
 if ARGV.length == 0
     puts "Usage: ./generate_values.rb [PATH_TO_BBL_STATE_FILE]"
@@ -35,6 +35,7 @@ uaa_base_url = "https://uaa.#{domain}"
 # for Eirini 1.0+ set this to cloudfoundry.org/
 eirini_pod_label_prefix = "cloudfoundry.org/"
 
+puts '#@data/values'
 puts YAML.dump({
         'cfroutesync' => {
           'ccCA' => lb_cert_ca,
