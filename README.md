@@ -47,7 +47,7 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     As an example, for our dev environments we are using the [generate_values.rb](install/scripts/generate_values.rb) script
     to populate these values from the `bbl-state.json` and secrets in CredHub.
     
-1. Deploy the cf-k8s-networking CRDs and components using [`ytt`](https://get-kapp.io/) and [`kapp`](https://get-kapp.io/):
+1. Deploy the cf-k8s-networking CRDs and components using [`ytt`](https://get-ytt.io/) and [`kapp`](https://get-kapp.io/):
     
     ```bash
     system_namespace="cf-system"
