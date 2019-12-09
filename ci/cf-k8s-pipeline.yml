@@ -195,10 +195,12 @@ jobs:
         SOURCE1_DIR: plan-patches/gcp
         SOURCE2_DIR: plan-patches/shared
         SOURCE3_DIR: ci/bbl-configs/add-parent-dns-full
+        SOURCE4_DIR: ci/bbl-configs/eirini-scale-gke
       input_mapping:
         source1: eirini-bosh-release-git
         source2: eirini-bosh-release-git
         source3: cf-k8s-networking
+        source4: cf-k8s-networking
     - task: bbl-up-eirini-dev-1
       file: cf-deployment-concourse-tasks/bbl-up/task.yml
       input_mapping:
