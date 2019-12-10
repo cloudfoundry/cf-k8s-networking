@@ -13,7 +13,7 @@ function install_istio() {
   workspace=${PWD}
   export KUBECONFIG="${PWD}/kubeconfig/config"
   istio_values_file="${PWD}/cf-k8s-networking/install/istio-values.yaml"
-  grafana_values_file="${PWD}/cf-k8s-networking/ci/istio-config/grafana-config.yaml"
+  grafana_values_file="${PWD}/cf-k8s-networking-ci/ci/istio-config/grafana-config.yaml"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
