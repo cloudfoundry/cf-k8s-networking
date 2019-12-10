@@ -13,6 +13,7 @@ function install_istio() {
   workspace=${PWD}
   export KUBECONFIG="${PWD}/kubeconfig/config"
   istio_values_file="${PWD}/cf-k8s-networking/install/istio-values.yaml"
+  grafana_values_file="${PWD}/cf-k8s-networking/ci/istio-config/grafana-config.yaml"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
@@ -25,7 +26,10 @@ function install_istio() {
     kubectl -n istio-system wait --for=condition=complete job --all
 
     # Install Istio
-    helm template install/kubernetes/helm/istio --name istio --namespace istio-system -f "${istio_values_file}" | kubectl apply -f -
+    helm template install/kubernetes/helm/istio --name istio --namespace istio-system \
+      -f "${istio_values_file}"  \
+      -f "${grafana_values_file}" \
+      | kubectl apply -f -
   popd
 }
 

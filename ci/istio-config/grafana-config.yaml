@@ -1,0 +1,4 @@
+---
+# https://archive.istio.io/v1.3/docs/reference/config/installation-options/#grafana-options
+grafana:
+  enabled: true
