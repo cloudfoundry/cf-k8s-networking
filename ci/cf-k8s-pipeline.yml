@@ -250,6 +250,12 @@ jobs:
         DNS_DOMAIN: "eirini-dev-1.routing.lol"
         GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
         GCP_PROJECT_ID: "cf-routing"
+    - task: install-grafana-dashboard
+      file: cf-k8s-networking-ci/ci/tasks/istio/install-grafana-dashboard.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
 
 - name: eirini-dev-1-install-metacontroller
   serial: true
@@ -501,6 +507,12 @@ jobs:
         DNS_DOMAIN: "eirini-dev-2.routing.lol"
         GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
         GCP_PROJECT_ID: "cf-routing"
+    - task: install-grafana-dashboard
+      file: cf-k8s-networking-ci/ci/tasks/istio/install-grafana-dashboard.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-2-cluster"
     - task: enable-sidecar-injection
       file: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.yml
       params:
@@ -830,6 +842,12 @@ jobs:
         DNS_DOMAIN: "dont-smoke.routing.lol"
         GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
         GCP_PROJECT_ID: "cf-routing"
+    - task: install-grafana-dashboard
+      file: cf-k8s-networking-ci/ci/tasks/istio/install-grafana-dashboard.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-dont-smoke-cluster"
 
 - name: dont-smoke-install-metacontroller
   serial: true
@@ -1087,6 +1105,12 @@ jobs:
         DNS_DOMAIN: "good-acceptance.routing.lol"
         GCP_DNS_SERVICE_ACCOUNT_KEY: ((gcp_dns_service_account_key))
         GCP_PROJECT_ID: "cf-routing"
+    - task: install-grafana-dashboard
+      file: cf-k8s-networking-ci/ci/tasks/istio/install-grafana-dashboard.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-good-acceptance-cluster"
 
 - name: good-acceptance-install-metacontroller
   serial: true

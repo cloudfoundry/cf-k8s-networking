@@ -1,17 +1,21 @@
 # Metrics
 
-To be able to view all current metrics from `indicator.yml` you can import [dashboard.json](./dashboard.json) to Grafana.
+## View
 
-```bash
-# Enable Grafana
+1. Port forward grafana pod's port:
 
-helm template ~/workspace/istio/install/kubernetes/helm/istio --name istio --namespace istio-system -f ~/workspace/cf-k8s-networking/install/istio-values.yaml -v grafna.enabled=true | kubectl apply -f -
+   ```bash
+   istioctl dashboard grafana
+   ```
+   
+1. Go to "Indicator" dashboard.
 
-# Port forward Grafana port
+## Export
 
-istioctl dashboard grafana
-```
+1. Go to "Indicator" dashboard.
+1. Click on "share" icon in the top right corner.
+1. Select export and save file to [dashboard.json](./dashboard.json)
 
+## Update 
 
-Import [dashboard.json](./dashboard.json) by Create (plus sign) -> Import.
-
+Run "udpate grafana dashboard" CI job.
