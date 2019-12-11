@@ -54,9 +54,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "container_memory_working_set_bytes{job=\"kubernetes-cadvisor\",pod_name=~\"istio-ingressgateway-.*\",container_name=\"istio-proxy\"}",
+          "expr": "container_memory_working_set_bytes{job=\"kubernetes-cadvisor\",pod_name=~\"istio-ingressgateway-.*\",container_name=\"istio-proxy\"} / 1024 / 1024",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -81,7 +82,7 @@
       "yaxes": [
         {
           "format": "short",
-          "label": "usage in bytes",
+          "label": "usage in megabytes",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -226,5 +227,5 @@
   "timezone": "",
   "title": "Indicators",
   "uid": "jD-D2Q-Zk",
-  "version": 2
+  "version": 3
 }
