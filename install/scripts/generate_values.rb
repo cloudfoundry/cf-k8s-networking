@@ -1,7 +1,6 @@
 #!/usr/bin/env ruby
 
 require 'json'
-require 'base64'
 require 'yaml'
 
 puts "#! Generating values to use with YTT/helm template"
@@ -43,7 +42,7 @@ puts YAML.dump({
           'uaaCA' => lb_cert_ca,
           'uaaBaseURL' => uaa_base_url,
           'clientName' => client_name,
-          'clientSecret' => Base64.strict_encode64(client_secret),
+          'clientSecret' => client_secret,
           'eiriniPodLabelPrefix' => eirini_pod_label_prefix,
         }
   })
