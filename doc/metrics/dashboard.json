@@ -25,12 +25,12 @@
       "dashes": false,
       "fill": 1,
       "gridPos": {
-        "h": 9,
+        "h": 8,
         "w": 12,
         "x": 0,
         "y": 0
       },
-      "id": 4,
+      "id": 10,
       "legend": {
         "avg": false,
         "current": false,
@@ -54,10 +54,9 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "container_memory_working_set_bytes{job=\"kubernetes-cadvisor\",pod_name=~\"istio-ingressgateway-.*\",container_name=\"istio-proxy\"} / 1024 / 1024",
+          "expr": "sum(rate(istio_cf_requests_total{destination_workload_namespace=\"cf-workloads\"}[1m])) by (source_name)",
           "format": "time_series",
           "intervalFactor": 1,
-          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -65,7 +64,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Working Set Memory utilization of Istio IngressGateway proxies",
+      "title": "App-Destined Ingress Traffic",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -82,7 +81,7 @@
       "yaxes": [
         {
           "format": "short",
-          "label": "usage in megabytes",
+          "label": "requests per second",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -201,9 +200,9 @@
         "h": 9,
         "w": 12,
         "x": 0,
-        "y": 9
+        "y": 8
       },
-      "id": 8,
+      "id": 4,
       "legend": {
         "avg": false,
         "current": false,
@@ -227,9 +226,10 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "idelta(cfroutesync_last_updated_at[1m])",
+          "expr": "container_memory_working_set_bytes{job=\"kubernetes-cadvisor\",pod_name=~\"istio-ingressgateway-.*\",container_name=\"istio-proxy\"} / 1024 / 1024",
           "format": "time_series",
           "intervalFactor": 1,
+          "legendFormat": "",
           "refId": "A"
         }
       ],
@@ -237,7 +237,7 @@
       "timeFrom": null,
       "timeRegions": [],
       "timeShift": null,
-      "title": "Seconds since last update to cfroutesync",
+      "title": "Working Set Memory utilization of Istio IngressGateway proxies",
       "tooltip": {
         "shared": true,
         "sort": 0,
@@ -254,7 +254,7 @@
       "yaxes": [
         {
           "format": "short",
-          "label": "seconds",
+          "label": "usage in megabytes",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -357,6 +357,89 @@
         "align": false,
         "alignLevel": null
       }
+    },
+    {
+      "aliasColors": {},
+      "bars": false,
+      "dashLength": 10,
+      "dashes": false,
+      "fill": 1,
+      "gridPos": {
+        "h": 9,
+        "w": 12,
+        "x": 0,
+        "y": 17
+      },
+      "id": 8,
+      "legend": {
+        "avg": false,
+        "current": false,
+        "max": false,
+        "min": false,
+        "show": true,
+        "total": false,
+        "values": false
+      },
+      "lines": true,
+      "linewidth": 1,
+      "links": [],
+      "nullPointMode": "null",
+      "percentage": false,
+      "pointradius": 2,
+      "points": false,
+      "renderer": "flot",
+      "seriesOverrides": [],
+      "spaceLength": 10,
+      "stack": false,
+      "steppedLine": false,
+      "targets": [
+        {
+          "expr": "idelta(cfroutesync_last_updated_at[1m])",
+          "format": "time_series",
+          "intervalFactor": 1,
+          "refId": "A"
+        }
+      ],
+      "thresholds": [],
+      "timeFrom": null,
+      "timeRegions": [],
+      "timeShift": null,
+      "title": "Seconds since last update to cfroutesync",
+      "tooltip": {
+        "shared": true,
+        "sort": 0,
+        "value_type": "individual"
+      },
+      "type": "graph",
+      "xaxis": {
+        "buckets": null,
+        "mode": "time",
+        "name": null,
+        "show": true,
+        "values": []
+      },
+      "yaxes": [
+        {
+          "format": "short",
+          "label": "seconds",
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        },
+        {
+          "format": "short",
+          "label": null,
+          "logBase": 1,
+          "max": null,
+          "min": null,
+          "show": true
+        }
+      ],
+      "yaxis": {
+        "align": false,
+        "alignLevel": null
+      }
     }
   ],
   "schemaVersion": 18,
@@ -397,5 +480,5 @@
   "timezone": "",
   "title": "Indicators",
   "uid": "jD-D2Q-Zk",
-  "version": 6
+  "version": 7
 }

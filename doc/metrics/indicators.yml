@@ -64,3 +64,16 @@ spec:
             TBD
           recommendedResponse: |
             TBD
+    - name: http_req_per_second
+      promql: sum(rate(istio_cf_requests_total{destination_workload_namespace="cf-workloads"}[1m])) by (source_name)
+      documentation:
+        title: Requests per second by ingressgateway pod
+        description: |
+          Number of HTTP requests per second going through the Istio IngressGateways to apps, averaged over 1 minute.
+          This number is reported for each Istio IngressGateway pod.
+
+          **Use**: When this metric is high, indicates that the platform is receiving heavy traffic.
+        recommendedMeasurement: |
+          TBD
+        recommendedResponse: |
+          TBD
