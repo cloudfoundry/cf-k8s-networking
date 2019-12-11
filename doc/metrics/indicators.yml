@@ -25,4 +25,18 @@ spec:
           TBD
         recommendedResponse: |
           TBD
+    - name: container_memory_working_set_bytes
+      promql: container_memory_working_set_bytes{job="kubernetes-cadvisor",pod_name=~"istio-ingressgateway-.*",container_name="istio-proxy"}
+      documentation:
+        title: Memory Usage by ingressgateway pod
+        description: |
+          Amount of working set memory (in bytes) used by the istio-proxy (envoy) container running on the IngressGateway pods.
+          Kubernetes uses this metric to make Pod eviction decisions when node memory resources are low.
 
+          This metric is derived from the memory cgroup's reported `usage_in_bytes` of the container - its reported `inactive_file` bytes (the amount of inactive file-based memory).
+
+          **Use**: Unbounded growth of this metric over time could indicate a potential memory leak.
+        recommendedMeasurement: |
+          TBD
+        recommendedResponse: |
+          TBD
