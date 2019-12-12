@@ -82,7 +82,7 @@
       "yaxes": [
         {
           "format": "short",
-          "label": "usage in megabytes",
+          "label": "usage in MiB",
           "logBase": 1,
           "max": null,
           "min": null,
@@ -226,6 +226,6 @@
   },
   "timezone": "",
   "title": "Indicators",
-  "uid": "jD-D2Q-Zk",
-  "version": 3
+  "uid": "16XwtgfWz",
+  "version": 2
 }
