@@ -2,7 +2,10 @@ package integration_test
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"os/exec"
+	"regexp"
 	"strings"
 	"time"
 
@@ -23,6 +26,7 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 	var (
 		te                 *TestEnv
 		cfroutesyncSession *gexec.Session
+		webhookListenAddr  string
 	)
 
 	BeforeEach(func() {
@@ -42,7 +46,8 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		}).Should(Succeed())
 
 		initializeFakeData(te)
-		cfroutesyncSession = startAndRegister(te)
+		webhookListenAddr = fmt.Sprintf("127.0.0.1:%d", ports.PickAPort())
+		cfroutesyncSession = startAndRegister(te, webhookListenAddr)
 	})
 
 	AfterEach(func() {
@@ -82,7 +87,54 @@ var _ = Describe("Integration of cfroutesync with UAA, CC and Meta Controller", 
 		expectedParentGenerations := map[int64]bool{0: true, 1: true} // a hot loop would make many more generations
 		Consistently(getParentGenerations, "2s", "0.5s").Should(Equal(expectedParentGenerations))
 	})
+
+	Specify("expose scrapable metrics", func() {
+		client := http.Client{}
+		resp, err := client.Get(fmt.Sprintf("http://%s/%s", webhookListenAddr, "metrics"))
+		Expect(err).NotTo(HaveOccurred())
+
+		output := gbytes.BufferReader(resp.Body)
+		Eventually(output).Should(gbytes.Say("cfroutesync_fetched_routes %d", len(te.FakeCC.Data.Routes)))
+		Eventually(output).Should(gbytes.Say("cfroutesync_last_updated_at"))
+		timestamp1 := parseTimestamp(output)
+
+		By("Deleting a route updates the fetched_routes metric")
+		te.FakeCC.Data.Routes = te.FakeCC.Data.Routes[:len(te.FakeCC.Data.Routes)-1]
+
+		Eventually(func() *gbytes.Buffer {
+			resp, err := client.Get(fmt.Sprintf("http://%s/%s", webhookListenAddr, "metrics"))
+			Expect(err).NotTo(HaveOccurred())
+
+			// we cannot use gbytes.BufferReader(resp.Body) because BufferReader fills the buffer async
+			b := gbytes.NewBuffer()
+			io.Copy(b, resp.Body)
+			b.Close()
+			return b
+		}, "11s", "1s").Should(gbytes.Say("cfroutesync_fetched_routes %d", len(te.FakeCC.Data.Routes)))
+
+		By("Checking that the last_updated_at metric time changes")
+		resp, err = client.Get(fmt.Sprintf("http://%s/%s", webhookListenAddr, "metrics"))
+		Expect(err).NotTo(HaveOccurred())
+
+		output2 := gbytes.BufferReader(resp.Body)
+		Eventually(output2).Should(gbytes.Say("cfroutesync_last_updated_at"))
+
+		timestamp2 := parseTimestamp(output2)
+		Expect(timestamp1).ToNot(Equal(timestamp2))
+	})
 })
+
+// parseTimestamp returns a string of the timestamp in metrics input
+// metrics input contains the following metrics info:
+// 		# HELP cfroutesync_last_updated_at Unix timestamp indicating last successful sync
+//      # TYPE cfroutesync_last_updated_at gauge
+//      cfroutesync_last_updated_at 1.5761903739383752e+09
+func parseTimestamp(metrics *gbytes.Buffer) string {
+	re := regexp.MustCompile(`cfroutesync_last_updated_at.*?(?:\n)`)
+	timestampLine := string(metrics.Contents())
+	timestampLine = re.FindAllString(timestampLine, 4)[2]
+	return regexp.MustCompile(`\s+`).Split(timestampLine, -1)[1]
+}
 
 type WebhookRequestLogLine struct {
 	Msg     string
@@ -95,8 +147,7 @@ func parseLogLine(logLine string) WebhookRequestLogLine {
 	return res
 }
 
-func startAndRegister(te *TestEnv) *gexec.Session {
-	webhookListenAddr := fmt.Sprintf("127.0.0.1:%d", ports.PickAPort())
+func startAndRegister(te *TestEnv, webhookListenAddr string) *gexec.Session {
 	cmd := exec.Command(binaryPathCFRouteSync,
 		"-c", te.CfRouteSyncConfigDir,
 		"-l", webhookListenAddr,

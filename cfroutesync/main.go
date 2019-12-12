@@ -8,6 +8,8 @@ import (
 	"os"
 	"time"
 
+	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/metrics"
+
 	"code.cloudfoundry.org/cf-networking-helpers/marshal"
 	"code.cloudfoundry.org/tlsconfig"
 	log "github.com/sirupsen/logrus"
@@ -110,6 +112,8 @@ func mainWithError() error {
 		},
 	})
 
+	webhookMux.Handle("/metrics", metrics.DefaultMetrics.Handler)
+
 	log.Info("starting webhook server")
 	go http.ListenAndServe(listenAddr, webhookMux)
 
@@ -118,6 +122,10 @@ func mainWithError() error {
 		err := fetcher.FetchOnce()
 		if err != nil {
 			log.WithError(err).Errorf("fetching")
+		}
+
+		if snapshot, ok := snapshotRepo.Get(); ok {
+			metrics.Update(snapshot)
 		}
 
 		time.Sleep(10 * time.Second)

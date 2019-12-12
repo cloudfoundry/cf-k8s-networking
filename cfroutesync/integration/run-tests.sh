@@ -16,7 +16,7 @@ fi
 
 if [ "$1" = "local" ]; then
   cd "$script_dir"
-  ginkgo .
+  ginkgo --slowSpecThreshold=20 .
 elif [ "$1" = "docker" ]; then
   docker run --rm \
     -v "$cfroutesync_dir":/cfroutesync \
