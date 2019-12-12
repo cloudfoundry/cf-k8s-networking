@@ -52,7 +52,7 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     ```bash
     system_namespace="cf-system"
 
-    ytt -f install/helm/networking/ -f /tmp/secrets.yaml | \
+    ytt -f install/ytt/networking/ -f /tmp/secrets.yaml | \
         kapp deploy -n "${system_namespace}" -a cfroutesync \
         -f cfroutesync/crds/routebulksync.yaml \
         -f - \
