@@ -40,3 +40,27 @@ spec:
           TBD
         recommendedResponse: |
           TBD
+    - name: cfroutesync_last_updated_at
+        promql: idelta(cfroutesync_last_updated_at[1m])
+        documentation:
+          title: Seconds since last update to cfroutesync
+          description: |
+            Time in seconds since the last successful time fetching information from Cloud Controller.
+
+            **Use**: When this number grows significantly and consistently over 10s, cfroutesync is having trouble successfully getting information from Cloud Controller.
+          recommendedMeasurement: |
+            TBD
+          recommendedResponse: |
+            TBD
+    - name: cfroutesync_fetched_routes
+        promql: cfroutesync_fetched_routes
+        documentation:
+          title: Number of routes
+          description: |
+            Number of routes cfroutesync has fetched from Cloud Controller
+
+            **Use**: When this is not updated according to the number of routes expected, the control plane is unhealthy.
+          recommendedMeasurement: |
+            TBD
+          recommendedResponse: |
+            TBD
