@@ -123,8 +123,8 @@ var _ = Describe("ServiceBuilder", func() {
 				},
 				Spec: webhook.ServiceSpec{
 					Selector: map[string]string{
-						"custom-pod-label-prefix/app_guid":     "app-guid-0",
-						"custom-pod-label-prefix/process_type": "process-type-1",
+						"app_guid":     "app-guid-0",
+						"process_type": "process-type-1",
 					},
 
 					Ports: []webhook.ServicePort{
@@ -153,8 +153,8 @@ var _ = Describe("ServiceBuilder", func() {
 				},
 				Spec: webhook.ServiceSpec{
 					Selector: map[string]string{
-						"custom-pod-label-prefix/app_guid":     "app-guid-1",
-						"custom-pod-label-prefix/process_type": "process-type-1",
+						"app_guid":     "app-guid-1",
+						"process_type": "process-type-1",
 					},
 
 					Ports: []webhook.ServicePort{
@@ -183,8 +183,8 @@ var _ = Describe("ServiceBuilder", func() {
 				},
 				Spec: webhook.ServiceSpec{
 					Selector: map[string]string{
-						"custom-pod-label-prefix/app_guid":     "app-guid-2",
-						"custom-pod-label-prefix/process_type": "process-type-2",
+						"app_guid":     "app-guid-2",
+						"process_type": "process-type-2",
 					},
 
 					Ports: []webhook.ServicePort{
@@ -213,8 +213,8 @@ var _ = Describe("ServiceBuilder", func() {
 				},
 				Spec: webhook.ServiceSpec{
 					Selector: map[string]string{
-						"custom-pod-label-prefix/app_guid":     "app-guid-1",
-						"custom-pod-label-prefix/process_type": "process-type-1",
+						"app_guid":     "app-guid-1",
+						"process_type": "process-type-1",
 					},
 
 					Ports: []webhook.ServicePort{
@@ -227,9 +227,7 @@ var _ = Describe("ServiceBuilder", func() {
 			},
 		}
 
-		builder := webhook.ServiceBuilder{
-			PodLabelPrefix: "custom-pod-label-prefix/",
-		}
+		builder := webhook.ServiceBuilder{}
 		Expect(builder.Build(routes, template)).To(Equal(expectedServices))
 	})
 

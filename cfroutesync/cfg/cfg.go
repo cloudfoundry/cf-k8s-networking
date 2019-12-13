@@ -36,11 +36,6 @@ type Config struct {
 		// List of Istio Gateway names to use for workload ingress
 		Gateways []string
 	}
-
-	Experimental struct {
-		// Controls compatibility with Eirini pre-1.0 vs post-1.0
-		EiriniPodLabelPrefix string
-	}
 }
 
 const (
@@ -50,7 +45,6 @@ const (
 	FileUAACA                = "uaaCA"
 	FileCCBaseURL            = "ccBaseURL"
 	FileCCCA                 = "ccCA"
-	FileEiriniPodLabelPrefix = "eiriniPodLabelPrefix"
 )
 
 // Load loads a Config from environment variables or files within a directory on disk
@@ -69,10 +63,6 @@ func Load(configDir string) (*Config, error) {
 		return nil, err
 	}
 	clientSecret, err := loadValue(configDir, FileUAAClientSecret)
-	if err != nil {
-		return nil, err
-	}
-	podLabelPrefix, err := loadValue(configDir, FileEiriniPodLabelPrefix)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +85,6 @@ func Load(configDir string) (*Config, error) {
 	c.CC.BaseURL = ccBaseUrl
 	c.CC.CA = ccCA
 	c.Istio.Gateways = []string{"istio-ingress"}
-	c.Experimental.EiriniPodLabelPrefix = podLabelPrefix
 	return c, nil
 }
 

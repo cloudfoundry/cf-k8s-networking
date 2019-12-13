@@ -11,4 +11,3 @@ data:
   ccCA: #@ data.values.cfroutesync.ccCA
   uaaCA: #@ data.values.cfroutesync.uaaCA
   clientName: #@ data.values.cfroutesync.clientName
-  eiriniPodLabelPrefix: #@ data.values.cfroutesync.eiriniPodLabelPrefix
