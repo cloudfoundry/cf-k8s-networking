@@ -43,6 +43,5 @@ puts YAML.dump({
           'uaaBaseURL' => uaa_base_url,
           'clientName' => client_name,
           'clientSecret' => client_secret,
-          'eiriniPodLabelPrefix' => eirini_pod_label_prefix,
         }
   })

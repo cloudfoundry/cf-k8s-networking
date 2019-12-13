@@ -163,13 +163,12 @@ func (te *TestEnv) setupConfigDirForCfroutesync() error {
 	}
 
 	for filename, contents := range map[string]string{
-		cfg.FileUAABaseURL:           te.FakeUAA.Server.URL,
-		cfg.FileUAAClientName:        "fake-uaa-client-name",
-		cfg.FileUAAClientSecret:      "fake-uaa-client-secret",
-		cfg.FileUAACA:                string(fakeUAACertBytes),
-		cfg.FileCCBaseURL:            te.FakeCC.Server.URL,
-		cfg.FileCCCA:                 string(fakeCCCertBytes),
-		cfg.FileEiriniPodLabelPrefix: "",
+		cfg.FileUAABaseURL:      te.FakeUAA.Server.URL,
+		cfg.FileUAAClientName:   "fake-uaa-client-name",
+		cfg.FileUAAClientSecret: "fake-uaa-client-secret",
+		cfg.FileUAACA:           string(fakeUAACertBytes),
+		cfg.FileCCBaseURL:       te.FakeCC.Server.URL,
+		cfg.FileCCCA:            string(fakeCCCertBytes),
 	} {
 		if err := ioutil.WriteFile(filepath.Join(te.CfRouteSyncConfigDir, filename), []byte(contents), 0644); err != nil {
 			return err
