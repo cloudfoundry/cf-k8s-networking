@@ -24,15 +24,28 @@ docker tag "${img}" "${image_repo}"
 docker push "${image_repo}"
 
 values_file="$(mktemp -u).yml" # for ytt it's important the file to have .yml extension
-"${cf_k8s_networking_dir}/install/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json" > ${values_file}
+"${cf_k8s_networking_dir}/config/scripts/generate_values.rb" "${HOME}/workspace/networking-oss-deployments/environments/${environment}/bbl-state.json" > ${values_file}
 
-echo 'Deploying to Kubernetes...'
+prometheus_file="$(mktemp -u).yml"
+kubectl get -n istio-system cm prometheus -o yaml > ${prometheus_file}
 
-ytt -f "${cf_k8s_networking_dir}/install/ytt/networking/" -f "${values_file}" \
-    --data-value-yaml cfroutesync.image="${image_repo}" | \
-    kapp deploy -n "cf-system" -a cfroutesync \
-    -f "${cf_k8s_networking_dir}/cfroutesync/crds/routebulksync.yaml" \
-    -f - \
-    -y
+echo 'Deploying to ☸️ Kubernetes...'
 
-echo "Done"
+ytt \
+  -f "${cf_k8s_networking_dir}/config/cfroutesync/" \
+  -f "${values_file}" \
+  -f "${cf_k8s_networking_dir}/cfroutesync/crds/routebulksync.yaml" \
+  --data-value cfroutesync.image="${image_repo}" | \
+  kapp deploy -n "cf-system" -a cfroutesync \
+  -f - \
+  -y
+
+echo "Update Prometheus config..."
+
+ytt \
+  -f "${cf_k8s_networking_dir}/config/cfroutesync/values.yaml" \
+  -f "${prometheus_file}" \
+  -f "${cf_k8s_networking_dir}/config/deps/prometheus-config.yaml" | \
+  kubectl apply -f -
+
+echo "Done! 🎉"

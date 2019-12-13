@@ -1,0 +1,36 @@
+#@ load("@ytt:yaml", "yaml")
+#@ load("@ytt:data", "data")
+#@ load("@ytt:overlay", "overlay")
+
+#@ def additional_conf():
+scrape_configs:
+  #@overlay/match by="job_name",missing_ok=True
+  - job_name: cfroutesync
+    scrape_interval: 10s
+    #@overlay/replace
+    kubernetes_sd_configs:
+      - role: service
+        namespaces:
+          names:
+            - #@ data.values.systemNamespace
+            #@overlay/replace
+    relabel_configs:
+      - source_labels: [__meta_kubernetes_service_name]
+        action: keep
+        regex: cfroutesync
+#@ end
+
+#@ def update_scrapes(a,b):
+#@   return yaml.encode(overlay.apply(yaml.decode(a), additional_conf()))
+#@ end
+
+#@overlay/match by=overlay.all
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus
+  namespace: #@ data.values.istioNamespace
+data:
+  #@overlay/replace via=update_scrapes
+  prometheus.yml: ""

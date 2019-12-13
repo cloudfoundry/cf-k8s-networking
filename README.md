@@ -18,7 +18,7 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 
 ### Istio
 * Install [Istio](https://istio.io/docs/setup/install/kubernetes/) to the Kubernetes cluster.
-* Include the [istio-values.yaml](install/istio-values.yaml) in your Istio installation.
+* Include the [istio-values.yaml](config/deps/istio-values.yaml) in your Istio installation.
 
     **Note:** As an example, in our CI we are installing Istio via the [deploy-istio.sh](ci/tasks/istio/deploy-istio.sh) task.
 ​
@@ -27,7 +27,7 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 ​
 ### CF-K8s-Networking
 1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must override the following properties from `install/ytt/networking/values.yaml`.
-    You can do this by creating a new file `/tmp/secrets.yaml` that contains the following information:
+    You can do this by creating a new file `/tmp/values.yaml` that contains the following information:
     
     ```yaml
     #@data/values
@@ -52,9 +52,25 @@ Routing and networking for Cloud Foundry running on Kubernetes.
     ```bash
     system_namespace="cf-system"
 
-    ytt -f install/ytt/networking/ -f /tmp/secrets.yaml | \
+    ytt -f config/cfroutesync/ -f /tmp/values.yaml \
+        -f cfroutesync/crds/routebulksync.yaml | \
         kapp deploy -n "${system_namespace}" -a cfroutesync \
-        -f cfroutesync/crds/routebulksync.yaml \
         -f - \
         -y
     ```
+
+1. Update the Prometheus configuration so metrics from cf-k8s-networking can be queried.
+
+  ```bash
+  prometheus_file="$(mktemp -u).yml"
+  kubectl get -n istio-system configmap prometheus -o yaml > ${prometheus_file}
+
+  ytt \
+    -f "config/cfroutesync/values.yaml" \
+    -f "${prometheus_file}" \
+    -f "config/deps/prometheus-config.yaml" | \
+    kubectl apply -f -
+
+  ```
+
+> Note: you might need to restart Prometheus pod(s) in the istio-system namespace after updating the ConfigMap 🧐🥺
