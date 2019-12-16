@@ -14,7 +14,7 @@ function install_istio() {
   export KUBECONFIG="${PWD}/kubeconfig/config"
   istio_values_file="${PWD}/cf-k8s-networking/config/deps/istio-values.yaml"
   grafana_values_file="${PWD}/cf-k8s-networking-ci/ci/istio-config/grafana-config.yaml"
-  custom_metrics_file="${PWD}/cf-k8s-networking/config/cfroutesync/cfrequestcount.yaml"
+  custom_metrics_file="${PWD}/cf-k8s-networking/config/deps/istio-cfrequestcount.yaml"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
