@@ -21,6 +21,7 @@ resources:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
       - ci
+      - config
 
 - name: cf-k8s-networking-istio-values
   type: git
