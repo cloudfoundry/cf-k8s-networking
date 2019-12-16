@@ -5,6 +5,9 @@ kind: ConfigMap
 metadata:
   name: cfroutesync-config
   namespace: #@ data.values.systemNamespace
+  annotations:
+    kapp.k14s.io/versioned: ""
+    kapp.k14s.io/num-versions: "2"
 data:
   ccBaseURL: #@ data.values.cfroutesync.ccBaseURL
   uaaBaseURL: #@ data.values.cfroutesync.uaaBaseURL
