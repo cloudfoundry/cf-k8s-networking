@@ -1,0 +1,14 @@
+#@data/values
+---
+#! These values are meant to be overridden. See README
+backendTlsKey: "System component's private key"
+backendTlsCert: "System component's server cert"
+backendCaCert: "CA that signed the system component's TLS certs"
+
+ingressTlsKey: "Ingress router's private key"
+ingressTlsCert: "Ingress router's server cert"
+
+systemWildcardDomain: "*.sys.example.com"
+systemComponentExternalAddress: "component.sys.example.com"
+
+nginxConfig: "Contents of nginx.conf"

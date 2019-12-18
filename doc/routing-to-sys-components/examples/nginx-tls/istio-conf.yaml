@@ -1,0 +1,44 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: istio-ingressgateway-certs
+  namespace: istio-system
+type: Opaque
+stringData:
+  tls.crt: #@ data.values.ingressTlsCert
+  tls.key: #@ data.values.ingressTlsKey
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: istio-ingressgateway-ca-certs
+  namespace: istio-system
+type: Opaque
+stringData:
+  ca.crt: #@ data.values.backendCaCert
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: wildcard-sys-gateway
+  namespace: cf-system
+spec:
+  selector:
+    istio: ingressgateway #! use istio default ingress gateway
+  servers:
+    - port:
+        number: 443
+        name: https
+        protocol: HTTPS
+      tls:
+        mode: SIMPLE
+        serverCertificate: /etc/istio/ingressgateway-certs/tls.crt
+        privateKey: /etc/istio/ingressgateway-certs/tls.key
+      hosts:
+        - #@ data.values.systemWildcardDomain

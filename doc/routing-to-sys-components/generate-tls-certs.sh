@@ -2,12 +2,16 @@
 
 set -exuo pipefail
 
-cert_common_name='*.sys.eirini-dev-1.routing.lol'
+if [ "$#" -ne 2 ]; then
+  echo 'Usage ./generate-tls-certs [CERT_NAME_PREFIX] [CERT_DOMAIN_NAME]'
+  exit 1
+fi
 
-rm -f sys-*
+cert_common_name="$2"
+cert_name_prefix="$1"
 
-certstrap --depot-path "." init --passphrase '' --key-bits 2048 --cn sys-ca
-certstrap --depot-path "." request-cert --passphrase '' --cn "$cert_common_name" --key sys-wildcard.key --csr sys-wildcard.csr
-certstrap --depot-path "." sign --passphrase '' --CA sys-ca sys-wildcard
+certstrap --depot-path "." init --passphrase '' --key-bits 2048 --cn "${cert_name_prefix}-ca"
+certstrap --depot-path "." request-cert --passphrase '' --cn "$cert_common_name" --key "${cert_name_prefix}.key" --csr "${cert_name_prefix}.csr"
+certstrap --depot-path "." sign --passphrase '' --CA "${cert_name_prefix}-ca" "${cert_name_prefix}"
 
 rm -f *.crl *.csr
