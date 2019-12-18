@@ -1201,7 +1201,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/good-acceptance/cats_integration_config.json"
         CAPTURE_LOGS: true
-        SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none"
+        SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none|container metrics"
         FLAKE_ATTEMPTS: 2
         
 
