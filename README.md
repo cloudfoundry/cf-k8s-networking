@@ -61,16 +61,19 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 
 1. Update the Prometheus configuration so metrics from cf-k8s-networking can be queried.
 
-  ```bash
-  prometheus_file="$(mktemp -u).yml"
-  kubectl get -n istio-system configmap prometheus -o yaml > ${prometheus_file}
+   ```bash
+   prometheus_file="$(mktemp -u).yml"
+   kubectl get -n istio-system configmap prometheus -o yaml > ${prometheus_file}
 
-  ytt \
+   ytt \
     -f "config/cfroutesync/values.yaml" \
     -f "${prometheus_file}" \
     -f "config/deps/prometheus-config.yaml" | \
     kubectl apply -f -
-
-  ```
-
-> Note: you might need to restart Prometheus pod(s) in the istio-system namespace after updating the ConfigMap 🧐🥺
+   ```
+   
+   Note: you might need to restart Prometheus pod(s) in the istio-system namespace after updating the ConfigMap 🧐🥺
+   
+   ```bash
+   kubectl -n istio-system get pod -l app=prometheus
+   ```
