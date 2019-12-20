@@ -75,5 +75,5 @@ Routing and networking for Cloud Foundry running on Kubernetes.
    Note: you might need to restart Prometheus pod(s) in the istio-system namespace after updating the ConfigMap 🧐🥺
    
    ```bash
-   kubectl -n istio-system get pod -l app=prometheus
+   kubectl -n istio-system delete pod -l app=prometheus
    ```
