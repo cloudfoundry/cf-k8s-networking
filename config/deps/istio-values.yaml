@@ -1,4 +1,6 @@
 global:
+  mtls:
+    auto: true
   proxy:
     accessLogFile: "/dev/stdout"
     accessLogFormat: >-

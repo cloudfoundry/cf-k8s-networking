@@ -69,6 +69,7 @@ spec:
   selector: #@ labels()
   ports:
     - port: #@ data.values.service.externalPort
+      name: http
       targetPort: 8080
 ---
 apiVersion: "apps.cloudfoundry.org/v1alpha1"
@@ -84,3 +85,35 @@ spec:
     metadata:
       labels:
         cloudfoundry.org/route-bulk-sync: "true"
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: cfroutesync-auth-metacontroller
+  namespace: #@ data.values.systemNamespace
+spec:
+  selector:
+    matchLabels: #@ labels()
+  rules:
+    - from:
+        - source:
+            principals:
+              - "cluster.local/ns/metacontroller/sa/metacontroller"
+      to:
+        - operation:
+            methods: ["GET", "POST"]
+            paths: ["/sync"]
+---
+apiVersion: security.istio.io/v1beta1
+kind: AuthorizationPolicy
+metadata:
+  name: cfroutesync-auth-prometheus
+  namespace: #@ data.values.systemNamespace
+spec:
+  selector:
+    matchLabels: #@ labels()
+  rules:
+    - to:
+        - operation:
+            methods: ["GET"]
+            paths: ["/metrics"]
