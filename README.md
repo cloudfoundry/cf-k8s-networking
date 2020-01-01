@@ -1,5 +1,3 @@
-[![Github Actions Badge](https://github.com/cloudfoundry/cf-k8s-networking/workflows/Test%20and%20Tag/badge.svg)](https://github.com/cloudfoundry/cf-k8s-networking/actions?query=workflow%3A%22Test+and+Tag%22)
-
 cf-k8s-networking
 ---
 ​
