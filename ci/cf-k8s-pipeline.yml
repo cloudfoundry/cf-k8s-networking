@@ -84,7 +84,7 @@ resources:
   type: git
   icon: github-box
   source:
-    branch: 1.3.3
+    branch: 1.4.2
     uri: git@github.com:istio/istio.git
     private_key: ((github_private_key.private_key))
 
