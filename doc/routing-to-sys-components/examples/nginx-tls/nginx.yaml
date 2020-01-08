@@ -94,10 +94,12 @@ apiVersion: networking.istio.io/v1alpha3
 kind: DestinationRule
 metadata:
   name: nginx-destination
-  namespace: cf-system
+  namespace: istio-system
 spec:
   host: nginx.cf-system.svc.cluster.local
   trafficPolicy:
     tls:
       mode: SIMPLE
       caCertificates: /etc/istio/ingressgateway-ca-certs/ca.crt
+  exportTo:
+    - "."
