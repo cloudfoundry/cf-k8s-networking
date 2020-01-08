@@ -9,8 +9,6 @@ resources:
     branch: master
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    ignore_paths:
-      - ci
 
 - name: cf-k8s-networking-ci
   type: git
@@ -198,7 +196,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: bosh-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
     - task: merge-bbl-config
       file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
@@ -359,7 +357,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: cf-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
       params:
         NEW_OPS_FILES: &eirini-dev-1-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
@@ -455,7 +453,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: bosh-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
     - task: merge-bbl-config
       file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
@@ -620,7 +618,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: cf-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
       params:
         NEW_OPS_FILES: &eirini-dev-2-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
@@ -716,7 +714,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: bosh-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
     - task: merge-bbl-config
       file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
@@ -877,7 +875,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: cf-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
       params:
         NEW_OPS_FILES: &eirini-dev-3-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
@@ -972,7 +970,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: bosh-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
     - task: merge-bbl-config
       file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
@@ -1046,7 +1044,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: cf-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
       params:
         NEW_OPS_FILES: &dont-smoke-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
@@ -1236,7 +1234,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: bosh-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
     - task: merge-bbl-config
       file: cf-k8s-networking-ci/ci/tasks/bbl/merge-bbl-config.yml
       params:
@@ -1310,7 +1308,7 @@ jobs:
       file: cf-deployment-concourse-tasks/collect-ops-files/task.yml
       input_mapping:
         base-ops-files: cf-deployment
-        new-ops-files: cf-k8s-networking
+        new-ops-files: cf-k8s-networking-ci
       params:
         NEW_OPS_FILES: &good-acceptance-ops-to-collect |
           ci/cf-deployment-operations/capi-skip-cert-verify.yml
