@@ -12,9 +12,7 @@ We use grafana to see these metrics.  To get a dashboard:
 
 1. Install grafana.  This is optional with Istio.  We have a CI job for this ([script](../../ci/tasks/istio/deploy-istio.sh))
 
-1. Install our dashboard.  We have a CI job ([task](../../ci/tasks/istio/install-grafana-dashboard.yml), [script](../../ci/tasks/istio/install-grafana-dashboard.sh)).
-
-1. View the dashboard:
+1. Open the dashboard:
 
    ```bash
    istioctl dashboard grafana
@@ -22,7 +20,8 @@ We use grafana to see these metrics.  To get a dashboard:
    
    (this is a `kubectl port-forward` but simpler).
    
-   
+1. Click the `+` button on the sidebar menu, and import [dashboard.json](./dashboard.json)
+
 1. Go to "Indicator" dashboard.
 
 ### Prometheus
