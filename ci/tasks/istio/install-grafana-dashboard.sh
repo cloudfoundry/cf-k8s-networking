@@ -16,6 +16,9 @@ function install_grafana_dashboard() {
   kubectl proxy --port=8080 &
   proxy_pid=$!
 
+  # Allow proxy to come up
+  sleep 5
+
   # Delete old dashboard
   curl -H 'Accept: application/json' -XDELETE http://localhost:8080/api/v1/namespaces/istio-system/services/grafana:http/proxy/api/dashboards/uid/indicators
   # Create dashboard
