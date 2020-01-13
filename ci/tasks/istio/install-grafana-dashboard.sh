@@ -17,7 +17,7 @@ function install_grafana_dashboard() {
   proxy_pid=$!
 
   # Delete old dashboard
-  curl -H 'Content-Type: application/json' -H 'Accept: application/json' -XDELETE http://localhost:8080/api/v1/namespaces/istio-system/services/grafana:http/proxy/api/dashboards/uid/indicators
+  curl -H 'Accept: application/json' -XDELETE http://localhost:8080/api/v1/namespaces/istio-system/services/grafana:http/proxy/api/dashboards/uid/indicators
   # Create dashboard
   curl -H 'Content-Type: application/json' -H 'Accept: application/json' -XPOST http://localhost:8080/api/v1/namespaces/istio-system/services/grafana:http/proxy/api/dashboards/db -d "@/tmp/dashboard.json"
 
