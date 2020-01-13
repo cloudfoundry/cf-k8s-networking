@@ -104,9 +104,7 @@ func mainWithError() error {
 		Syncer: &webhook.Lineage{
 			RouteSnapshotRepo: snapshotRepo,
 			K8sResourceBuilders: []webhook.K8sResourceBuilder{
-				&webhook.ServiceBuilder{
-					PodLabelPrefix: config.Experimental.EiriniPodLabelPrefix,
-				},
+				&webhook.ServiceBuilder{},
 				&webhook.VirtualServiceBuilder{IstioGateways: config.Istio.Gateways},
 			},
 		},
