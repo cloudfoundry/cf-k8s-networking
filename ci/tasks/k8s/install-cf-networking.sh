@@ -45,6 +45,9 @@ function install() {
     -f "cf-k8s-networking/config/deps/prometheus-config.yaml" | \
     kubectl apply -f -
 
+  echo "Restart Prometheus pods with new config..."
+  kubectl delete pods -n istio-system -l app=prometheus
+  
   echo "Done! 🎉"
 }
 
