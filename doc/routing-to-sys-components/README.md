@@ -1,4 +1,10 @@
-# Example: TLS Termination at the Ingress Gateway, Plaintext to System Component
+# Routing to System Components
+
+⚠ **EXPERIMENTAL** ⚠ 👷🏽‍♀️🚧
+
+This documents current workflows for **experimenting** with system components that expect TLS connections.
+
+## Example: TLS Termination at the Ingress Gateway, Plaintext to System Component
 ![Routing to System Components Diagram with plaintext between ingress router and system component](../assets/ingress-to-sys-non-tls.jpg)
 
 1. Make CA and wildcard cert
@@ -38,7 +44,7 @@
     curl -v --cacert sys-wildcard-ca.crt https://some-cf-component.sys.eirini-dev-1.routing.lol
     ```
 
-# Example: TLS Termination at the Ingress Gateway, TLS Reestablished to System Component
+## Example: TLS Termination at the Ingress Gateway, TLS Reestablished to System Component
 ![Routing to System Components Diagram with TLS between ingress router and system component](../assets/ingress-to-sys-tls.jpg)
 
 The following steps configure the Istio IngressGateway routers to terminate TLS and then reestablish TLS with a TLS-supporting backend.
@@ -67,22 +73,44 @@ These steps are subject to change as the cert-management story for CF on Kuberne
     ./generate-tls-certs.sh sys-wildcard *.<system-domain>
     ```
 
- 1. Make CA and certs for your system component
+ 1. Make external CA and certs for your system component
  
      In this example we will be deploying an nginx proxy to stand in as our system component.
      
      ```
      ./generate-tls-certs.sh nginx nginx.<system-domain>
      ```
+    
+  1. Make internal CA and certs for your system component
+   
+       This can be used by clients communicating on the Kubernetes DNS address. e.g. `nginx.cf-system.svc.cluster.local`
+       
+       ```
+       ./generate-tls-certs.sh nginx-internal nginx.cf-system.svc.cluster.local
+       ```
+    
+  1. Make CA and certs for your mTLS client
+   
+       In this example we will be using `curl` as an mTLS client of the system component.
+       
+       ```
+       ./generate-tls-certs.sh client client-cert
+       ```
 
 ## Deploy the Components
+
+We'll be deploying a "system component" `Deployment` that creates pods comprised of two containers.
+An `nginx` proxy container accepts connections on ports `80` (HTTP), `443` (TLS), and `9443` (mTLS) and forwards them over plaintext to an `httpbin` container.
+
+The `mTLS` port is only reachable internally via the service url (e.g. `nginx.cf-system.svc.cluster.local`) and not via the ingress gateway.
+
 ### Prerequisites
 - A Kubernetes cluster with [Istio installed using the default configuration](https://istio.io/docs/setup/install/helm/)
 - `kubectl` installed and access to the Kubernetes cluster
 - [`kapp`](https://get-kapp.io/) installed
 - [`ytt`](https://get-ytt.io/) installed
 
-1. Use `ytt` to template the config files and `kapp` to deploy the system component
+1. Use `ytt` to template the config files and `kapp` to deploy the system component and debug pod to support Ingress TLS and internal mTLS between components for the "Component Owned Cert without Sidecar" scenario.
 
     Replace `$system_domain` with the system domain for your environment and reference the cert prefixes you used earlier.
     Below is an example for our `eirini-dev-2` environment.
@@ -95,13 +123,21 @@ These steps are subject to change as the cert-management story for CF on Kuberne
     system_component_external_address="nginx.${system_domain}"
     system_component_cert_prefix="nginx"
     
+    system_component_internal_cert_prefix="nginx-internal"
+
     ytt -f examples/nginx-tls/nginx.yaml \
         -f examples/nginx-tls/istio-conf.yaml \
         -f examples/nginx-tls/values.yaml \
         --data-value nginxConfig="$(cat examples/nginx-tls/nginx.conf)" \
         --data-value backendTlsKey="$(cat $system_component_cert_prefix.key)" \
         --data-value backendTlsCert="$(cat $system_component_cert_prefix.crt)" \
-        --data-value backendCaCert="$(cat $system_component_cert_prefix-ca.crt)" \
+        --data-value backendCaCert="$(cat ${system_component_cert_prefix}-ca.crt)" \
+        --data-value internalBackendTlsKey="$(cat $system_component_internal_cert_prefix.key)" \
+        --data-value internalBackendTlsCert="$(cat $system_component_internal_cert_prefix.crt)" \
+        --data-value internalBackendCaCert="$(cat ${system_component_internal_cert_prefix}-ca.crt)" \
+        --data-value clientTlsKey="$(cat client.key)" \
+        --data-value clientTlsCert="$(cat client.crt)" \
+        --data-value clientCaCert="$(cat client-ca.crt)" \
         --data-value ingressTlsKey="$(cat $ingress_router_cert_prefix.key)" \
         --data-value ingressTlsCert="$(cat $ingress_router_cert_prefix.crt)" \
         --data-value systemWildcardDomain="${wildcard_system_domain}" \
@@ -118,5 +154,12 @@ These steps are subject to change as the cert-management story for CF on Kuberne
 1. Validate that you can reach the component
 
     ```bash
+        curl --cacert "${ingress_router_cert_prefix}-ca.crt" "https://${system_component_external_address}"
+    ```
+
+1. Validate that you can connect to the component using mTLS from the debug-pod
+
+    ```bash
+        kubectl -n cf-system exec -it <debug-pod-name> /bin/bash
         curl --cacert "${ingress_router_cert_prefix}-ca.crt" "https://${system_component_external_address}"
     ```

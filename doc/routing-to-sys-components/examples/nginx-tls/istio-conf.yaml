@@ -33,6 +33,12 @@ spec:
     istio: ingressgateway #! use istio default ingress gateway
   servers:
     - port:
+        number: 80
+        name: http
+        protocol: HTTP
+      hosts:
+        - #@ data.values.systemWildcardDomain
+    - port:
         number: 443
         name: https
         protocol: HTTPS

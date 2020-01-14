@@ -5,8 +5,16 @@ backendTlsKey: "System component's private key"
 backendTlsCert: "System component's server cert"
 backendCaCert: "CA that signed the system component's TLS certs"
 
+internalBackendTlsKey: "System component's internal private key"
+internalBackendTlsCert: "System component's internal server cert"
+internalBackendCaCert: "CA that signed the system component's internal TLS certs"
+
 ingressTlsKey: "Ingress router's private key"
 ingressTlsCert: "Ingress router's server cert"
+
+clientCaCert: "CA that signed the mTLS client's TLS certs"
+clientTlsCert: "mTLS client cert"
+clientTlsKey: "mTLS client private key"
 
 systemWildcardDomain: "*.sys.example.com"
 systemComponentExternalAddress: "component.sys.example.com"
