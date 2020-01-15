@@ -161,5 +161,9 @@ The `mTLS` port is only reachable internally via the service url (e.g. `nginx.cf
 
     ```bash
         kubectl -n cf-system exec -it <debug-pod-name> /bin/bash
-        curl --cacert "${ingress_router_cert_prefix}-ca.crt" "https://${system_component_external_address}"
+
+        curl --cacert /etc/mtls-client-certs/backend_ca.crt \
+             --key /etc/mtls-client-certs/tls.key \
+             --cert /etc/mtls-client-certs/tls.crt \
+             https://nginx.cf-system.svc.cluster.local:9443
     ```
