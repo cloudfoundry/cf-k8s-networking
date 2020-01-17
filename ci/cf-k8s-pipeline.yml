@@ -782,6 +782,10 @@ jobs:
         bbl-state: networking-oss-deployments
       params:
         KUBECONFIG_CONTEXT: "bosh-eirini-dev-3-cluster"
+    - task: enable-sidecar-injection
+      file: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.yml
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-3-cluster"
 
 - name: eirini-dev-3-install-metacontroller
   serial: true
@@ -1113,6 +1117,10 @@ jobs:
         bbl-state: networking-oss-deployments
       params:
         KUBECONFIG_CONTEXT: "bosh-dont-smoke-cluster"
+    - task: enable-sidecar-injection
+      file: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.yml
+      params:
+        KUBECONFIG_CONTEXT: "bosh-dont-smoke-cluster"
 
 - name: dont-smoke-install-metacontroller
   serial: true
@@ -1374,6 +1382,10 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/istio/install-grafana-dashboard.yml
       input_mapping:
         bbl-state: networking-oss-deployments
+      params:
+        KUBECONFIG_CONTEXT: "bosh-good-acceptance-cluster"
+    - task: enable-sidecar-injection
+      file: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.yml
       params:
         KUBECONFIG_CONTEXT: "bosh-good-acceptance-cluster"
 
