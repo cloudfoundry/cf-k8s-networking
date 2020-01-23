@@ -8,8 +8,7 @@ Proposal
 
 ## Context
 
-We have a goal to have all egress/ingress network traffic within the platform to be encrypted. 
-We describe the different situations for source and destination and how we can accomplish this goal.
+One of our [goals for networking in CF for Kubernetes](https://docs.google.com/document/d/1D12MZbZwVPSKmq97VNSNaoJbgUchM1xSC2VRIhXu7qU/edit) is to have all egress/ingress network traffic within the platform to be encrypted.
 
 ## Decision
 
