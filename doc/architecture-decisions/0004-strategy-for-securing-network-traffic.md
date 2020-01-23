@@ -29,8 +29,8 @@ See the following matrix:
 | Source\Destination | External                                                                                                                      | Apps                                                                                                                                    | System Components                                                                                                                                                                                                   |
 |--------------------|-------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | External           | N/A                                                                                                                           | Operator provides wildcard certs to Ingress Gateway. Gateway to backend is secured using [Istio Mesh mTLS](#istio-mesh-mtls) | Operator provides wildcard certs for the system domain to Ingress Gateway. Gateway to backend is secured using [Istio Mesh mTLS](#istio-mesh-mtls)                                                                                 |
-| Apps               | Mesh can be leveraged with Istio Destination Rules and Service Entries. [Istio defaults to PERMISSIVE egress](https://istio.io/docs/tasks/traffic-management/egress/egress-control/).                                                       | App-to-app traffic will be denied by default. If enabled, will be secured using [Istio Mesh mTLS](#istio-mesh-mtls) | [Istio Mesh mTLS](#istio-mesh-mtls)[0]                                                                                                                     |
-| System Components  | CAs for external destinations can be added to trust store via mounts | [Istio Mesh mTLS](#istio-mesh-mtls)[1] | [Istio Mesh mTLS](#istio-mesh-mtls) |
+| Apps               | Mesh can be leveraged with Istio Destination Rules and Service Entries. [Istio defaults to PERMISSIVE egress](https://istio.io/docs/tasks/traffic-management/egress/egress-control/).                                                       | App-to-app traffic will be denied by default. If enabled, will be secured using [Istio Mesh mTLS](#istio-mesh-mtls) | [Istio Mesh mTLS](#istio-mesh-mtls)<sup>0</sup>                                                                                                                     |
+| System Components  | CAs for external destinations can be provided<sup>1</sup> | [Istio Mesh mTLS](#istio-mesh-mtls)<sup>2</sup> | [Istio Mesh mTLS](#istio-mesh-mtls) |
 
 
 
@@ -43,5 +43,6 @@ When we refer to "Istio Mesh mTLS" in the matrix above, we are assuming the foll
 
 #### Footnotes
 
-* [0] - System components that do not expect to receive traffic from apps could be protected using `NetworkPolicies` or Istio `AuthorizationPolicies`
-* [1] -  Primary use case for system component to app communication that we can think of may be a platform managed Prometheus scraping apps' `/metrics` endpoints
+* 0 - System components that do not expect to receive traffic from apps could be protected using `NetworkPolicies` or Istio `AuthorizationPolicies`
+* 1 - The exact mechanism for providing manually providing certificated to system components is to be determined.
+* 2 -  Primary use case for system component to app communication that we can think of may be a platform managed Prometheus scraping apps' `/metrics` endpoints
