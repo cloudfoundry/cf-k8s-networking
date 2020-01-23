@@ -1,4 +1,4 @@
-# 2. Tagging and Publishing Dev/CI Images
+# 3. Tagging and Publishing Dev/CI Images
 
 Date: 2019-10-31
 
