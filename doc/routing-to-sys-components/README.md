@@ -1,8 +1,8 @@
-# Routing to System Components
+# Ingress Routing to System Components
 
 ⚠ **EXPERIMENTAL** ⚠ 👷🏽‍♀️🚧
 
-This documents current workflows for **experimenting** with system components that expect TLS connections.
+This documents current workflows for **experimenting** using cf-k8s-networking to route to system components. System component authors can follow the appropriate example to have plaintext or TLS connections from the gateway to their system component. These example workflows currently require generating and managing the certificates for the ingress gateway.
 
 ## Example: TLS Termination at the Ingress Gateway, Plaintext to System Component
 ![Routing to System Components Diagram with plaintext between ingress router and system component](../assets/ingress-to-sys-non-tls.jpg)
