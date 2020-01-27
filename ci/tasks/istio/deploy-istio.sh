@@ -15,6 +15,7 @@ function install_istio() {
   istio_values_file="${PWD}/cf-k8s-networking/config/deps/istio-values.yaml"
   grafana_values_file="${PWD}/cf-k8s-networking-ci/ci/istio-config/grafana-config.yaml"
   custom_metrics_file="${PWD}/cf-k8s-networking/config/deps/istio-cfrequestcount.yaml"
+  mtls_mesh_policy_file="${PWD}/cf-k8s-networking/config/deps/mtls-mesh-policy.yaml"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
@@ -34,6 +35,9 @@ function install_istio() {
 
     # Install custom metrics
     kubectl apply -f "${custom_metrics_file}"
+
+    # Configure mTLS in default mesh policy
+    kubectl apply -f "${mtls_mesh_policy_file}"
   popd
 }
 
