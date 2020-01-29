@@ -14,14 +14,33 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 - [`kapp`](https://get-kapp.io/) installed
 - [`ytt`](https://get-ytt.io/) installed
 
+### Metacontroller
+* Install [Metacontroller](https://metacontroller.app/guide/install/) to the Kubernetes cluster
+
 ### Istio
 * Install [Istio](https://istio.io/docs/setup/install/kubernetes/) to the Kubernetes cluster.
 * Include the [istio-values.yaml](config/deps/istio-values.yaml) in your Istio installation.
 
     **Note:** As an example, in our CI we are installing Istio via the [deploy-istio.sh](ci/tasks/istio/deploy-istio.sh) task.
-​
-### Metacontroller
-* Install [Metacontroller](https://metacontroller.app/guide/install/) to the Kubernetes cluster
+
+* Enable [​automatic sidecar injection](https://istio.io/docs/ops/configuration/mesh/injection-concepts/) by labeling
+the following namespaces with `istio-injection=enabled`: `cf-system`, `cf-workloads`, `metacontroller`:
+
+  ```bash
+  kubectl label namespaces cf-system cf-workloads metacontroller istio-injection=enabled --overwrite
+  ```
+
+* Sidecars are required for automatic mTLS between workloads so it is important that this is enabled.
+Confirm that the namespaces are labeled correctly:
+
+    ```bash
+    $ kubectl get namespaces -l istio-injection=enabled
+
+    NAME             STATUS   AGE
+    cf-system        Active   50d
+    cf-workloads     Active   50d
+    metacontroller   Active   50d
+    ```
 ​
 ### CF-K8s-Networking
 1.  `cfroutesync` needs to be able to authenticate with UAA and fetch routes from Cloud Controller. To do this you must override the following properties from `install/ytt/networking/values.yaml`.
