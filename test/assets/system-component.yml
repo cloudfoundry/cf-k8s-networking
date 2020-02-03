@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: system-component-sa
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: test-system-component
+  namespace: cf-system
+  labels:
+    app: test-system-component
+spec:
+  serviceAccountName: system-component-sa
+  containers:
+    - image: cfrouting/httpbin8080:latest
+      name: system-component
+      ports:
+        - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: test-system-component
+  name: test-system-component
+spec:
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: 8080
+  selector:
+    app: test-system-component
+  type: ClusterIP
