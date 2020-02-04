@@ -1,3 +1,5 @@
+sidecarInjectorWebhook:
+  rewriteAppHTTPProbe: true
 global:
   mtls:
     auto: true
