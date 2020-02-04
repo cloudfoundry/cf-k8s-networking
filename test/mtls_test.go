@@ -2,12 +2,13 @@ package acceptance_test
 
 import (
 	"fmt"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"os/exec"
 	"regexp"
 	"strconv"
 	"strings"
+
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 const workloadsNamespace = "cf-workloads"
@@ -15,7 +16,7 @@ const systemNamespace = "cf-system"
 
 const CurlSuccessfulExitCode = 0
 
-var _ = Describe("mTLS setup", func() {
+var _ = Describe("mTLS setup on a CF-k8s env", func() {
 	const cfAppContainerName = "opi"
 	const proxyContainerName = "istio-proxy"
 	const systemComponentContainerName = "system-component"
