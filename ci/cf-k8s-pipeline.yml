@@ -421,6 +421,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-1/cats_integration_config.json"
         CAPTURE_LOGS: true
+        SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none|container metrics"
         FLAKE_ATTEMPTS: 2
 
 # eirini-dev-2
@@ -682,6 +683,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-2/cats_integration_config.json"
         CAPTURE_LOGS: true
+        SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none|container metrics"
         FLAKE_ATTEMPTS: 2
 
 # eirini-dev-3
@@ -943,6 +945,7 @@ jobs:
         NODES: 2
         CONFIG_FILE_PATH: "environments/eirini-dev-3/cats_integration_config.json"
         CAPTURE_LOGS: true
+        SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none|container metrics"
         FLAKE_ATTEMPTS: 2
 
 # good smoke 🚬
