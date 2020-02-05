@@ -28,7 +28,7 @@ var (
 func TestAcceptance(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	config, err := config2.NewConfig(os.Getenv("CONFIG"))
+	config, err := config2.NewConfig(os.Getenv("CONFIG"), os.Getenv("KUBECONFIG"))
 	if err != nil {
 		defer GinkgoRecover()
 		fmt.Println("Failed to load config.")

@@ -17,11 +17,10 @@ Other requirements:
 
 * You should have `kubectl` config with the access to system and workload namespaces to GET/POST/PUT/PATCH pods, services, service accounts and execute commands in pods.
 
-* JSON configuration file of the following format:
+* JSON configuration file of the following format (subset of [CATS config file](https://github.com/cloudfoundry/cf-acceptance-tests#test-configuration)):
 
   ```json
   {
-    "kubeconfig_path": "path to kube config",
     "api": "URL for CF API",
     "admin_user": "CF admin user username",
     "admin_password": "CF admin user password"
@@ -41,12 +40,12 @@ Other requirements:
 ```bash
 # make sure you targeted your cluster before executing this
 cd networking-acceptance-tests
-./bin/test_local.sh <path to config.json>
+./bin/test_local.sh <path to config.json> [path to kube config]
 ```
 
 ## With bbl-state
 
 ```bash
 cd networking-acceptance-tests
-./bin/test_with_bbl_state.sh <path to config.json> <path to bbl state>
+./bin/test_with_bbl_state.sh <path to config.json> <path to bbl state> [path to kube config] 
 ```

@@ -106,7 +106,7 @@ func (c *Config) GetScaledTimeout(timeout time.Duration) time.Duration {
 	return time.Duration(float64(timeout) * 2)
 }
 
-func NewConfig(configPath string) (*Config, error) {
+func NewConfig(configPath string, kubeConfigPath string) (*Config, error) {
 	configFile, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config %v", err)
@@ -118,6 +118,8 @@ func NewConfig(configPath string) (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error parsing json %v", err)
 	}
+
+	config.KubeConfigPath = kubeConfigPath
 
 	return config, nil
 }
