@@ -2,6 +2,7 @@ apiVersion: v1
 kind: ServiceAccount
 metadata:
   name: system-component-sa
+  namespace: cf-system
 ---
 apiVersion: v1
 kind: Pod
