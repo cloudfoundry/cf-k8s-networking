@@ -945,7 +945,7 @@ jobs:
       params:
         BBL_STATE_DIR: "environments/eirini-dev-3"
     - task: networking-acceptance-tests
-      file: cf-k8s-networking-ci/ci/tasks/test/run-networking-acceptance.yml
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.yml
       input_mapping:
         integration-config: updated-integration-configs
       params:
