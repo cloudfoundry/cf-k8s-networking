@@ -109,7 +109,9 @@ func destroySystemComponent() {
 func pushApp(name string) string {
 	session := cf.Cf("push",
 		name,
-		"-o", "cfrouting/httpbin8080")
+		"-o", "cfrouting/httpbin8080",
+		"-u", "http",
+	)
 	Expect(session.Wait(120 * time.Second)).To(gexec.Exit(0))
 
 	guid := strings.TrimSpace(string(cf.Cf("app", name, "--guid").Wait().Out.Contents()))
