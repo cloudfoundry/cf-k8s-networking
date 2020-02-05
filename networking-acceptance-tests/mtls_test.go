@@ -170,10 +170,6 @@ func curlInPod(namespace string, podName string, containerName string, url strin
 
 		lines = lines[0 : len(lines)-1]
 		output = strings.Join(lines, "\n")
-
-		fmt.Println("=========OUTPUT IS============")
-		fmt.Println(output)
-		fmt.Println("==============================")
 	}
 
 	return output, exitCode, responseCode, nil
@@ -182,10 +178,6 @@ func curlInPod(namespace string, podName string, containerName string, url strin
 func execInPod(namespace string, podName string, containerName string, command string) (string, int, error) {
 	stdout, err := kubectl.Run("-n", namespace, "exec", podName, "-c", containerName, "--", "bash", "-c", command)
 	output := strings.TrimSpace(string(stdout))
-
-	fmt.Println("=========ERROR IS============")
-	fmt.Printf("%+v\n", err)
-	fmt.Println("=============================")
 
 	if err != nil {
 		if ee, ok := err.(*exec.ExitError); ok {
