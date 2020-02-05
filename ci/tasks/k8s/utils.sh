@@ -3,7 +3,7 @@
 set -euo pipefail
 
 
-function extract_kubeconfig() {
+function extract_kubeconfig_from_bbl_state() {
   if [[ -z $1 || -z $2 ]]; then
       echo "Usage: extract_kubeconfig <kubeconfig_path> <bbl_state>"
   fi
