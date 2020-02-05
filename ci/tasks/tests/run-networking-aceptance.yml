@@ -1,0 +1,15 @@
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/cf-networking-images/cfroutesync-integration-test-env
+
+inputs:
+  - name: cf-k8s-networking
+
+run:
+  path: cf-k8s-networking/cfroutesync/bin/test
+  args:
+  - "local"
+
