@@ -10,7 +10,7 @@ inputs:
   - name: kubeconfig
 
 run:
-  path: cf-k8s-networking-ci/ci/tasks/tests/run-networking-aceptance.sh
+  path: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.sh
 
 params:
   INTEGRATION_CONFIG_FILE:
