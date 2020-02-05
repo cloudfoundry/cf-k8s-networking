@@ -32,10 +32,10 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 
 			BeforeEach(func() {
 				var err error
-				appPodSelector = "cloudfoundry.org/guid=" + AppGuid
+				appPodSelector = "cloudfoundry.org/guid=" + globals.AppGuid
 				appPodName, err = getPodNameBySelector(workloadsNamespace, appPodSelector)
 				Expect(err).NotTo(HaveOccurred())
-				sysComponentAddr, err = getSvcHTTPAddrBySelector(systemNamespace, SysComponentSelector)
+				sysComponentAddr, err = getSvcHTTPAddrBySelector(systemNamespace, globals.SysComponentSelector)
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -92,8 +92,8 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 
 			BeforeEach(func() {
 				var err error
-				appSvcSelector = "cloudfoundry.org/app=" + AppGuid
-				systemComponentPod, err = getPodNameBySelector(systemNamespace, SysComponentSelector)
+				appSvcSelector = "cloudfoundry.org/app=" + globals.AppGuid
+				systemComponentPod, err = getPodNameBySelector(systemNamespace, globals.SysComponentSelector)
 				Expect(err).NotTo(HaveOccurred())
 				appAddr, err = getSvcHTTPAddrBySelector(workloadsNamespace, appSvcSelector)
 				Expect(err).NotTo(HaveOccurred())

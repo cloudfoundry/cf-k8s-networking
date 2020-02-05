@@ -2,6 +2,7 @@ package acceptance_test
 
 import (
 	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
+	"encoding/json"
 	"fmt"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
@@ -19,10 +20,9 @@ import (
 )
 
 var (
-	kubectl              *KubeCtl
-	TestSetup            *workflowhelpers.ReproducibleTestSuiteSetup
-	AppGuid              string
-	SysComponentSelector string
+	kubectl   *KubeCtl
+	TestSetup *workflowhelpers.ReproducibleTestSuiteSetup
+	globals   *Globals
 )
 
 func TestAcceptance(t *testing.T) {
@@ -49,13 +49,27 @@ func TestAcceptance(t *testing.T) {
 			panic(err)
 		}
 
-		SysComponentSelector = createSystemComponent()
 
 		TestSetup = workflowhelpers.NewTestSuiteSetup(config)
 		TestSetup.Setup()
-		AppGuid = pushApp(generator.PrefixedRandomName("ACCEPTANCE", "app"))
-		return []byte{}
-	}, func(b []byte) {
+
+		g := &Globals{}
+		g.SysComponentSelector = createSystemComponent()
+		g.AppGuid = pushApp(generator.PrefixedRandomName("ACCEPTANCE", "app"))
+
+		data, err := g.Serialize()
+		if err != nil {
+			panic(err)
+		}
+
+		return data
+	}, func(data []byte) {
+		globals = &Globals{}
+		err := globals.Deserialize(data)
+		if err != nil {
+			panic(err)
+		}
+
 		SetDefaultEventuallyTimeout(1 * time.Minute)
 		SetDefaultEventuallyPollingInterval(1 * time.Second)
 	})
@@ -71,6 +85,19 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	RunSpecs(t, "Acceptance Suite")
+}
+
+type Globals struct {
+	AppGuid              string `json:"app_guid"`
+	SysComponentSelector string `json:"sys_component_selector"`
+}
+
+func (g *Globals) Serialize() ([]byte, error) {
+	return json.Marshal(g)
+}
+
+func (g *Globals) Deserialize(data []byte) error {
+	return json.Unmarshal(data, g)
 }
 
 type KubeCtl struct {
