@@ -17,4 +17,9 @@ run:
 params:
   INTEGRATION_CONFIG_FILE:
   # - JSON file with configurations
-
+  CONFIG_KEEP_CLUSTER:
+  # - Optional
+  # - Set to non empty value to keep changes done on Kubernetes cluster after the test run
+  CONFIG_KEEP_CF:
+  # - Optional
+  # - Set to non empty value to keep changes done on CF after the test run

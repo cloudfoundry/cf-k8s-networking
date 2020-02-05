@@ -1,7 +1,7 @@
 package acceptance_test
 
 import (
-	config2 "code.cloudfoundry.org/cf-k8s-networking/acceptance/config"
+	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
 	"fmt"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
@@ -28,14 +28,20 @@ var (
 func TestAcceptance(t *testing.T) {
 	RegisterFailHandler(Fail)
 
-	config, err := config2.NewConfig(os.Getenv("CONFIG"), os.Getenv("KUBECONFIG"))
+	config, err := cfg.NewConfig(
+		os.Getenv("CONFIG"),
+		os.Getenv("KUBECONFIG"),
+		os.Getenv("CONFIG_KEEP_CLUSTER") != "",
+		os.Getenv("CONFIG_KEEP_CF") != "",
+	)
+
 	if err != nil {
 		defer GinkgoRecover()
 		fmt.Println("Failed to load config.")
 		t.Fail()
 	}
 
-	kubectl = &KubeCtl{kubeConfigPath:config.KubeConfigPath}
+	kubectl = &KubeCtl{kubeConfigPath: config.KubeConfigPath}
 
 	var _ = SynchronizedBeforeSuite(func() []byte {
 		_, err := kubectl.Run("cluster-info")
@@ -55,10 +61,13 @@ func TestAcceptance(t *testing.T) {
 	})
 
 	SynchronizedAfterSuite(func() {}, func() {
-		if TestSetup != nil {
+		if TestSetup != nil && !config.KeepCFChanges {
 			TestSetup.Teardown()
 		}
-		destroySystemComponent()
+
+		if !config.KeepClusterChanges {
+			destroySystemComponent()
+		}
 	})
 
 	RunSpecs(t, "Acceptance Suite")

@@ -49,3 +49,12 @@ cd networking-acceptance-tests
 cd networking-acceptance-tests
 ./bin/test_with_bbl_state <path to config.json> <path to bbl state> [path to kube config] 
 ```
+
+## Configuration
+
+As was mentioned [configuration file](cfg/cfg.go) is a subset of [CATS config file](https://github.com/cloudfoundry/cf-acceptance-tests#test-configuration) with some additions.
+
+There are few environment variables which can be used to control tests setup:
+
+* `CONFIG_KEEP_CLUSTER=1` to not destroy deployed pods and services after tests, helpful for debugging in CI
+* `CONFIG_KEEP_CF=1` to not revert changes in CF after tests, helpful for debugging in CI

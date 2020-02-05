@@ -1,4 +1,4 @@
-package config
+package cfg
 
 import (
 	"encoding/json"
@@ -15,7 +15,9 @@ import (
 // 	  "admin_password": "PASSWORD"
 // 	}
 type Config struct {
-	KubeConfigPath string `json:"kubeconfig_path"`
+	KubeConfigPath     string `json:"kubeconfig_path"`
+	KeepClusterChanges bool `json:"keep_cluster_changes"`
+	KeepCFChanges      bool `json:"keep_cf_changes"`
 
 	API           string `json:"api"`
 	AdminUser     string `json:"admin_user"`
@@ -106,7 +108,7 @@ func (c *Config) GetScaledTimeout(timeout time.Duration) time.Duration {
 	return time.Duration(float64(timeout) * 2)
 }
 
-func NewConfig(configPath string, kubeConfigPath string) (*Config, error) {
+func NewConfig(configPath string, kubeConfigPath string, keepClusterChanges bool, keepCFChanges bool) (*Config, error) {
 	configFile, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config %v", err)
@@ -120,7 +122,8 @@ func NewConfig(configPath string, kubeConfigPath string) (*Config, error) {
 	}
 
 	config.KubeConfigPath = kubeConfigPath
+	config.KeepClusterChanges = keepClusterChanges
+	config.KeepCFChanges = keepCFChanges
 
 	return config, nil
 }
-
