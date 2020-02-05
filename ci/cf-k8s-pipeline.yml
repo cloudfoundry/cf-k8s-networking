@@ -163,6 +163,7 @@ groups:
     - eirini-dev-3-install-cf-networking
     - eirini-dev-3-deploy-cf
     - eirini-dev-3-acceptance-tests
+    - eirini-dev-3-networking-acceptance-tests
 
 
 jobs:
@@ -913,6 +914,42 @@ jobs:
       params:
         ERRAND_NAME: configure-eirini-bosh
         BBL_STATE_DIR: "environments/eirini-dev-3"
+
+- name: eirini-dev-3-networking-acceptance-tests
+  serial: true
+  serial_groups: [eirini-dev-3]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-3-bbl-up]
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-3"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/eirini-dev-3/cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: extract-kubeconfig
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-3"
+    - task: networking-acceptance-tests
+      file: cf-k8s-networking-ci/ci/tasks/test/run-networking-aceptance.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        INTEGRATION_CONFIG_FILE: "environments/eirini-dev-3/cats_integration_config.json"
 
 - name: eirini-dev-3-acceptance-tests
   serial: true
