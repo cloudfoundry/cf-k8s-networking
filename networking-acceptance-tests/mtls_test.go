@@ -172,7 +172,7 @@ func tryCurlInPod(namespace string, podName string, containerName string, url st
 }
 
 func curlInPod(namespace string, podName string, containerName string, url string, args ...string) (output string, exitCode int, responseCode int, err error) {
-	curlCommand := "curl --silent " + url + " --write-out \"response_code:%{http_code}\\n\"" + strings.Join(args, " ")
+	curlCommand := "curl --silent " + url + " --write-out \"response_code:%{http_code}\\n\" " + strings.Join(args, " ")
 
 	output, exitCode, err = execInPod(namespace, podName, containerName, curlCommand)
 	if err != nil {
