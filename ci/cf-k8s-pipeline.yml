@@ -131,6 +131,7 @@ groups:
     - dont-smoke-install-cf-networking
     - dont-smoke-deploy-cf
     - dont-smoke-smoke-tests
+    - dont-smoke-networking-acceptance-tests
   - name: good-acceptance
     jobs:
     - good-acceptance-bbl-up
@@ -138,6 +139,7 @@ groups:
     - good-acceptance-install-metacontroller
     - good-acceptance-install-cf-networking
     - good-acceptance-deploy-cf
+    - good-acceptance-networking-acceptance-tests
     - good-acceptance-acceptance-tests
   - name: eirini-dev-1
     jobs:
@@ -147,6 +149,7 @@ groups:
     - eirini-dev-1-install-cf-networking
     - eirini-dev-1-deploy-cf
     - eirini-dev-1-acceptance-tests
+    - eirini-dev-1-networking-acceptance-tests
   - name: eirini-dev-2
     jobs:
     - eirini-dev-2-bbl-up
@@ -155,6 +158,7 @@ groups:
     - eirini-dev-2-install-cf-networking
     - eirini-dev-2-deploy-cf
     - eirini-dev-2-acceptance-tests
+    - eirini-dev-2-networking-acceptance-tests
   - name: eirini-dev-3
     jobs:
     - eirini-dev-3-bbl-up
@@ -390,6 +394,51 @@ jobs:
       params:
         ERRAND_NAME: configure-eirini-bosh
         BBL_STATE_DIR: "environments/eirini-dev-1"
+
+- name: eirini-dev-1-networking-acceptance-tests
+  serial: true
+  serial_groups: [eirini-dev-1]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-1-bbl-up]
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/eirini-dev-1/cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: extract-kubeconfig
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+    - task: enable-docker-in-cf
+      file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-1"
+        SYSTEM_DOMAIN: *eirini-dev-1-domain
+        ENABLED_FEATURE_FLAGS: |
+          diego_docker
+    - task: networking-acceptance-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        INTEGRATION_CONFIG_FILE: "environments/eirini-dev-1/cats_integration_config.json"
 
 - name: eirini-dev-1-acceptance-tests
   serial: true
@@ -652,6 +701,51 @@ jobs:
       params:
         ERRAND_NAME: configure-eirini-bosh
         BBL_STATE_DIR: "environments/eirini-dev-2"
+
+- name: eirini-dev-2-networking-acceptance-tests
+  serial: true
+  serial_groups: [eirini-dev-2]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [eirini-dev-2-bbl-up]
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-2"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/eirini-dev-2/cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: extract-kubeconfig
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-2"
+    - task: enable-docker-in-cf
+      file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/eirini-dev-2"
+        SYSTEM_DOMAIN: *eirini-dev-2-domain
+        ENABLED_FEATURE_FLAGS: |
+          diego_docker
+    - task: networking-acceptance-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        INTEGRATION_CONFIG_FILE: "environments/eirini-dev-2/cats_integration_config.json"
 
 - name: eirini-dev-2-acceptance-tests
   serial: true
@@ -946,7 +1040,6 @@ jobs:
         BBL_STATE_DIR: "environments/eirini-dev-3"
     - task: enable-docker-in-cf
       file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
-      attempts: 3
       input_mapping:
         bbl-state: networking-oss-deployments
       params:
@@ -995,7 +1088,7 @@ jobs:
         SKIP_REGEXP: "Routing Transparency|loggregator|Logging|healthcheck is set to none|container metrics"
         FLAKE_ATTEMPTS: 2
 
-# good smoke 🚬
+# don't smoke 🚬
 - name: dont-smoke-bbl-up
   serial: true
   serial_groups: [dont-smoke]
@@ -1262,6 +1355,51 @@ jobs:
         CAPTURE_LOGS: true
         FLAKE_ATTEMPTS: 2
 
+- name: dont-smoke-networking-acceptance-tests
+  serial: true
+  serial_groups: [dont-smoke]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [dont-smoke-smoke-tests]
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/dont-smoke"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/dont-smoke/cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: extract-kubeconfig
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/dont-smoke"
+    - task: enable-docker-in-cf
+      file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/dont-smoke"
+        SYSTEM_DOMAIN: *dont-smoke-domain
+        ENABLED_FEATURE_FLAGS: |
+          diego_docker
+    - task: networking-acceptance-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        INTEGRATION_CONFIG_FILE: "environments/dont-smoke/cats_integration_config.json"
+
 # good-acceptance
 
 - name: good-acceptance-bbl-up
@@ -1474,7 +1612,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
-          passed: [dont-smoke-smoke-tests]
+          passed: [dont-smoke-networking-acceptance-tests]
           trigger: true
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
@@ -1494,6 +1632,51 @@ jobs:
         KUBECONFIG_CONTEXT: "bosh-good-acceptance-cluster"
         BBL_STATE_DIR: "environments/good-acceptance"
 
+- name: good-acceptance-networking-acceptance-tests
+  serial: true
+  serial_groups: [good-acceptance]
+  plan:
+    - in_parallel:
+        - get: cf-deployment-concourse-tasks
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+        - get: networking-oss-deployments
+          passed: [good-acceptance-install-cf-networking]
+    - task: updated-integration-configs
+      file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+        integration-configs: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/good-acceptance"
+        CATS_INTEGRATION_CONFIG_FILE: "environments/good-acceptance/cats_integration_config.json"
+      ensure:
+        put: networking-oss-deployments
+        params:
+          repository: updated-integration-configs
+          rebase: true
+    - task: extract-kubeconfig
+      file: cf-k8s-networking-ci/ci/tasks/k8s/extract-kubeconfig.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/good-acceptance"
+    - task: enable-docker-in-cf
+      file: cf-deployment-concourse-tasks/set-feature-flags/task.yml
+      input_mapping:
+        bbl-state: networking-oss-deployments
+      params:
+        BBL_STATE_DIR: "environments/good-acceptance"
+        SYSTEM_DOMAIN: *good-acceptance-domain
+        ENABLED_FEATURE_FLAGS: |
+          diego_docker
+    - task: networking-acceptance-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.yml
+      input_mapping:
+        integration-config: updated-integration-configs
+      params:
+        INTEGRATION_CONFIG_FILE: "environments/good-acceptance/cats_integration_config.json"
+
 - name: good-acceptance-acceptance-tests
   serial: true
   serial_groups: [good-acceptance]
@@ -1502,7 +1685,7 @@ jobs:
         - get: cf-deployment-concourse-tasks
         - get: cf-acceptance-tests
         - get: cf-k8s-networking
-          passed: [good-acceptance-install-cf-networking]
+          passed: [good-acceptance-networking-acceptance-tests]
           trigger: true
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
