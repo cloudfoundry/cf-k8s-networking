@@ -111,7 +111,7 @@ func (kc *KubeCtl) Run(args ...string) ([]byte, error) {
 		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
 		fmt.Sprintf("HOME=%s", filepath.Dir(kc.kubeConfigPath)), // fixme because kubectl will create another .kube folder inside our provided kubeConfgPath
 	}
-	fmt.Fprintf(GinkgoWriter, "+ Run %s\n", strings.Join(args, " "))
+	fmt.Fprintf(GinkgoWriter, "\n+ kubectl '%s'\n", strings.Join(args, "' '"))
 	output, err := cmd.CombinedOutput()
 	GinkgoWriter.Write(output)
 	return output, err
