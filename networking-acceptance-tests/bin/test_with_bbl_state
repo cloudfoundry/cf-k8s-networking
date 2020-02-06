@@ -11,7 +11,7 @@ set -u
 
 test_config_path="$1"
 bbl_state="$2"
-kube_config_path=${3:="${HOME}/.kube/config"}
+kube_config_path=${3:-"${HOME}/.kube/config"}
 
 # the extract_kubeconfig function takes a path to where the kubeconfig
 # should be stored, and a path to the directory containing bbl-state.json
