@@ -269,6 +269,10 @@ jobs:
         bbl-state: networking-oss-deployments
       params:
         KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
+    - task: enable-sidecar-injection
+      file: cf-k8s-networking-ci/ci/tasks/istio/enable-sidecar-injection.yml
+      params:
+        KUBECONFIG_CONTEXT: "bosh-eirini-dev-1-cluster"
 
 - name: eirini-dev-1-install-metacontroller
   serial: true
