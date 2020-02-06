@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
+	"time"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -15,6 +16,7 @@ const workloadsNamespace = "cf-workloads"
 const systemNamespace = "cf-system"
 
 const CurlSuccessfulExitCode = 0
+const CurlFailedToConnectHostExitCode = 7
 
 var _ = Describe("mTLS setup on a CF-k8s env", func() {
 	const cfAppContainerName = "opi"
@@ -42,7 +44,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 			Describe("when sending request from the app container to a system component", func() {
 				It("successfully establishes connection with the system component over mTLS", func() {
 					By("checking that the request headers on receiving side contains the SVID for the application")
-					output, exitCode, _, err := curlInPod(workloadsNamespace, appPodName, cfAppContainerName, fmt.Sprintf("http://%s/headers", sysComponentAddr))
+					output, exitCode, _, err := tryCurlInPod(workloadsNamespace, appPodName, cfAppContainerName, fmt.Sprintf("http://%s/headers", sysComponentAddr))
 					Expect(err).NotTo(HaveOccurred())
 					Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
@@ -54,7 +56,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 			Describe("when sending request from the proxy container in the app pod to a system component", func() {
 				Describe("over HTTP", func() {
 					It("cannot establish connection with the system component", func() {
-						_, exitCode, _, err := curlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("http://%s/headers", sysComponentAddr))
+						_, exitCode, _, err := tryCurlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("http://%s/headers", sysComponentAddr))
 						Expect(err).NotTo(HaveOccurred())
 						Expect(exitCode).NotTo(Equal(CurlSuccessfulExitCode))
 					})
@@ -62,7 +64,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 
 				Describe("over HTTPS without client credentials", func() {
 					It("cannot establish connection with the system component", func() {
-						_, exitCode, _, err := curlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("https://%s/headers", sysComponentAddr), "-k")
+						_, exitCode, _, err := tryCurlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("https://%s/headers", sysComponentAddr), "-k")
 						Expect(err).NotTo(HaveOccurred())
 						Expect(exitCode).NotTo(Equal(CurlSuccessfulExitCode))
 					})
@@ -71,7 +73,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 				Describe("over HTTPS with client credentials", func() {
 					It("successfully establishes connection with the system component over mTLS", func() {
 						By("checking that the request headers on receiving side contains the SVID for the application")
-						output, exitCode, _, err := curlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("https://%s/headers", sysComponentAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
+						output, exitCode, _, err := tryCurlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("https://%s/headers", sysComponentAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
 						Expect(err).NotTo(HaveOccurred())
 						Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
@@ -102,7 +104,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 			Describe("when sending request from the system component container to the app", func() {
 				It("successfully establishes connection with the system component over mTLS", func() {
 					By("checking that the request headers on receiving side contains the SVID for the system component")
-					output, exitCode, _, err := curlInPod(systemNamespace, systemComponentPod, systemComponentContainerName, fmt.Sprintf("http://%s/headers", appAddr))
+					output, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, systemComponentContainerName, fmt.Sprintf("http://%s/headers", appAddr))
 					Expect(err).NotTo(HaveOccurred())
 					Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
@@ -114,7 +116,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 			Describe("when sending request from the proxy container in the pod to a system component", func() {
 				Describe("over HTTP", func() {
 					It("cannot establish connection with the system component", func() {
-						_, exitCode, _, err := curlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("http://%s/headers", appAddr))
+						_, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("http://%s/headers", appAddr))
 						Expect(err).NotTo(HaveOccurred())
 						Expect(exitCode).NotTo(Equal(CurlSuccessfulExitCode))
 					})
@@ -122,7 +124,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 
 				Describe("over HTTPS without client credentials", func() {
 					It("cannot establish connection with the system component", func() {
-						_, exitCode, _, err := curlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("https://%s/headers", appAddr), "-k")
+						_, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("https://%s/headers", appAddr), "-k")
 						Expect(err).NotTo(HaveOccurred())
 						Expect(exitCode).NotTo(Equal(CurlSuccessfulExitCode))
 					})
@@ -131,7 +133,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 				Describe("over HTTPS with client credentials", func() {
 					It("successfully establishes connection with the system component over mTLS", func() {
 						By("checking that the request headers on receiving side contains the SVID for the application")
-						output, exitCode, _, err := curlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("https://%s/headers", appAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
+						output, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("https://%s/headers", appAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
 						Expect(err).NotTo(HaveOccurred())
 						Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
@@ -151,8 +153,26 @@ func parseSVID(headers string) string {
 	return re.FindString(headers)
 }
 
+func tryCurlInPod(namespace string, podName string, containerName string, url string, args ...string) (output string, exitCode int, responseCode int, err error) {
+	for retries := 5; retries > 0; retries-- {
+		output, exitCode, responseCode, err = curlInPod(namespace, podName, containerName, url, args...)
+
+		if err != nil {
+			return
+		}
+
+		if exitCode != CurlFailedToConnectHostExitCode {
+			return
+		}
+
+		time.Sleep(1 * time.Second)
+	}
+
+	return
+}
+
 func curlInPod(namespace string, podName string, containerName string, url string, args ...string) (output string, exitCode int, responseCode int, err error) {
-	curlCommand := "curl --silent " + url + " --write-out \"response_code:%{http_code}\\n\" " + strings.Join(args, " ")
+	curlCommand := "curl --silent " + url + " --write-out \"response_code:%{http_code}\\n\"" + strings.Join(args, " ")
 
 	output, exitCode, err = execInPod(namespace, podName, containerName, curlCommand)
 	if err != nil {
@@ -170,9 +190,10 @@ func curlInPod(namespace string, podName string, containerName string, url strin
 
 		lines = lines[0 : len(lines)-1]
 		output = strings.Join(lines, "\n")
+
 	}
 
-	return output, exitCode, responseCode, nil
+	return
 }
 
 func execInPod(namespace string, podName string, containerName string, command string) (string, int, error) {
