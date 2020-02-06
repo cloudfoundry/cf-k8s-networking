@@ -123,23 +123,24 @@ The `mTLS` port is only reachable internally via the service url (e.g. `nginx.cf
     system_component_external_address="nginx.${system_domain}"
     system_component_cert_prefix="nginx"
     
+    system_component_internal_address="nginx.cf-system.svc.cluster.local"
     system_component_internal_cert_prefix="nginx-internal"
 
     ytt -f examples/nginx-tls/nginx.yaml \
         -f examples/nginx-tls/istio-conf.yaml \
         -f examples/nginx-tls/values.yaml \
         --data-value nginxConfig="$(cat examples/nginx-tls/nginx.conf)" \
-        --data-value backendTlsKey="$(cat $system_component_cert_prefix.key)" \
-        --data-value backendTlsCert="$(cat $system_component_cert_prefix.crt)" \
+        --data-value backendTlsKey="$(cat ${system_component_external_address}.key)" \
+        --data-value backendTlsCert="$(cat ${system_component_external_address}.crt)" \
         --data-value backendCaCert="$(cat ${system_component_cert_prefix}-ca.crt)" \
-        --data-value internalBackendTlsKey="$(cat $system_component_internal_cert_prefix.key)" \
-        --data-value internalBackendTlsCert="$(cat $system_component_internal_cert_prefix.crt)" \
+        --data-value internalBackendTlsKey="$(cat ${system_component_internal_address}.key)" \
+        --data-value internalBackendTlsCert="$(cat ${system_component_internal_address}.crt)" \
         --data-value internalBackendCaCert="$(cat ${system_component_internal_cert_prefix}-ca.crt)" \
-        --data-value clientTlsKey="$(cat client.key)" \
-        --data-value clientTlsCert="$(cat client.crt)" \
+        --data-value clientTlsKey="$(cat client-cert.key)" \
+        --data-value clientTlsCert="$(cat client-cert.crt)" \
         --data-value clientCaCert="$(cat client-ca.crt)" \
-        --data-value ingressTlsKey="$(cat $ingress_router_cert_prefix.key)" \
-        --data-value ingressTlsCert="$(cat $ingress_router_cert_prefix.crt)" \
+        --data-value ingressTlsKey="$(cat ${wildcard_system_domain}.key)" \
+        --data-value ingressTlsCert="$(cat ${wildcard_system_domain}.crt)" \
         --data-value systemWildcardDomain="${wildcard_system_domain}" \
         --data-value systemComponentExternalAddress="${system_component_external_address}" \
         | kapp deploy -a sys-component -f - -y
