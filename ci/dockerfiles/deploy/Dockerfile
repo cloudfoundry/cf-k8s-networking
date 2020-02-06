@@ -2,6 +2,11 @@ FROM relintdockerhubpushbot/cf-deployment-concourse-tasks
 MAINTAINER https://github.com/cloudfoundry/cf-k8s-networking
 
 ENV HELM_VERSION 2.12.3
+ENV KAPP_VERSION 0.19.0
+ENV KAPP_CHECKSUM "99a2597d29ab9cf75d636a8220cb7e5ee315ac85b7adeb48b6c1ccb56a5cf477"
+ENV YTT_VERSION 0.25.0
+ENV YTT_CHECKSUM "2ccd2c74fea87748515ed3fd74cd45c31f91472fabadf42e6a958f52312e3b47"
+
 
 RUN \
       apt update && \
@@ -56,13 +61,13 @@ RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-li
   mv /tmp/linux-amd64/helm /usr/local/bin/helm
 
 # install k14s utils (ytt, kapp)
-RUN  wget -O- https://github.com/k14s/ytt/releases/download/v0.22.0/ytt-linux-amd64 > /tmp/ytt && \
-    echo "7143f8c1300ae13fd7b5ed53abc02867a86b6329afaa85413eb767eddf189639  /tmp/ytt" | shasum -c - && \
+RUN  wget -O- https://github.com/k14s/ytt/releases/download/${YTT_VERSION}/ytt-linux-amd64 > /tmp/ytt && \
+    echo "${YTT_CHECKSUM}  /tmp/ytt" | shasum -c - && \
     mv /tmp/ytt /usr/local/bin/ytt && \
     chmod +x /usr/local/bin/ytt && \
 
-    wget -O- https://github.com/k14s/kapp/releases/download/v0.16.0/kapp-linux-amd64 > /tmp/kapp && \
-    echo "d9d03c83a5d0b6463e1b249e14c38aceb121e46094af6040c4596fe932caf181  /tmp/kapp" | shasum -c - && \
+    wget -O- https://github.com/k14s/kapp/releases/download/${KAPP_VERSION}/kapp-linux-amd64 > /tmp/kapp && \
+    echo "${KAPP_CHECKSUM}  /tmp/kapp" | shasum -c - && \
     mv /tmp/kapp /usr/local/bin/kapp && \
     chmod +x /usr/local/bin/kapp
 
