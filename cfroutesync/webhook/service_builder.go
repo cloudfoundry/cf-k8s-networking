@@ -45,7 +45,7 @@ func routeToServices(route models.Route, template Template) []Service {
 					}},
 			},
 		}
-		service.ObjectMeta.Labels["cloudfoundry.org/app"] = dest.App.Guid
+		service.ObjectMeta.Labels["cloudfoundry.org/app_guid"] = dest.App.Guid
 		service.ObjectMeta.Labels["cloudfoundry.org/process"] = dest.App.Process.Type
 		service.ObjectMeta.Labels["cloudfoundry.org/route"] = route.Guid
 		service.ObjectMeta.Annotations["cloudfoundry.org/route-fqdn"] = route.FQDN()
