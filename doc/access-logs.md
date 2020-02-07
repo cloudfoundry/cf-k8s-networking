@@ -3,40 +3,38 @@
 ### Fields
 
 * `app_id`: Cloud Foundry application GUID
-* `authority`: Authority (for HTTP/2) or Host header for HTTP/1.1 of the request; see [RFC7540](https://tools.ietf.org/html/rfc7540#section-8.1.2.3) for more details
+* `authority`: `Authority` (HTTP/2) or `Host` header (HTTP/1.1) of the request; see [RFC7540](https://tools.ietf.org/html/rfc7540#section-8.1.2.3) for more details
 * `bytes_received`: Body bytes received, [%BYTES_RECEIVED% in Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=BYTES_RECEIVED)
-* `bytes_sent`: Body bytes sent. For WebSocket connection it will also include response header bytes; [%BYTES_SENT% in Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=BYTES_SENT)
-* `downstream_local_address`: Local address of the downstream connection; see [%DOWNSTREAM_LOCAL_ADDRESS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=DOWNSTREAM_LOCAL_ADDRESS),
-* `downstream_remote_address`: Remote address of the downstream connection; see [%DOWNSTREAM_REMOTE_ADDRESS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=DOWNSTREAM_REMOTE_ADDRESS),
-* `duration`: Total duration in milliseconds of the request from the start time to the last byte out; see [%DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=DURATION),
+* `bytes_sent`: Body bytes sent. For WebSocket connections it will also include response header bytes; [%BYTES_SENT% in Envoy](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=BYTES_SENT)
+* `downstream_local_address`: Local address of the downstream connection; see [%DOWNSTREAM_LOCAL_ADDRESS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=DOWNSTREAM_LOCAL_ADDRESS)
+* `downstream_remote_address`: Remote address of the downstream connection; see [%DOWNSTREAM_REMOTE_ADDRESS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=DOWNSTREAM_REMOTE_ADDRESS)
+* `duration`: Total duration in milliseconds of the request from the start time to the last byte out; see [%DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=DURATION)
 * `method`: Method of HTTP request
 * `organization_id`:  Cloud Foundry organization GUID of the application
 * `path`: HTTP request path
-* `process_type`: `Procfile` process type
-* `protocol`: see [%PROTOCOL% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=PROTOCOL),
-* `referer`: HTTP Referer header "%REQ(REFERER)%",
-* `request_id`: Unique ID for the request "%REQ(X-REQUEST-ID)%",
-* `requested_server_name`: String value set on ssl connection socket for Server Name Indication (SNI); see [%REQUESTED_SERVER_NAME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=REQUESTED_SERVER_NAME),
-* `response_code`: HTTP response code. Note that a response code of ‘0’ means that the server never sent the beginning of a response. This generally means that the (downstream) client disconnected; see [%RESPONSE_CODE% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_CODE),
-* `response_duration`: Total duration in milliseconds of the request from the start time to the first byte read from the workload; see [%RESPONSE_DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_DURATION),
-* `response_flags`: Additional details about the response or connection, if any; see [%RESPONSE_FLAGS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_FLAGS) for flags description,
-* `response_tx_duration`: Total duration in milliseconds of the request from the first byte read from the workload to the last byte sent downstream; see [%RESPONSE_TX_DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_TX_DURATION),
-* `route_name`: see [%ROUTE_NAME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=ROUTE_NAME),
+* `process_type`: [Cloud Foundry Process Type](https://v3-apidocs.cloudfoundry.org/version/3.80.0/index.html#processes) for the backend being routed to.
+* `protocol`: See [%PROTOCOL% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=PROTOCOL)
+* `referer`: HTTP `Referer` header "%REQ(REFERER)%"
+* `request_id`: Unique ID for the request "%REQ(X-REQUEST-ID)%"
+* `requested_server_name`: String value set on ssl connection socket for Server Name Indication (SNI); see [%REQUESTED_SERVER_NAME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=REQUESTED_SERVER_NAME)
+* `response_code`: HTTP response code. Note that a response code of ‘0’ means that the server never sent the beginning of a response. This generally means that the (downstream) client disconnected; see [%RESPONSE_CODE% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_CODE)
+* `response_duration`: Total duration in milliseconds of the request from the start time to the first byte read from the workload; see [%RESPONSE_DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_DURATION)
+* `response_flags`: Additional details about the response or connection, if any; see [%RESPONSE_FLAGS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_FLAGS) for flags description
+* `response_tx_duration`: Total duration in milliseconds of the request from the first byte read from the workload to the last byte sent downstream; see [%RESPONSE_TX_DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_TX_DURATION)
+* `route_name`: see [%ROUTE_NAME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=ROUTE_NAME)
 * `space_id`: Cloud Foundry space GUID of the application
-* `start_time`: Request start time including milliseconds; see [%START_TIME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=START_TIME),
-* `upstream_cluster`: see [%UPSTREAM_CLUSTER% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_CLUSTER),
-* `upstream_host`: see [%UPSTREAM_HOST% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_HOST),
-* `upstream_local_address`: see [%UPSTREAM_LOCAL_ADDRESS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_LOCAL_ADDRESS),
+* `start_time`: Request start time including milliseconds; see [%START_TIME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=START_TIME)
+* `upstream_cluster`: see [%UPSTREAM_CLUSTER% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_CLUSTER)
+* `upstream_host`: see [%UPSTREAM_HOST% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_HOST)
+* `upstream_local_address`: see [%UPSTREAM_LOCAL_ADDRESS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_LOCAL_ADDRESS)
 * `upstream_service_time`: Time in milliseconds spent by the workload processing the request; see [Duration Fields](#duration-fields) for more info and also see [Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/http/http_filters/router_filter#x-envoy-upstream-service-time)
-* `upstream_transport_failure_reason`: If upstream connection failed due to transport socket (e.g. TLS handshake), provides the failure reason from the transport socket; see [%UPSTREAM_TRANSPORT_FAILURE_REASON% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_TRANSPORT_FAILURE_REASON),
-* `user_agent`: HTTP request User-Agent header
+* `upstream_transport_failure_reason`: If upstream connection failed due to transport socket (e.g. TLS handshake), provides the failure reason from the transport socket; see [%UPSTREAM_TRANSPORT_FAILURE_REASON% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_TRANSPORT_FAILURE_REASON)
+* `user_agent`: HTTP request `User-Agent` header
 * `x_b3_parentspanid`: Used for request tracing, see [b3-propagation](https://github.com/openzipkin/b3-propagation) for more info
 * `x_b3_spanid`: Used for request tracing, see [b3-propagation](https://github.com/openzipkin/b3-propagation) for more info
 * `x_b3_traceid`: Used for request tracing, see [b3-propagation](https://github.com/openzipkin/b3-propagation) for more info
 * `x_forwarded_for`: IP of the client used to initiate the request
-* `x_forwarded_proto`: Protocol a client used to initiate the request, can be `http` or `https` for HTTP traffic.
-
-
+* `x_forwarded_proto`: Protocol a client used to initiate the request. Can be `http` or `https` for HTTP traffic.
 
 ### Duration fields
 
