@@ -1,19 +1,20 @@
 package acceptance_test
 
 import (
-	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
 	"encoding/json"
 	"fmt"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
-	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
-	"github.com/onsi/gomega/gexec"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
 	"time"
+
+	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
+	"github.com/cloudfoundry-incubator/cf-test-helpers/workflowhelpers"
+	"github.com/onsi/gomega/gexec"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -48,7 +49,6 @@ func TestAcceptance(t *testing.T) {
 		if err != nil {
 			panic(err)
 		}
-
 
 		TestSetup = workflowhelpers.NewTestSuiteSetup(config)
 		TestSetup.Setup()
