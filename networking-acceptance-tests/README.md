@@ -17,15 +17,7 @@ Other requirements:
 
 * You should have `kubectl` config with the access to system and workload namespaces to GET/POST/PUT/PATCH pods, services, service accounts and execute commands in pods.
 
-* JSON configuration file of the following format (subset of [CATS config file](https://github.com/cloudfoundry/cf-acceptance-tests#test-configuration)):
-
-  ```json
-  {
-    "api": "URL for CF API",
-    "admin_user": "CF admin user username",
-    "admin_password": "CF admin user password"
-  }
-  ```
+* [CATS config file](https://github.com/cloudfoundry/cf-acceptance-tests#test-configuration) of the targeted environment (Note: the required fields are only `api`, `admin_user`, and `admin_password`)
   
 * `diego_docker` feature flag enabled in your CF deployment:
 
