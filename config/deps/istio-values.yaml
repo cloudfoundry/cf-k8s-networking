@@ -1,3 +1,6 @@
+gateways:
+  istio-ingressgateway:
+    externalTrafficPolicy: Local
 sidecarInjectorWebhook:
   rewriteAppHTTPProbe: true
 global:
