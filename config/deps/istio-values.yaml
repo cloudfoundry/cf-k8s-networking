@@ -26,7 +26,6 @@ global:
         "response_duration": "%RESPONSE_DURATION%",
         "response_flags": "%RESPONSE_FLAGS%",
         "response_tx_duration": "%RESPONSE_TX_DURATION%",
-        "route_name": "%ROUTE_NAME%",
         "space_id": "%REQ(CF-SPACE-ID)%",
         "start_time": "%START_TIME%",
         "upstream_cluster": "%UPSTREAM_CLUSTER%",

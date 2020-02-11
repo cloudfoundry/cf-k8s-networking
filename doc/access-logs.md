@@ -30,7 +30,6 @@ kubectl logs -l app=istio-ingressgateway -c istio-proxy -n istio-system
 * `response_duration`: Total duration in milliseconds of the request from the start time to the first byte read from the workload; see [%RESPONSE_DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_DURATION)
 * `response_flags`: Additional details about the response or connection, if any; see [%RESPONSE_FLAGS% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_FLAGS) for flags description
 * `response_tx_duration`: Total duration in milliseconds of the request from the first byte read from the workload to the last byte sent downstream; see [%RESPONSE_TX_DURATION% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=RESPONSE_TX_DURATION)
-* `route_name`: see [%ROUTE_NAME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=ROUTE_NAME)
 * `space_id`: Cloud Foundry space GUID of the application
 * `start_time`: Request start time including milliseconds; see [%START_TIME% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=START_TIME)
 * `upstream_cluster`: see [%UPSTREAM_CLUSTER% in Envoy docs](https://www.envoyproxy.io/docs/envoy/latest/configuration/observability/access_log.html?highlight=UPSTREAM_CLUSTER)
@@ -83,7 +82,6 @@ Latencies above 100ms can indicate problems with the network. An alert value on 
   "response_duration": "3",
   "response_flags": "-",
   "response_tx_duration": "0",
-  "route_name": "-",
   "space_id": "9765ce8d-5098-4756-a270-490c32233e4a",
   "start_time": "2020-02-07T00:47:45.516Z",
   "upstream_cluster": "outbound|8080||s-d77075c0-5c71-4d93-8c39-b8311c19be5d.cf-workloads.svc.cluster.local",
