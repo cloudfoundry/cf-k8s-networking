@@ -8,7 +8,8 @@ workloadsNamespace: cf-workloads
 istioNamespace: istio-system
 
 cfroutesync:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:latest
+  image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
+  tag: latest
 
   ccCA: 'base64_encoded_cloud_controller_ca'
   ccBaseURL: 'https://api.example.com'

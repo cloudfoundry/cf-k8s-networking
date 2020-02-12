@@ -45,7 +45,7 @@ spec:
     spec:
       containers:
         - name: cfroutesync
-          image: #@ data.values.cfroutesync.image
+          image: #@ "{}:{}".format(data.values.cfroutesync.image, data.values.cfroutesync.tag)
           args: [ "-c", "/etc/cfroutesync-config"]
           imagePullPolicy: Always
           envFrom:
