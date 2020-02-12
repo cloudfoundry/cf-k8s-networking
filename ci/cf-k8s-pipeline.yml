@@ -58,10 +58,21 @@ resources:
 
 - name: cf-deployment
   type: git
+  icon: github-box
   source:
     uri: git@github.com:cloudfoundry/cf-deployment.git
     private_key: ((github_private_key.private_key))
     branch: release-candidate
+
+- name: cf-for-k8s-master
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    ignore_paths:
+      - ci/**
 
 - name: cf-acceptance-tests
   type: git
@@ -132,6 +143,7 @@ groups:
     - dont-smoke-deploy-cf
     - dont-smoke-smoke-tests
     - dont-smoke-networking-acceptance-tests
+    - dont-smoke-for-k8s-deploy-and-test
   - name: good-acceptance
     jobs:
     - good-acceptance-bbl-up
@@ -1093,6 +1105,36 @@ jobs:
         FLAKE_ATTEMPTS: 2
 
 # don't smoke 🚬
+- name: dont-smoke-for-k8s-deploy-and-test
+  serial: true
+  plan:
+    - get: cf-for-k8s-master
+      trigger: true
+    - get: cf-k8s-networking-ci
+
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: &dont-smoke-for-k8s-cluster-name dont-smoke-for-k8s
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf.yml
+      params:
+        CF_DOMAIN: &dont-smoke-for-k8s-domain "dont-smoke-for-k8s.routing.lol"
+        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+    - task: run-smoke-test
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN: *dont-smoke-for-k8s-domain
+        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
 - name: dont-smoke-bbl-up
   serial: true
   serial_groups: [dont-smoke]
