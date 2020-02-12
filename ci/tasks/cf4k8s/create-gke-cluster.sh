@@ -16,7 +16,7 @@ function create_cluster() {
 
     if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
         echo "${CLUSTER_NAME} already exists! Destroying..."
-        gcloud container clusters delete ${CLUSTER_NAME}
+        gcloud container clusters delete ${CLUSTER_NAME} --quiet
     fi
 
     echo "Creating cluster: ${CLUSTER_NAME} ..."

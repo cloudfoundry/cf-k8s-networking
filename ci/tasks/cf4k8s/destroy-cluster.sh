@@ -17,7 +17,7 @@ function destroy_cluster() {
 
     if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
         echo "Destroying ${CLUSTER_NAME}..."
-        gcloud container clusters delete ${CLUSTER_NAME}
+        gcloud container clusters delete ${CLUSTER_NAME} --quiet
     fi
 }
 
