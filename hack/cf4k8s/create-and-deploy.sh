@@ -8,11 +8,11 @@ set -euo pipefail
 : "${SHARED_DNS_ZONE_NAME:="routing-lol"}"
 
 function create_and_target_cluster() {
-    if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
+    if gcloud container clusters describe ${CLUSTER_NAME} --project cf-routing --zone us-west1-a > /dev/null; then
         echo "${CLUSTER_NAME} already exists! Continuing..."
     else
         echo "Creating cluster: ${CLUSTER_NAME} ..."
-        gcloud container clusters create ${CLUSTER_NAME} --zone us-west1-a --machine-type=n1-standard-2
+        gcloud container clusters create ${CLUSTER_NAME} --project cf-routing --zone us-west1-a --machine-type=n1-standard-4
     fi
     gcloud container clusters get-credentials ${CLUSTER_NAME} --zone us-west1-a --project cf-routing
 }
@@ -71,6 +71,13 @@ function configure_dns() {
   echo "Contents of transaction.yaml:"
   cat transaction.yaml
   gcloud dns record-sets transaction execute --zone="${SHARED_DNS_ZONE_NAME}" --verbosity=debug
+
+  resolved_ip=''
+  while [ "$resolved_ip" != "$external_static_ip" ]; do
+    echo "Waiting for DNS to propagate..."
+    sleep 5
+    resolved_ip=$(nslookup "*.${CF_DOMAIN}" | grep Address | grep -v ':53' | cut -d ' ' -f2)
+  done
 }
 
 function main() {
