@@ -11,10 +11,11 @@ set -euo pipefail
 : "${GCP_PROJECT:?}"
 : "${SHARED_DNS_ZONE_NAME:?}"
 
+function gcloud_auth() {
+    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
+}
 
 function destroy_cluster() {
-    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
-
     if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
         echo "Destroying ${CLUSTER_NAME}..."
         gcloud container clusters delete ${CLUSTER_NAME} --quiet
@@ -37,6 +38,7 @@ function delete_dns() {
 }
 
 function main() {
+    gcloud_auth
     delete_dns
     destroy_cluster
 }
