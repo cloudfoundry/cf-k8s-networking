@@ -24,13 +24,8 @@ scrape_configs:
 #@   return yaml.encode(overlay.apply(yaml.decode(a), additional_conf()))
 #@ end
 
-#@overlay/match by=overlay.all
+#@overlay/match by=overlay.subset({"kind": "ConfigMap", "metadata":{"name": "prometheus"}})
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: prometheus
-  namespace: #@ data.values.istioNamespace
 data:
   #@overlay/replace via=update_scrapes
   prometheus.yml: ""
