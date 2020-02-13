@@ -6,11 +6,11 @@ set -euo pipefail
 : "${INTEGRATION_CONFIG_FILE:?}"
 
 function main() {
-  local kubeconfig="${PWD}/kubeconfig/config"
+  local kubeconfig_file="${PWD}/kubeconfig/config"
   local config="${PWD}/integration-config/${INTEGRATION_CONFIG_FILE}"
 
   cd cf-k8s-networking/networking-acceptance-tests
-  ./bin/test_local "${config}" "${kubeconfig}"
+  ./bin/test_local "${config}" "${kubeconfig_file}"
 }
 
 
