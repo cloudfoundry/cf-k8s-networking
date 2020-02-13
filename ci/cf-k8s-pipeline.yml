@@ -29,7 +29,7 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
-      - config/deps/istio-values.yaml
+      - config/istio-install-config/istio-values.yaml
 
 - name: networking-oss-deployments
   type: git

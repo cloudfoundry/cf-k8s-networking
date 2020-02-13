@@ -12,26 +12,15 @@ set -euo pipefail
 function install_istio() {
   workspace=${PWD}
   export KUBECONFIG="${PWD}/kubeconfig/config"
-  istio_values_file="${PWD}/cf-k8s-networking/config/deps/istio-values.yaml"
-  grafana_values_file="${PWD}/cf-k8s-networking-ci/ci/istio-config/grafana-config.yaml"
+  istio_values_file="${PWD}/cf-k8s-networking/config/istio-install-config/istio-values.yaml"
   custom_metrics_file="${PWD}/cf-k8s-networking/config/deps/istio-cfrequestcount.yaml"
   mtls_mesh_policy_file="${PWD}/cf-k8s-networking/config/deps/mtls-mesh-policy.yaml"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
-    kubectl create namespace istio-system || true
 
-    # Install Istio CRDs
-    helm template install/kubernetes/helm/istio-init --name istio-init --namespace istio-system | kubectl apply -f -
-
-    # Wait to propagate
-    kubectl -n istio-system wait --for=condition=complete job --all
-
-    # Install Istio
-    helm template install/kubernetes/helm/istio --name istio --namespace istio-system \
-      -f "${istio_values_file}"  \
-      -f "${grafana_values_file}" \
-      | kubectl apply -f -
+    # Install Istio with Istioctl
+    istioctl manifest apply -f <(ytt -f "${istio_values_file}") --set values.grafana.enabled=true
 
     # Install custom metrics
     kubectl apply -f "${custom_metrics_file}"

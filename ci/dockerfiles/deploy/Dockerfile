@@ -2,10 +2,11 @@ FROM relintdockerhubpushbot/cf-deployment-concourse-tasks
 MAINTAINER https://github.com/cloudfoundry/cf-k8s-networking
 
 ENV HELM_VERSION 2.12.3
-ENV KAPP_VERSION 0.19.0
+ENV KAPP_VERSION "v0.19.0"
 ENV KAPP_CHECKSUM "99a2597d29ab9cf75d636a8220cb7e5ee315ac85b7adeb48b6c1ccb56a5cf477"
-ENV YTT_VERSION 0.25.0
+ENV YTT_VERSION "v0.25.0"
 ENV YTT_CHECKSUM "2ccd2c74fea87748515ed3fd74cd45c31f91472fabadf42e6a958f52312e3b47"
+ENV ISTIOCTL_VERSION 1.4.3
 
 
 RUN \
@@ -54,6 +55,17 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 # install kubectl
 RUN apt-get install kubectl
+
+# install istioctl
+RUN tmp=$(mktemp -d /tmp/istioctl.XXXXXX) && \
+  filename="istioctl-${ISTIOCTL_VERSION}-linux.tar.gz" && \
+  cd "$tmp" && \
+  URL="https://github.com/istio/istio/releases/download/${ISTIOCTL_VERSION}/istioctl-${ISTIOCTL_VERSION}-linux.tar.gz" && \
+  curl -sLO "${URL}" &&\
+  tar -xzf "${filename}" && \
+  mv "${tmp}/istioctl" /usr/local/bin/istioctl && \
+  chmod +x /usr/local/bin/istioctl && \
+  rm -r "${tmp}"
 
 # Get Helm
 RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz -P /tmp && \
