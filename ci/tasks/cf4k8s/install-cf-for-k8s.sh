@@ -54,7 +54,7 @@ function configure_dns() {
     while [ "$resolved_ip" != "$external_static_ip" ]; do
       echo "Waiting for DNS to propagate..."
       sleep 5
-      resolved_ip=$(nslookup "*.$DNS_DOMAIN" | grep Address | grep -v ':53' | cut -d ' ' -f2)
+      resolved_ip=$(nslookup "*.${CF_DOMAIN}" | grep Address | grep -v ':53' | cut -d ' ' -f2)
     done
 }
 
