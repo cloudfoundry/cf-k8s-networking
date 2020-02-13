@@ -52,7 +52,7 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
     curl https://packages.cloud.google.com/apt/doc/apt-key.gpg | apt-key add - && \
     apt-get update -y && apt-get install google-cloud-sdk -y
 
-# install kubectl using gcloud
+# install kubectl
 RUN apt-get install kubectl
 
 # Get Helm

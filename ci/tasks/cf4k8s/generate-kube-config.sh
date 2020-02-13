@@ -11,10 +11,10 @@ set -euo pipefail
 
 
 function extract_kubeconfig() {
-     export KUBECONFIG=kubeconfig/config
+    export KUBECONFIG=kubeconfig/config
 
-     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
-     gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
+    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
+    gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
 
     echo "kubeconfig extracted! 🤗"
 }
