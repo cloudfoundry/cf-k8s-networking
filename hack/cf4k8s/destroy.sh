@@ -11,7 +11,7 @@ set -euo pipefail
 : "${SHARED_DNS_ZONE_NAME:="routing-lol"}"
 
 function delete_cluster() {
-    if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
+    if gcloud container clusters describe --zone us-west1-a ${CLUSTER_NAME} > /dev/null; then
         echo "Deleting cluster: ${CLUSTER_NAME} ..."
         gcloud container clusters delete ${CLUSTER_NAME} --zone us-west1-a
     else
