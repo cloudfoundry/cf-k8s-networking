@@ -18,9 +18,10 @@ function install_istio() {
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
 
-    # Install Istio with its dependencies
+    # Install Istio with its dependencies (--dangerous-allow-all-symlink-destinations is required for process substitution on Linux)
     ytt \
-      -f <("${generate_script}" --set values.grafana.enabled=true) \
+      --dangerous-allow-all-symlink-destinations \
+      -f istio.yaml=<("${generate_script}" --set values.grafana.enabled=true) \
       -f "${deps_config_dir}" \
       | kubectl apply -f -
 
