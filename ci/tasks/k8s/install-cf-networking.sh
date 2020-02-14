@@ -35,19 +35,6 @@ function install() {
     -f - \
     -y
 
-  echo "Updating Prometheus config..."
-  prometheus_file="$(mktemp -u).yml"
-  kubectl get -n istio-system cm prometheus -o yaml > ${prometheus_file}
-
-  ytt \
-    -f "cf-k8s-networking/config/cfroutesync/values.yaml" \
-    -f "${prometheus_file}" \
-    -f "cf-k8s-networking/config/deps/prometheus-config.yaml" | \
-    kubectl apply -f -
-
-  echo "Restart Prometheus pods with new config..."
-  kubectl delete pods -n istio-system -l app=prometheus
-  
   echo "Done! 🎉"
 }
 

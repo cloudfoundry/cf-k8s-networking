@@ -12,21 +12,18 @@ set -euo pipefail
 function install_istio() {
   workspace=${PWD}
   export KUBECONFIG="${PWD}/kubeconfig/config"
-  istio_values_file="${PWD}/cf-k8s-networking/config/istio-install-config/istio-values.yaml"
-  custom_metrics_file="${PWD}/cf-k8s-networking/config/deps/istio-cfrequestcount.yaml"
-  mtls_mesh_policy_file="${PWD}/cf-k8s-networking/config/deps/mtls-mesh-policy.yaml"
+  deps_config_dir="${PWD}/cf-k8s-networking/config/deps"
+  generate_script="${PWD}/cf-k8s-networking/config/scripts/istio/generate.sh"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
 
-    # Install Istio with Istioctl
-    istioctl manifest apply -f <(ytt -f "${istio_values_file}") --set values.grafana.enabled=true
+    # Install Istio with its dependencies
+    ytt \
+      -f <("${generate_script}" --set values.grafana.enabled=true) \
+      -f "${deps_config_dir}" \
+      | kubectl apply -f -
 
-    # Install custom metrics
-    kubectl apply -f "${custom_metrics_file}"
-
-    # Configure mTLS in default mesh policy
-    kubectl apply -f "${mtls_mesh_policy_file}"
   popd
 }
 

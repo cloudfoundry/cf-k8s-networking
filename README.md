@@ -19,7 +19,7 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 
 ### Istio
 * Install [Istio](https://istio.io/docs/setup/install/kubernetes/) to the Kubernetes cluster.
-* Include the [istio-values.yaml](config/istio-install-config/istio-values.yaml) in your Istio installation.
+* Include the [istio-values.yaml](config/scripts/istio/istio-values.yaml) in your Istio installation.
 
     **Note:** As an example, in our CI we are installing Istio via the [deploy-istio.sh](ci/tasks/istio/deploy-istio.sh) task.
 
