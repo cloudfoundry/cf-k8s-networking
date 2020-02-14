@@ -1130,15 +1130,12 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
     - task: generate-integration-configs
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
-    - task: generate-kube-config
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-kube-config.yml
-      params:
-        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-    - task: networking-acceptance-tests
-      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance.yml
+    - task: networking-acceptance-gke-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
       params:
         INTEGRATION_CONFIG_FILE: "config.json"
+        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
