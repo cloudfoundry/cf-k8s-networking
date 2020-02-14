@@ -14,4 +14,4 @@ fi
 echo "generating Istio resource definitions..." >&2
 mkdir -p "${SCRIPT_DIR}/../../istio"
 istioctl manifest generate -f "${SCRIPT_DIR}/istio-values.yaml" "$@" | \
-  ytt --ignore-unknown-comments -f - -f "${SCRIPT_DIR}/overlays.yml"
+  ytt --ignore-unknown-comments -f - -f "${SCRIPT_DIR}/overlays.yaml"
