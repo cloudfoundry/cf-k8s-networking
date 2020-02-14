@@ -5,7 +5,6 @@ set -euo pipefail
 # ENV
 : "${KUBECONFIG_CONTEXT:?}"
 : "${BBL_STATE_DIR:?}"
-: "${SYSTEM_NAMESPACE:?}"
 
 function install() {
   workspace=${PWD}
@@ -28,12 +27,20 @@ function install() {
   image_repo="gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:${git_sha}"
 
   echo "Deploying image '${image_repo}' to ☸️ Kubernetes..."
-  ytt -f cf-k8s-networking/config/cfroutesync/ -f ${values_yml} \
+
+  prometheus_file="$(mktemp -u).yml"
+  kubectl get -n istio-system cm prometheus -o yaml > ${prometheus_file}
+
+  ytt \
+    -f cf-k8s-networking/config/cfroutesync/ \
+    -f "${prometheus_file}" \
     -f cf-k8s-networking/cfroutesync/crds/routebulksync.yaml \
-    --data-value-yaml cfroutesync.image=${image_repo} | \
-    kapp deploy -n "${SYSTEM_NAMESPACE}" -a cfroutesync \
-    -f - \
-    -y
+    -f "${values_yml}" \
+    --data-value-yaml cfroutesync.image=${image_repo} \
+    | kapp deploy -a cfroutesync -y -f -
+
+  echo "Restart Prometheus pods with new config..."
+  kubectl delete pods -n istio-system -l app=prometheus
 
   echo "Done! 🎉"
 }

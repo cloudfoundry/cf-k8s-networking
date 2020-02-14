@@ -24,7 +24,7 @@ scrape_configs:
 #@   return yaml.encode(overlay.apply(yaml.decode(a), additional_conf()))
 #@ end
 
-#@overlay/match by=overlay.subset({"kind": "ConfigMap", "metadata":{"name": "prometheus"}})
+#@overlay/match by=overlay.subset({"kind": "ConfigMap", "metadata":{"name": "prometheus",  "namespace": "istio-system"}}),expects=1
 ---
 data:
   #@overlay/replace via=update_scrapes

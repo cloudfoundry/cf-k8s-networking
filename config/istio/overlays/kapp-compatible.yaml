@@ -1,5 +1,7 @@
 #@ load("@ytt:overlay", "overlay")
 
+#! This overlays are required to make Istio compatible with kapp deploy
+
 #! remove empty caBundle key to avoid having kapp consider it
 #! as a change from what cluster automatically fills in
 #@overlay/match by=overlay.subset({"kind":"MutatingWebhookConfiguration", "metadata":{"name": "istio-sidecar-injector"}})

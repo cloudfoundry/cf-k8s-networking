@@ -12,17 +12,14 @@ set -euo pipefail
 function install_istio() {
   workspace=${PWD}
   export KUBECONFIG="${PWD}/kubeconfig/config"
-  deps_config_dir="${PWD}/cf-k8s-networking/config/deps"
-  generate_script="${PWD}/cf-k8s-networking/config/scripts/istio/generate.sh"
+  generate_script="${PWD}/cf-k8s-networking/config/istio/generate.sh"
 
   pushd istio > /dev/null
     kubectl config use-context ${KUBECONFIG_CONTEXT}
 
     # Install Istio with its dependencies (--dangerous-allow-all-symlink-destinations is required for process substitution on Linux)
-    ytt \
-      --dangerous-allow-all-symlink-destinations \
+    ytt --dangerous-allow-all-symlink-destinations \
       -f istio.yaml=<("${generate_script}" --set values.grafana.enabled=true) \
-      -f "${deps_config_dir}" \
       | kubectl apply -f -
 
   popd
