@@ -10,7 +10,7 @@ set -euo pipefail
 : "${GCP_SERVICE_ACCOUNT_KEY:?}"
 : "${GCP_PROJECT:?}"
 
-function extract_kubeconfig() {
+function main() {
     export KUBECONFIG=kubeconfig/config
 
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
