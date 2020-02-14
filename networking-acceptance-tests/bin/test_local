@@ -13,7 +13,7 @@ set -u
 kube_config_path=${2:-"${HOME}/.kube/config"}
 test_config_path="$1"
 
-EXPORT KUBECONFIG=$kube_config_path
+export KUBECONFIG=$kube_config_path
 kubectl cluster-info
 
 CONFIG="${test_config_path}" ginkgo -trace -progress -r -failOnPending -randomizeAllSpecs -race -v .
