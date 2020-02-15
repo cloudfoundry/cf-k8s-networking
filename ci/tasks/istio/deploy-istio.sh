@@ -18,6 +18,8 @@ function install_istio() {
     kubectl config use-context ${KUBECONFIG_CONTEXT}
 
     # Install Istio with its dependencies (--dangerous-allow-all-symlink-destinations is required for process substitution on Linux)
+    # fixed in https://github.com/k14s/ytt/commit/7e1876698b4ea633ac44368168b43f51d55f5645
+    # removed when ytt is upgraded
     ytt --dangerous-allow-all-symlink-destinations \
       -f istio.yaml=<("${generate_script}" --set values.grafana.enabled=true) \
       | kubectl apply -f -
