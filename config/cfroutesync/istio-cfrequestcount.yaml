@@ -1,3 +1,5 @@
+#@ load("commons.lib.yaml", "labels")
+
 #! handler, instance, and rule to add custom cfrequestcount metric
 #! this custom metric adds the "source_name" label_name so requests can be
 #! counted by ingressgateway pod
@@ -6,6 +8,7 @@ kind: handler
 metadata:
   name: cf-prometheus
   namespace: istio-system
+  labels: #@ labels()
 spec:
   compiledAdapter: prometheus
   params:

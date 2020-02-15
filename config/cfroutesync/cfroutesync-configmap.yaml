@@ -1,3 +1,4 @@
+#@ load("commons.lib.yaml", "labels")
 #@ load("@ytt:data", "data")
 ---
 apiVersion: v1
@@ -8,6 +9,7 @@ metadata:
   annotations:
     kapp.k14s.io/versioned: ""
     kapp.k14s.io/num-versions: "2"
+  labels: #@ labels()
 data:
   ccBaseURL: #@ data.values.cfroutesync.ccBaseURL
   uaaBaseURL: #@ data.values.cfroutesync.uaaBaseURL

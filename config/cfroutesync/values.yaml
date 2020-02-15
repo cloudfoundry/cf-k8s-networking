@@ -9,6 +9,7 @@ istioNamespace: istio-system
 
 cfroutesync:
   image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync:latest
+  version: "0.0.1-alpha1"
 
   ccCA: 'base64_encoded_cloud_controller_ca'
   ccBaseURL: 'https://api.example.com'

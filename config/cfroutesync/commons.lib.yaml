@@ -1,0 +1,10 @@
+#@ load("@ytt:data", "data")
+
+#@ def labels(instance="abcd"):
+app: cfroutesync
+app.kubernetes.io/name: cfroutesync
+app.kubernetes.io/instance: #@ instance
+app.kubernetes.io/version: #@ data.values.cfroutesync.version
+app.kubernetes.io/part-of: cf
+app.kubernetes.io/component: networking
+#@ end

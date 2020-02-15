@@ -1,14 +1,12 @@
 #@ load("@ytt:data", "data")
-
-#@ def labels():
-app: cfroutesync
-#@ end
+#@ load("commons.lib.yaml", "labels")
 
 ---
 apiVersion: metacontroller.k8s.io/v1alpha1
 kind: CompositeController
 metadata:
   name: cfroutesync
+  labels: #@ labels()
 spec:
   resyncPeriodSeconds: 5
   parentResource:
@@ -35,6 +33,7 @@ metadata:
   namespace: #@ data.values.systemNamespace
   annotations:
     kapp.k14s.io/update-strategy: fallback-on-replace
+  labels: #@ labels()
 spec:
   selector:
     matchLabels: #@ labels()
@@ -65,6 +64,7 @@ kind: Service
 metadata:
   name: cfroutesync
   namespace: #@ data.values.systemNamespace
+  labels: #@ labels()
 spec:
   selector: #@ labels()
   ports:
@@ -77,6 +77,7 @@ kind: RouteBulkSync
 metadata:
   name: route-bulk-sync
   namespace: #@ data.values.workloadsNamespace
+  labels: #@ labels()
 spec:
   selector:
     matchLabels:
@@ -91,6 +92,7 @@ kind: AuthorizationPolicy
 metadata:
   name: cfroutesync-auth-metacontroller
   namespace: #@ data.values.systemNamespace
+  labels: #@ labels()
 spec:
   selector:
     matchLabels: #@ labels()
@@ -109,6 +111,7 @@ kind: AuthorizationPolicy
 metadata:
   name: cfroutesync-auth-prometheus
   namespace: #@ data.values.systemNamespace
+  labels: #@ labels()
 spec:
   selector:
     matchLabels: #@ labels()
