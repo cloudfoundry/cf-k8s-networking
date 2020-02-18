@@ -6,15 +6,16 @@ set -euo pipefail
 : "${CLUSTER_NAME:?}"
 : "${CF_DOMAIN:?}"
 : "${SHARED_DNS_ZONE_NAME:="routing-lol"}"
+: "${GCP_PROJECT:="cf-routing"}"
 
 function create_and_target_cluster() {
-    if gcloud container clusters describe ${CLUSTER_NAME} --project cf-routing --zone us-west1-a > /dev/null; then
+    if gcloud container clusters describe ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a > /dev/null; then
         echo "${CLUSTER_NAME} already exists! Continuing..."
     else
         echo "Creating cluster: ${CLUSTER_NAME} ..."
-        gcloud container clusters create ${CLUSTER_NAME} --project cf-routing --zone us-west1-a --machine-type=n1-standard-4
+        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4
     fi
-    gcloud container clusters get-credentials ${CLUSTER_NAME} --zone us-west1-a --project cf-routing
+    gcloud container clusters get-credentials --project ${GCP_PROJECT} ${CLUSTER_NAME} --zone us-west1-a
 }
 
 function deploy_cf_for_k8s() {
@@ -27,6 +28,7 @@ function deploy_cf_for_k8s() {
 }
 
 function target_cf() {
+    echo "Targeting CF!"
     cf api --skip-ssl-validation "https://api.${CF_DOMAIN}"
     cf auth admin "$(cat "/tmp/${CLUSTER_NAME}/cf-values.yml" | yq .cf_admin_password -r)"
     cf create-org o
@@ -59,25 +61,26 @@ function configure_dns() {
   done
 
   echo "Configuring DNS for external IP: ${external_static_ip}"
-  gcloud dns record-sets transaction start --zone="${SHARED_DNS_ZONE_NAME}"
-  gcp_records_json="$( gcloud dns record-sets list --zone "${SHARED_DNS_ZONE_NAME}" --name "*.${CF_DOMAIN}" --format=json )"
+  gcloud dns record-sets transaction start --project ${GCP_PROJECT} --zone="${SHARED_DNS_ZONE_NAME}"
+  gcp_records_json="$( gcloud dns record-sets list --project ${GCP_PROJECT} --zone "${SHARED_DNS_ZONE_NAME}" --name "*.${CF_DOMAIN}" --format=json )"
   record_count="$( echo "${gcp_records_json}" | jq 'length' )"
   if [ "${record_count}" != "0" ]; then
     existing_record_ip="$( echo "${gcp_records_json}" | jq -r '.[0].rrdatas | join(" ")' )"
-    gcloud dns record-sets transaction remove --name "*.${CF_DOMAIN}" --type=A --zone="${SHARED_DNS_ZONE_NAME}" --ttl=300 "${existing_record_ip}" --verbosity=debug
+    gcloud dns record-sets transaction remove --project ${GCP_PROJECT} --name "*.${CF_DOMAIN}" --type=A --zone="${SHARED_DNS_ZONE_NAME}" --ttl=300 "${existing_record_ip}" --verbosity=debug
   fi
-  gcloud dns record-sets transaction add --name "*.${CF_DOMAIN}" --type=A --zone="${SHARED_DNS_ZONE_NAME}" --ttl=300 "${external_static_ip}" --verbosity=debug
+  gcloud dns record-sets transaction add --project ${GCP_PROJECT} --name "*.${CF_DOMAIN}" --type=A --zone="${SHARED_DNS_ZONE_NAME}" --ttl=300 "${external_static_ip}" --verbosity=debug
 
   echo "Contents of transaction.yaml:"
   cat transaction.yaml
-  gcloud dns record-sets transaction execute --zone="${SHARED_DNS_ZONE_NAME}" --verbosity=debug
+  gcloud dns record-sets transaction execute --project ${GCP_PROJECT} --zone="${SHARED_DNS_ZONE_NAME}" --verbosity=debug
 
   resolved_ip=''
   while [ "$resolved_ip" != "$external_static_ip" ]; do
     echo "Waiting for DNS to propagate..."
     sleep 5
-    resolved_ip=$(nslookup "*.${CF_DOMAIN}" | grep Address | grep -v ':53' | cut -d ' ' -f2)
+    resolved_ip=$(nslookup "*.${CF_DOMAIN}" | grep ${external_static_ip} | cut -d ' ' -f2)
   done
+  echo "DNS propagated!"
 }
 
 function main() {
