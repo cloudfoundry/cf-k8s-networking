@@ -50,7 +50,7 @@ var _ = Describe("Client", func() {
 			Expect(receivedRequest.Method).To(Equal("POST"))
 			Expect(receivedRequest.URL.RawQuery).To(BeEmpty())
 			receivedBytes, _ := ioutil.ReadAll(receivedRequest.Body)
-			Expect(receivedBytes).To(Equal([]byte("client_id=some-name&grant_type=client_credentials")))
+			Expect(receivedBytes).To(Equal([]byte("grant_type=client_credentials")))
 
 			authHeader := receivedRequest.Header["Authorization"]
 			Expect(authHeader).To(HaveLen(1))
@@ -58,6 +58,30 @@ var _ = Describe("Client", func() {
 
 			contentType := receivedRequest.Header.Get("Content-Type")
 			Expect(contentType).To(Equal("application/x-www-form-urlencoded"))
+		})
+
+		Context("when the client credentials contain special characters", func() {
+			It("escapes the characters before constructing the basic auth header", func() {
+				client = &uaaclient.Client{
+					BaseURL:    "https://some.base.url",
+					Name:       "some=+/name",
+					Secret:     "some%!@secret",
+					JSONClient: jsonClient,
+				}
+
+				_, err := client.GetToken()
+				Expect(err).NotTo(HaveOccurred())
+				Expect(jsonClient.MakeRequestCallCount()).To(Equal(1))
+				receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
+				Expect(receivedRequest.Method).To(Equal("POST"))
+				Expect(receivedRequest.URL.RawQuery).To(BeEmpty())
+				receivedBytes, _ := ioutil.ReadAll(receivedRequest.Body)
+				Expect(receivedBytes).To(Equal([]byte("grant_type=client_credentials")))
+
+				authHeader := receivedRequest.Header["Authorization"]
+				Expect(authHeader).To(HaveLen(1))
+				Expect(authHeader[0]).To(Equal("Basic c29tZSUzRCUyQiUyRm5hbWU6c29tZSUyNSUyMSU0MHNlY3JldA=="))
+			})
 		})
 
 		Context("when the json client returns an error", func() {
