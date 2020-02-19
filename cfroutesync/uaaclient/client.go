@@ -3,6 +3,7 @@ package uaaclient
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -20,12 +21,14 @@ type jsonClient interface {
 
 func (c *Client) GetToken() (string, error) {
 	reqURL := fmt.Sprintf("%s/oauth/token", c.BaseURL)
-	bodyString := fmt.Sprintf("client_id=%s&grant_type=client_credentials", c.Name)
+	bodyString := fmt.Sprintf("grant_type=client_credentials")
+
 	request, err := http.NewRequest("POST", reqURL, strings.NewReader(bodyString))
 	if err != nil {
 		return "", err
 	}
-	request.SetBasicAuth(c.Name, c.Secret)
+
+	request.SetBasicAuth(url.QueryEscape(c.Name), url.QueryEscape(c.Secret))
 	request.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
 	type getTokenResponse struct {
