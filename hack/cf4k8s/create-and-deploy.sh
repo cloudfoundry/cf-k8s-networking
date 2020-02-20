@@ -78,9 +78,10 @@ function configure_dns() {
   while [ "$resolved_ip" != "$external_static_ip" ]; do
     echo "Waiting for DNS to propagate..."
     sleep 5
-    resolved_ip=$(nslookup "*.${CF_DOMAIN}" | grep ${external_static_ip} | cut -d ' ' -f2)
+    resolved_ip=$(nslookup "*.${CF_DOMAIN}" | (grep ${external_static_ip} || true) | cut -d ' ' -f2)
+    echo "Resolved IP: ${resolved_ip}, Actual IP: ${external_static_ip}"
   done
-  echo "DNS propagated!"
+  echo "We did it! DNS propagated! 🥳"
 }
 
 function main() {
