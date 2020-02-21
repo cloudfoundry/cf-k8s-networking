@@ -5,6 +5,7 @@
 * ytt
 * bosh cli
 * cf cli
+* yq (the one from pip, not the one from brew)
 
 ## Create a Development CF-for-K8s environment
 You can use the `create-and-deploy.sh` script to create a cluster on GKE and deploy cf-for-k8s.
