@@ -1,0 +1,9 @@
+#@ load("@ytt:overlay", "overlay")
+
+#@overlay/match by=overlay.subset({"kind": "MeshPolicy", "metadata":{"name": "default"}}),expects=1
+---
+spec:
+  #@overlay/replace
+  peers:
+    - mtls:
+        mode: "STRICT"
