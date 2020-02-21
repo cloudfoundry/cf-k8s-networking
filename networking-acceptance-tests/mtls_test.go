@@ -94,7 +94,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 
 			BeforeEach(func() {
 				var err error
-				appSvcSelector = "cloudfoundry.org/app=" + globals.AppGuid
+				appSvcSelector = "cloudfoundry.org/app_guid=" + globals.AppGuid
 				systemComponentPod, err = getPodNameBySelector(systemNamespace, globals.SysComponentSelector)
 				Expect(err).NotTo(HaveOccurred())
 				appAddr, err = getSvcHTTPAddrBySelector(workloadsNamespace, appSvcSelector)
@@ -212,7 +212,14 @@ func execInPod(namespace string, podName string, containerName string, command s
 }
 
 func getSvcHTTPAddrBySelector(namespace string, selector string) (string, error) {
-	output, err := kubectl.Run("-n", namespace, "get", "svc", "-l", selector, fmt.Sprintf(
+	output, err := kubectl.Run("-n", namespace, "get", "pods", "-l", selector)
+	if err != nil {
+		return "", err
+	}
+
+	Expect(strings.Trim(string(output), "'")).ToNot(MatchRegexp("No resources found"))
+
+	output, err = kubectl.Run("-n", namespace, "get", "svc", "-l", selector, fmt.Sprintf(
 		"-ojsonpath='%s.%s.svc.cluster.local:%s'",
 		"{.items[0].metadata.name}", // name path
 		namespace,
@@ -226,7 +233,14 @@ func getSvcHTTPAddrBySelector(namespace string, selector string) (string, error)
 }
 
 func getPodNameBySelector(namespace string, selector string) (string, error) {
-	output, err := kubectl.Run("-n", namespace, "get", "pods", "-l", selector, "-ojsonpath='{.items[0].metadata.name}'")
+	output, err := kubectl.Run("-n", namespace, "get", "pods", "-l", selector)
+	if err != nil {
+		return "", err
+	}
+
+	Expect(strings.Trim(string(output), "'")).ToNot(MatchRegexp("No resources found"))
+
+	output, err = kubectl.Run("-n", namespace, "get", "pods", "-l", selector, "-ojsonpath='{.items[0].metadata.name}'")
 	if err != nil {
 		return "", err
 	}
