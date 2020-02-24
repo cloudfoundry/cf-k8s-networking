@@ -348,7 +348,6 @@ jobs:
           resource: cf-deployment-concourse-tasks
         - get: cf-deployment
           resource: cf-deployment
-        - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-1-bbl-up]
@@ -655,7 +654,6 @@ jobs:
           resource: cf-deployment-concourse-tasks
         - get: cf-deployment
           resource: cf-deployment
-        - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-2-bbl-up]
@@ -962,7 +960,6 @@ jobs:
           resource: cf-deployment-concourse-tasks
         - get: cf-deployment
           resource: cf-deployment
-        - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [eirini-dev-3-bbl-up]
@@ -1214,7 +1211,6 @@ jobs:
           resource: cf-deployment-concourse-tasks
         - get: cf-deployment
           resource: cf-deployment
-        - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [dont-smoke-bbl-up]
@@ -1286,9 +1282,8 @@ jobs:
     - in_parallel:
         - get: istio
         - get: cf-k8s-networking
-        - get: cf-k8s-networking-ci
-        - get: cf-k8s-networking-istio-values
           trigger: true
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [dont-smoke-deploy-cf]
           trigger: true
@@ -1417,8 +1412,11 @@ jobs:
         - get: cf-deployment-concourse-tasks
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
+          passed: [dont-smoke-smoke-tests]
+          trigger: true
         - get: networking-oss-deployments
           passed: [dont-smoke-smoke-tests]
+          trigger: true
     - task: updated-integration-configs
       file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
       input_mapping:
@@ -1463,7 +1461,6 @@ jobs:
     - in_parallel:
         - get: cf-deployment-concourse-tasks
           resource: cf-deployment-concourse-tasks
-        - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
         - get: bosh-deployment
@@ -1527,7 +1524,6 @@ jobs:
           resource: cf-deployment-concourse-tasks
         - get: cf-deployment
           resource: cf-deployment
-        - get: cf-k8s-networking
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [good-acceptance-bbl-up]
@@ -1598,9 +1594,9 @@ jobs:
     - in_parallel:
         - get: istio
         - get: cf-k8s-networking
-        - get: cf-k8s-networking-ci
-        - get: cf-k8s-networking-istio-values
+          passed: [dont-smoke-networking-acceptance-tests]
           trigger: true
+        - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
           passed: [good-acceptance-deploy-cf]
           trigger: true
@@ -1666,7 +1662,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
-          passed: [dont-smoke-networking-acceptance-tests]
+          passed: [good-acceptance-deploy-istio]
           trigger: true
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
@@ -1694,7 +1690,10 @@ jobs:
         - get: cf-deployment-concourse-tasks
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
+          trigger: true
+          passed: [good-acceptance-install-cf-networking]
         - get: networking-oss-deployments
+          trigger: true
           passed: [good-acceptance-install-cf-networking]
     - task: updated-integration-configs
       file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
@@ -1743,6 +1742,8 @@ jobs:
           trigger: true
         - get: cf-k8s-networking-ci
         - get: networking-oss-deployments
+          trigger: true
+          passed: [good-acceptance-networking-acceptance-tests]
     - task: updated-integration-configs
       file: cf-deployment-concourse-tasks/update-integration-configs/task.yml
       input_mapping:
