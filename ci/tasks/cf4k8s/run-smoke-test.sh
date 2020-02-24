@@ -1,6 +1,6 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
-set -e
+set -euo pipefail
 
 function run_smoke_test() {
     DNS_DOMAIN=$(cat env-metadata/dns-domain.txt)
