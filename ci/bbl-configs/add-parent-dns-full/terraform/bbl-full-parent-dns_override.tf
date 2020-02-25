@@ -8,3 +8,7 @@ resource "google_dns_record_set" "parent_dns_pointer" {
 
   rrdatas = ["${google_dns_managed_zone.env_dns_zone.name_servers}"]
 }
+
+provider "kubernetes" {
+    version = "~> 1.10"
+}
