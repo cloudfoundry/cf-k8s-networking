@@ -18,6 +18,8 @@ spec:
     gateways:
       istio-ingressgateway:
         externalTrafficPolicy: Local
+        sds:
+          enabled: true
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     global:
