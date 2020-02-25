@@ -6,7 +6,6 @@ image_resource:
     repository: relintdockerhubpushbot/cf-deployment-concourse-tasks
 
 inputs:
-  - name: cf-k8s-networking
   - name: cf-k8s-networking-ci
   - name: bbl-state
   - name: release-tarball
