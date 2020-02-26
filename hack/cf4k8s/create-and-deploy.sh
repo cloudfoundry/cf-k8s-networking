@@ -13,7 +13,7 @@ function create_and_target_cluster() {
         echo "${CLUSTER_NAME} already exists! Continuing..."
     else
         echo "Creating cluster: ${CLUSTER_NAME} ..."
-        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --labels team=cf-k8s-networking
+        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --enable-network-policy --labels team=cf-k8s-networking
     fi
     gcloud container clusters get-credentials --project ${GCP_PROJECT} ${CLUSTER_NAME} --zone us-west1-a
 }
@@ -22,7 +22,9 @@ function deploy_cf_for_k8s() {
     clone_if_not_exist https://github.com/cloudfoundry/cf-for-k8s.git "${HOME}/workspace/cf-for-k8s"
     pushd "${HOME}/workspace/cf-for-k8s" > /dev/null
         mkdir -p "/tmp/${CLUSTER_NAME}"
-        ./hack/generate-values.sh ${CF_DOMAIN} > "/tmp/${CLUSTER_NAME}/cf-values.yml"
+        if [ ! -f "/tmp/${CLUSTER_NAME}/cf-values.yml" ]; then
+          ./hack/generate-values.sh ${CF_DOMAIN} > "/tmp/${CLUSTER_NAME}/cf-values.yml"
+        fi
         ./bin/install-cf.sh "/tmp/${CLUSTER_NAME}/cf-values.yml"
     popd
 }
@@ -75,12 +77,14 @@ function configure_dns() {
   gcloud dns record-sets transaction execute --project ${GCP_PROJECT} --zone="${SHARED_DNS_ZONE_NAME}" --verbosity=debug
 
   resolved_ip=''
+  set +o pipefail
   while [ "$resolved_ip" != "$external_static_ip" ]; do
     echo "Waiting for DNS to propagate..."
     sleep 5
     resolved_ip=$(nslookup "*.${CF_DOMAIN}" | (grep ${external_static_ip} || true) | cut -d ' ' -f2)
     echo "Resolved IP: ${resolved_ip}, Actual IP: ${external_static_ip}"
   done
+  set -o pipefail
   echo "We did it! DNS propagated! 🥳"
 }
 
