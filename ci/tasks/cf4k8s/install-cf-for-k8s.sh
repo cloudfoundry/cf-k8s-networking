@@ -51,11 +51,15 @@ function configure_dns() {
     gcloud dns record-sets transaction execute --zone="${SHARED_DNS_ZONE_NAME}" --verbosity=debug
 
     resolved_ip=''
+    # disable pipefail while DNS propagates ...
+    set +o pipefail
     while [ "$resolved_ip" != "$external_static_ip" ]; do
       echo "Waiting for DNS to propagate..."
       sleep 5
       resolved_ip=$(nslookup "*.${CF_DOMAIN}" | grep Address | grep -v ':53' | cut -d ' ' -f2)
     done
+    set -o pipefail
+    echo  "we made it! 🥖🤓"
 }
 
 function main() {
