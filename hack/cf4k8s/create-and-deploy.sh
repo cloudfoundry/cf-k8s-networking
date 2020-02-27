@@ -3,8 +3,8 @@
 set -euo pipefail
 
 # ENV
-: "${CLUSTER_NAME:?}"
-: "${CF_DOMAIN:?}"
+CLUSTER_NAME=${CLUSTER_NAME:-$1}
+CF_DOMAIN=${CF_DOMAIN:-$CLUSTER_NAME.routing.lol}
 : "${SHARED_DNS_ZONE_NAME:="routing-lol"}"
 : "${GCP_PROJECT:="cf-routing"}"
 
