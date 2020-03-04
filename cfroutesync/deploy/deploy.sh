@@ -45,7 +45,7 @@ echo "Update Prometheus config..."
 ytt \
   -f "${cf_k8s_networking_dir}/config/cfroutesync/values.yaml" \
   -f "${prometheus_file}" \
-  -f "${cf_k8s_networking_dir}/config/deps/prometheus-config.yaml" | \
+  -f "${cf_k8s_networking_dir}/config/cfroutesync/prometheus-config.yaml" | \
   kubectl apply -f -
 
 echo "Done! 🎉"
