@@ -1,3 +1,5 @@
+#@ load("@ytt:data", "data")
+
 #@ def istio_ns_selector():
 namespaceSelector:
   matchLabels:
@@ -19,10 +21,10 @@ spec:
   - from:
     - #@ istio_ns_selector()
     ports:
-    - port: 15004
+    - port: #@ data.values.istio_ports.policy_telemetry_mtls
   - ports:
-    - port: 15010
-    - port: 15011
+    - port: #@ data.values.istio_ports.pilot_service_discovery
+    - port: #@ data.values.istio_ports.pilot_service_proxy_discovery_mtls
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -40,9 +42,9 @@ spec:
   - from:
       - #@ istio_ns_selector()
     ports:
-    - port: 8060
-    - port: 8080
-    - port: 15014
+    - port: #@ data.values.istio_ports.grpc_server
+    - port: #@ data.values.istio_ports.sds_service_monitoring
+    - port: #@ data.values.istio_ports.control_plane_monitoring
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -59,10 +61,10 @@ spec:
   - from:
     - #@ istio_ns_selector()
     ports:
-    - port: 9091
-    - port: 15004
-    - port: 15090
-    - port: 42422
+    - port: #@ data.values.istio_ports.policy_telemetry
+    - port: #@ data.values.istio_ports.policy_telemetry_mtls
+    - port: #@ data.values.istio_ports.proxy
+    - port: #@ data.values.istio_ports.telemetry_prometheus
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -79,10 +81,10 @@ spec:
   - from:
     - #@ istio_ns_selector()
     ports:
-    - port: 9091
-    - port: 15004
-    - port: 15090
-    - port: 42422
+    - port: #@ data.values.istio_ports.policy_telemetry
+    - port: #@ data.values.istio_ports.policy_telemetry_mtls
+    - port: #@ data.values.istio_ports.proxy
+    - port: #@ data.values.istio_ports.telemetry_prometheus
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -99,8 +101,8 @@ spec:
   - from:
     - #@ istio_ns_selector()
     ports:
-    - port: 15433
-    - port: 15020
+    - port: #@ data.values.istio_ports.some_secured_port
+    - port: #@ data.values.istio_ports.pilot_health_checks
   - ports:
     - port: 80
     - port: 443
