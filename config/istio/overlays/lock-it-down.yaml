@@ -1,3 +1,9 @@
+#@ def istio_ns_selector():
+namespaceSelector:
+  matchLabels:
+    cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
+#@ end
+
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -11,14 +17,13 @@ spec:
   - Ingress
   ingress:
   - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
+    - #@ istio_ns_selector()
     ports:
     - port: 15004
   - ports:
     - port: 15010
     - port: 15011
+
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -33,9 +38,7 @@ spec:
   - Ingress
   ingress:
   - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
+      - #@ istio_ns_selector()
     ports:
     - port: 8060
     - port: 8080
@@ -54,9 +57,7 @@ spec:
   - Ingress
   ingress:
   - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
+    - #@ istio_ns_selector()
     ports:
     - port: 9091
     - port: 15004
@@ -76,9 +77,7 @@ spec:
   - Ingress
   ingress:
   - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
+    - #@ istio_ns_selector()
     ports:
     - port: 9091
     - port: 15004
@@ -98,9 +97,7 @@ spec:
   - Ingress
   ingress:
   - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
+    - #@ istio_ns_selector()
     ports:
     - port: 15433
     - port: 15020
