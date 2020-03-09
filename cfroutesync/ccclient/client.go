@@ -21,6 +21,7 @@ type Route struct {
 	Host          string
 	Path          string
 	Url           string
+	Destinations  []Destination
 	Relationships struct {
 		Domain struct {
 			Data struct {
@@ -36,15 +37,19 @@ type Route struct {
 }
 
 type Destination struct {
-	Guid string
-	App  struct {
-		Guid    string
-		Process struct {
-			Type string
-		}
-	}
+	Guid   string
+	App    App
 	Weight *int
 	Port   int
+}
+
+type App struct {
+	Guid    string
+	Process Process
+}
+
+type Process struct {
+	Type string
 }
 
 type Domain struct {
@@ -86,21 +91,6 @@ func (c *Client) ListRoutes(token string) ([]Route, error) {
 	}
 
 	return response.Resources, nil
-}
-
-func (c *Client) ListDestinationsForRoute(routeGUID, token string) ([]Destination, error) {
-	pathAndQuery := fmt.Sprintf("v3/routes/%s/destinations", routeGUID)
-
-	var response struct {
-		Destinations []Destination
-	}
-
-	err := c.getList(pathAndQuery, token, &response)
-	if err != nil {
-		return nil, err
-	}
-
-	return response.Destinations, nil
 }
 
 func (c *Client) ListDomains(token string) ([]Domain, error) {

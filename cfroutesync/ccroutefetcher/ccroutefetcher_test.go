@@ -55,18 +55,26 @@ var _ = Describe("Fetching once", func() {
 				Host: "route-0-host",
 				Path: "/route-0-path",
 				Url:  "route-0-host.domain0.example.com/route-0-path",
+				Destinations: []ccclient.Destination{
+					fakeRoute0Destination0,
+					fakeRoute0Destination1,
+				},
 			},
 			ccclient.Route{
 				Guid: "route-1-guid",
 				Host: "route-1-host",
 				Path: "/route-1-path",
 				Url:  "route-1-host.domain1.apps.internal/route-1-path",
+				Destinations: []ccclient.Destination{
+					fakeRoute1Destination0,
+				},
 			},
 			ccclient.Route{
-				Guid: "route-2-guid",
-				Host: "route-2-host",
-				Path: "/route-2-path",
-				Url:  "route-2-host.domain1.apps.internal/route-2-path",
+				Guid:         "route-2-guid",
+				Host:         "route-2-host",
+				Path:         "/route-2-path",
+				Url:          "route-2-host.domain1.apps.internal/route-2-path",
+				Destinations: []ccclient.Destination{},
 			},
 		}
 		routesList[0].Relationships.Domain.Data.Guid = "domain-0-guid"
@@ -76,15 +84,6 @@ var _ = Describe("Fetching once", func() {
 		routesList[1].Relationships.Space.Data.Guid = "space-1-guid"
 		routesList[2].Relationships.Space.Data.Guid = "space-1-guid"
 		fakeCCClient.ListRoutesReturns(routesList, nil)
-
-		fakeCCClient.ListDestinationsForRouteReturnsOnCall(0, []ccclient.Destination{
-			fakeRoute0Destination0,
-			fakeRoute0Destination1,
-		}, nil)
-		fakeCCClient.ListDestinationsForRouteReturnsOnCall(1, []ccclient.Destination{
-			fakeRoute1Destination0,
-		}, nil)
-		fakeCCClient.ListDestinationsForRouteReturnsOnCall(2, []ccclient.Destination{}, nil)
 
 		fakeCCClient.ListDomainsReturns([]ccclient.Domain{
 			{
@@ -218,18 +217,6 @@ var _ = Describe("Fetching once", func() {
 		Expect(fakeCCClient.ListRoutesCallCount()).To(Equal(1))
 		token := fakeCCClient.ListRoutesArgsForCall(0)
 		Expect(token).To(Equal("fake-uaa-token"))
-
-		Expect(fakeCCClient.ListDestinationsForRouteCallCount()).To(Equal(3))
-
-		routeGuid, _ := fakeCCClient.ListDestinationsForRouteArgsForCall(0)
-		Expect(routeGuid).To(Equal("route-0-guid"))
-
-		routeGuid, _ = fakeCCClient.ListDestinationsForRouteArgsForCall(1)
-		Expect(routeGuid).To(Equal("route-1-guid"))
-
-		routeGuid, token = fakeCCClient.ListDestinationsForRouteArgsForCall(2)
-		Expect(routeGuid).To(Equal("route-2-guid"))
-		Expect(token).To(Equal("fake-uaa-token"))
 	})
 
 	Context("when there are routes to save", func() {
@@ -262,7 +249,6 @@ var _ = Describe("Fetching once", func() {
 					Internal: false,
 				},
 			}, nil)
-			fakeCCClient.ListDestinationsForRouteReturnsOnCall(0, []ccclient.Destination{}, nil)
 
 			expectedSnapshot = &models.RouteSnapshot{
 				Routes: []models.Route{
@@ -306,14 +292,6 @@ var _ = Describe("Fetching once", func() {
 			fakeCCClient.ListRoutesReturns(nil, errors.New("potato!"))
 			err := fetcher.FetchOnce()
 			Expect(err).To(MatchError("cc list routes: potato!"))
-		})
-	})
-
-	Context("when there is an error getting Destinations from Cloud Controller", func() {
-		It("returns the error", func() {
-			fakeCCClient.ListDestinationsForRouteReturnsOnCall(0, nil, errors.New("bam!"))
-			err := fetcher.FetchOnce()
-			Expect(err).To(MatchError("cc list destinations for route-0-guid: bam!"))
 		})
 	})
 

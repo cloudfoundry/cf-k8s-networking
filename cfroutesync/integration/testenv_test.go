@@ -14,7 +14,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"reflect"
-	"regexp"
 	"strings"
 	"sync"
 	"time"
@@ -43,10 +42,9 @@ type TestEnv struct {
 		Handler http.Handler
 		Server  *httptest.Server
 		Data    struct {
-			Domains      []ccclient.Domain
-			Spaces       []ccclient.Space
-			Routes       []ccclient.Route
-			Destinations map[string][]ccclient.Destination
+			Domains []ccclient.Domain
+			Spaces  []ccclient.Space
+			Routes  []ccclient.Route
 		}
 	}
 	K8sApiServerEnv *k8sApiServer.Environment
@@ -73,11 +71,6 @@ func (te *TestEnv) FakeCCServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case strings.Contains(r.URL.Path, "spaces"):
 		json.NewEncoder(w).Encode(map[string]interface{}{
 			"resources": te.FakeCC.Data.Spaces,
-		})
-	case strings.Contains(r.URL.Path, "destinations"):
-		routeGUIDs := regexp.MustCompile("/v3/routes/(.*)/destinations").FindStringSubmatch(r.URL.Path)
-		json.NewEncoder(w).Encode(map[string]interface{}{
-			"destinations": te.FakeCC.Data.Destinations[routeGUIDs[1]],
 		})
 	case strings.Contains(r.URL.Path, "routes"):
 		json.NewEncoder(w).Encode(map[string]interface{}{

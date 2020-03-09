@@ -3,7 +3,6 @@ package ccclient_test
 import (
 	"encoding/json"
 	"errors"
-	"fmt"
 	"net/http"
 
 	"code.cloudfoundry.org/cf-k8s-networking/cfroutesync/ccclient"
@@ -179,123 +178,6 @@ var _ = Describe("Cloud Controller Client", func() {
 				Expect(err).To(MatchError(ContainSubstring("invalid URL escape")))
 			})
 		})
-	})
-
-	Describe("ListDestinationsForRoute", func() {
-		var (
-			routeGUID string
-		)
-		BeforeEach(func() {
-			routeGUID = "fake-route-guid"
-			body := `
-			{
-				"destinations": [
-				  {
-					"guid": "fake-destination-guid-1",
-					"app": {
-					  "guid": "fake-app-guid-1",
-					  "process": {
-						"type": "web"
-					  }
-					},
-					"weight": null,
-					"port": 8080
-				  },
-				  {
-					"guid": "fake-destination-guid-2",
-					"app": {
-					  "guid": "fake-app-guid-2",
-					  "process": {
-						"type": "worker"
-					  }
-					},
-					"weight": 5,
-					"port": 9000
-				  }
-				],
-				"links": {
-				  "self": {
-					"href": "https://api.example.org/v3/routes/fake-route-guid/destinations"
-				  },
-				  "route": {
-					"href": "https://api.example.org/v3/routes/fake-route-guid"
-				  }
-				}
-			}
-			`
-			jsonClient.MakeRequestStub = func(req *http.Request, responseStruct interface{}) error {
-				return json.Unmarshal([]byte(body), responseStruct)
-			}
-		})
-
-		It("returns a list of destinations for the given route", func() {
-			routeWeight := 5
-			routeDestinationResults, err := ccClient.ListDestinationsForRoute(routeGUID, token)
-			Expect(err).To(Not(HaveOccurred()))
-
-			routeDestination1 := ccclient.Destination{
-				Guid:   "fake-destination-guid-1",
-				Weight: nil,
-				Port:   8080,
-			}
-			routeDestination1.App.Guid = "fake-app-guid-1"
-			routeDestination1.App.Process.Type = "web"
-
-			routeDestination2 := ccclient.Destination{
-				Guid:   "fake-destination-guid-2",
-				Weight: &routeWeight,
-				Port:   9000,
-			}
-			routeDestination2.App.Guid = "fake-app-guid-2"
-			routeDestination2.App.Process.Type = "worker"
-
-			Expect(len(routeDestinationResults)).To(Equal(2))
-			Expect(routeDestinationResults).To(ContainElement(routeDestination1))
-			Expect(routeDestinationResults).To(ContainElement(routeDestination2))
-		})
-
-		It("forms the right request URL", func() {
-			_, err := ccClient.ListDestinationsForRoute(routeGUID, token)
-			Expect(err).To(Not(HaveOccurred()))
-
-			receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
-			Expect(receivedRequest.Method).To(Equal("GET"))
-			Expect(receivedRequest.URL.Path).To(Equal(fmt.Sprintf("/v3/routes/%s/destinations", routeGUID)))
-		})
-
-		It("sets the provided token as an Authorization header on the request", func() {
-			_, err := ccClient.ListDestinationsForRoute(routeGUID, token)
-			Expect(err).To(Not(HaveOccurred()))
-
-			receivedRequest, _ := jsonClient.MakeRequestArgsForCall(0)
-
-			authHeader := receivedRequest.Header["Authorization"]
-			Expect(authHeader).To(HaveLen(1))
-			Expect(authHeader[0]).To(Equal("bearer fake-token"))
-		})
-
-		Context("when the url is malformed", func() {
-			BeforeEach(func() {
-				ccClient.BaseURL = "%%%%%%%"
-			})
-
-			It("returns a helpful error", func() {
-				_, err := ccClient.ListDestinationsForRoute(routeGUID, token)
-				Expect(err).To(MatchError(ContainSubstring("invalid URL escape")))
-			})
-		})
-
-		Context("when the json client returns an error", func() {
-			BeforeEach(func() {
-				jsonClient.MakeRequestReturns(errors.New("potato"))
-			})
-
-			It("returns a helpful error", func() {
-				_, err := ccClient.ListDestinationsForRoute(routeGUID, token)
-				Expect(err).To(MatchError(ContainSubstring("potato")))
-			})
-		})
-
 	})
 
 	Describe("ListDomains", func() {

@@ -197,18 +197,57 @@ func initializeFakeData(te *TestEnv) {
 			Host: "route-0-host",
 			Path: "route-0-path",
 			Url:  "route-0-url",
+			Destinations: []ccclient.Destination{
+				{
+					Guid:   "destination-0",
+					Port:   8000,
+					Weight: nil,
+					App: ccclient.App{
+						Guid: "destination-0-app-guid",
+						Process: ccclient.Process{
+							Type: "destination-0-process-type",
+						},
+					},
+				},
+			},
 		},
 		ccclient.Route{
 			Guid: "route-1-guid",
 			Host: "route-1-host",
 			Path: "route-1-path",
 			Url:  "route-1-url",
+			Destinations: []ccclient.Destination{
+				{
+					Guid:   "destination-1",
+					Port:   8000,
+					Weight: nil,
+					App: ccclient.App{
+						Guid: "destination-1-app-guid",
+						Process: ccclient.Process{
+							Type: "destination-1-process-type",
+						},
+					},
+				},
+			},
 		},
 		ccclient.Route{
 			Guid: "route-2-guid",
 			Host: longHostname,
 			Path: "route-2-path",
 			Url:  "route-2-url",
+			Destinations: []ccclient.Destination{
+				{
+					Guid:   "destination-2",
+					Port:   8000,
+					Weight: nil,
+					App: ccclient.App{
+						Guid: "destination-2-app-guid",
+						Process: ccclient.Process{
+							Type: "destination-2-process-type",
+						},
+					},
+				},
+			},
 		},
 	}
 	te.FakeCC.Data.Routes[0].Relationships.Domain.Data.Guid = "domain-0"
@@ -240,33 +279,4 @@ func initializeFakeData(te *TestEnv) {
 	}
 	te.FakeCC.Data.Spaces[0].Relationships.Organization.Data.Guid = "org-0-guid"
 	te.FakeCC.Data.Spaces[1].Relationships.Organization.Data.Guid = "org-1-guid"
-
-	te.FakeCC.Data.Destinations = map[string][]ccclient.Destination{}
-	te.FakeCC.Data.Destinations["route-0-guid"] = []ccclient.Destination{
-		{
-			Guid:   "destination-0",
-			Port:   8000,
-			Weight: nil,
-		},
-	}
-	te.FakeCC.Data.Destinations["route-0-guid"][0].App.Guid = "destination-0-app-guid"
-	te.FakeCC.Data.Destinations["route-0-guid"][0].App.Process.Type = "destination-0-process-type"
-	te.FakeCC.Data.Destinations["route-1-guid"] = []ccclient.Destination{
-		{
-			Guid:   "destination-1",
-			Port:   8000,
-			Weight: nil,
-		},
-	}
-	te.FakeCC.Data.Destinations["route-1-guid"][0].App.Guid = "destination-1-app-guid"
-	te.FakeCC.Data.Destinations["route-1-guid"][0].App.Process.Type = "destination-1-process-type"
-	te.FakeCC.Data.Destinations["route-2-guid"] = []ccclient.Destination{
-		{
-			Guid:   "destination-2",
-			Port:   8000,
-			Weight: nil,
-		},
-	}
-	te.FakeCC.Data.Destinations["route-2-guid"][0].App.Guid = "destination-2-app-guid"
-	te.FakeCC.Data.Destinations["route-2-guid"][0].App.Process.Type = "destination-2-process-type"
 }

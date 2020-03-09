@@ -14,7 +14,6 @@ import (
 //go:generate counterfeiter -o fakes/ccclient.go --fake-name CCClient . ccClient
 type ccClient interface {
 	ListRoutes(token string) ([]ccclient.Route, error)
-	ListDestinationsForRoute(routeGUID, token string) ([]ccclient.Destination, error)
 	ListDomains(token string) ([]ccclient.Domain, error)
 	ListSpaces(token string) ([]ccclient.Space, error)
 }
@@ -67,11 +66,6 @@ func (f *Fetcher) FetchOnce() error {
 
 	var snapshotRoutes []models.Route
 	for _, route := range routes {
-		destList, err := f.CCClient.ListDestinationsForRoute(route.Guid, token)
-		if err != nil {
-			return fmt.Errorf("cc list destinations for %s: %w", route.Guid, err)
-		}
-
 		routeDomainGuid := route.Relationships.Domain.Data.Guid
 		domain, ok := domainsMap[routeDomainGuid]
 		if !ok {
@@ -84,7 +78,7 @@ func (f *Fetcher) FetchOnce() error {
 			return fmt.Errorf("route %s refers to missing space %s", route.Guid, routeSpaceGuid)
 		}
 
-		snapshotRoutes = append(snapshotRoutes, buildRouteForSnapshot(route, destList, domain, space))
+		snapshotRoutes = append(snapshotRoutes, buildRouteForSnapshot(route, domain, space))
 	}
 
 	snapshot := &models.RouteSnapshot{Routes: snapshotRoutes}
@@ -96,9 +90,9 @@ func (f *Fetcher) FetchOnce() error {
 	return nil
 }
 
-func buildRouteForSnapshot(route ccclient.Route, destinations []ccclient.Destination, domain ccclient.Domain, space ccclient.Space) models.Route {
+func buildRouteForSnapshot(route ccclient.Route, domain ccclient.Domain, space ccclient.Space) models.Route {
 	var snapshotRouteDestinations []models.Destination
-	for _, ccDestination := range destinations {
+	for _, ccDestination := range route.Destinations {
 		snapshotDestination := models.Destination{
 			Guid: ccDestination.Guid,
 			App: models.App{
