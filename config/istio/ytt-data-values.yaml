@@ -1,5 +1,6 @@
 #@data/values
 ---
+#! Documentation for Istio ports https://istio.io/docs/ops/deployment/requirements/#ports-used-by-istio
 istio_ports:
   control_plane_monitoring: 15014 #! used by Citadel, Citadel agent, Galley, Mixer, Pilot, Sidecar Injector
   grpc_server: 8060 #! used by Citadel
@@ -12,4 +13,3 @@ istio_ports:
   sds_service_monitoring: 8080 #! used by Citadel agent
   sni_monitoring: 15443 #! used by Ingress and Egress Gateways.
   telemetry_prometheus: 42422 #! used by Mixer
-
