@@ -101,7 +101,7 @@ spec:
   - from:
     - #@ istio_ns_selector()
     ports:
-    - port: #@ data.values.istio_ports.some_secured_port
+    - port: #@ data.values.istio_ports.sni_monitoring
     - port: #@ data.values.istio_ports.pilot_health_checks
   - ports:
     - port: 80

@@ -10349,7 +10349,7 @@ spec:
         matchLabels:
           cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
     ports:
-    - port: 15433
+    - port: 15443
     - port: 15020
   - ports:
     - port: 80

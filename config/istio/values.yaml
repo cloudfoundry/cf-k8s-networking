@@ -10,6 +10,6 @@ istio_ports:
   policy_telemetry_mtls: 15004 #! used by Mixer, Pilot
   proxy: 15090 #! used by Mixer
   sds_service_monitoring: 8080 #! used by Citadel agent
-  some_secured_port: 15433 #! used by Ingress and Egress Gateways
+  sni_monitoring: 15443 #! used by Ingress and Egress Gateways.
   telemetry_prometheus: 42422 #! used by Mixer
 
