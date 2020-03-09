@@ -2,6 +2,16 @@
 
 resources:
 
+- name: cf-for-k8s-master
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    ignore_paths:
+      - ci/**
+
 - name: cf-k8s-networking
   type: git
   icon: github-box
@@ -125,7 +135,9 @@ groups:
     jobs:
       - run-units
       - publish-image
-
+  - name: cf-for-k8s
+    jobs:
+      - dont-smoke-for-k8s-deploy-and-test
 jobs:
 # Build
 - name: run-units
@@ -154,7 +166,46 @@ jobs:
         additional_tags: docker-info/tags
         tag_as_latest: true
 
-# eirini-dev-1
+# Environment to run tests
+- name: dont-smoke-for-k8s-deploy-and-test
+  serial: true
+  serial_groups: [dont-smoke-for-k8s]
+  plan:
+    - in_parallel:
+        - get: cf-for-k8s-master
+          trigger: true
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: &dont-smoke-for-k8s-cluster-name dont-smoke-for-k8s
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        CF_DOMAIN: &dont-smoke-for-k8s-domain "dont-smoke-for-k8s.routing.lol"
+        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: run-smoke-test
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+    - task: generate-integration-configs
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
+    - task: networking-acceptance-gke-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
+      params:
+        INTEGRATION_CONFIG_FILE: "config.json"
+        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN: *dont-smoke-for-k8s-domain
+        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+
+  # eirini-dev-1
 - name: eirini-dev-1-bbl-up
   serial: true
   serial_groups: [eirini-dev-1]
