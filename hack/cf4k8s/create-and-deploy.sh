@@ -39,6 +39,10 @@ function target_cf() {
     echo "Successfully targeted CF!"
 }
 
+function enable_docker() {
+    cf enable-feature-flag diego_docker
+}
+
 clone_if_not_exist() {
   local remote=$1
   local dst_dir="$2"
@@ -93,6 +97,7 @@ function main() {
   deploy_cf_for_k8s
   configure_dns
   target_cf
+  enable_docker
 }
 
 main
