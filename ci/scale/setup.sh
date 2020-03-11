@@ -8,10 +8,16 @@ then
     exit 1
 fi
 
+cf enable-feature-flag diego_docker
 cf update-quota default -r 3000 -m 3T
 
-for n in {0..999}
+for n in {0..99}
 do
-  echo "bin-$n"
-  cf push bin-$n -o cfrouting/httpbin8080
+  for i in {0..9}
+  do
+    name="bin-$((n * 10 + i))"
+    echo $name
+    cf push $name -o cfrouting/httpbin8080 &
+  done
+  wait
 done
