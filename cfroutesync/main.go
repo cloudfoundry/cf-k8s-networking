@@ -126,6 +126,6 @@ func mainWithError() error {
 			metrics.Update(snapshot)
 		}
 
-		time.Sleep(10 * time.Second)
+		time.Sleep(3 * time.Second)
 	}
 }
