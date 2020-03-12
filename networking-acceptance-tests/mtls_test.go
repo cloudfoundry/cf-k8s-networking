@@ -49,7 +49,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 					Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
 					svid := parseSVID(output)
-					Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + workloadsNamespace + "/sa/default"))
+					Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + workloadsNamespace + "/sa/eirini-privileged"))
 				})
 			})
 
@@ -78,7 +78,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 						Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
 						svid := parseSVID(output)
-						Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + workloadsNamespace + "/sa/default"))
+						Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + workloadsNamespace + "/sa/eirini-privileged"))
 					})
 				})
 			})
