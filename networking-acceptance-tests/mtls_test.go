@@ -82,69 +82,7 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 					})
 				})
 			})
-
 		})
-
-		Describe("for requests from system component pod to app pod", func() {
-			var (
-				systemComponentPod string
-				appAddr            string
-				appSvcSelector     string
-			)
-
-			BeforeEach(func() {
-				var err error
-				appSvcSelector = "cloudfoundry.org/app_guid=" + globals.AppGuid
-				systemComponentPod, err = getPodNameBySelector(systemNamespace, globals.SysComponentSelector)
-				Expect(err).NotTo(HaveOccurred())
-				appAddr, err = getSvcHTTPAddrBySelector(workloadsNamespace, appSvcSelector)
-				Expect(err).NotTo(HaveOccurred())
-			})
-
-			Describe("when sending request from the system component container to the app", func() {
-				It("successfully establishes connection with the system component over mTLS", func() {
-					By("checking that the request headers on receiving side contains the SVID for the system component")
-					output, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, systemComponentContainerName, fmt.Sprintf("http://%s/headers", appAddr))
-					Expect(err).NotTo(HaveOccurred())
-					Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
-
-					svid := parseSVID(output)
-					Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + systemNamespace + "/sa/" + systemComponentServiceAccountName))
-				})
-			})
-
-			Describe("when sending request from the proxy container in the pod to a system component", func() {
-				Describe("over HTTP", func() {
-					It("cannot establish connection with the system component", func() {
-						_, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("http://%s/headers", appAddr))
-						Expect(err).NotTo(HaveOccurred())
-						Expect(exitCode).NotTo(Equal(CurlSuccessfulExitCode))
-					})
-				})
-
-				Describe("over HTTPS without client credentials", func() {
-					It("cannot establish connection with the system component", func() {
-						_, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("https://%s/headers", appAddr), "-k")
-						Expect(err).NotTo(HaveOccurred())
-						Expect(exitCode).NotTo(Equal(CurlSuccessfulExitCode))
-					})
-				})
-
-				Describe("over HTTPS with client credentials", func() {
-					It("successfully establishes connection with the system component over mTLS", func() {
-						By("checking that the request headers on receiving side contains the SVID for the application")
-						output, exitCode, _, err := tryCurlInPod(systemNamespace, systemComponentPod, proxyContainerName, fmt.Sprintf("https://%s/headers", appAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
-						Expect(err).NotTo(HaveOccurred())
-						Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
-
-						svid := parseSVID(output)
-						Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + systemNamespace + "/sa/" + systemComponentServiceAccountName))
-					})
-				})
-			})
-
-		})
-
 	})
 })
 
