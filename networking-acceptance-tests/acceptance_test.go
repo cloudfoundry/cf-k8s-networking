@@ -133,10 +133,10 @@ func destroySystemComponent() {
 	session.Wait(1 * time.Minute)
 }
 
-func pushApp(name string) string {
+func pushDockerApp(name string, container string) string {
 	session := cf.Cf("push",
 		name,
-		"-o", "cfrouting/httpbin8080",
+		"-o", container,
 		"-u", "http",
 	)
 	// cf push does not exit 0 on cf-for-k8s yet because logcache is unreliable (stats server error)
@@ -145,4 +145,12 @@ func pushApp(name string) string {
 	guid := strings.TrimSpace(string(cf.Cf("app", name, "--guid").Wait().Out.Contents()))
 
 	return guid
+}
+
+func pushProxy(name string) string {
+	return pushDockerApp(name, "cfrouting/proxy")
+}
+
+func pushApp(name string) string {
+	return pushDockerApp(name, "cfrouting/httpbin8080")
 }

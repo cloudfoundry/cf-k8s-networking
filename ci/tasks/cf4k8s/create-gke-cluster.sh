@@ -20,7 +20,7 @@ function create_cluster() {
     fi
 
     echo "Creating cluster: ${CLUSTER_NAME} ..."
-    gcloud container clusters create ${CLUSTER_NAME} --machine-type=${MACHINE_TYPE} --labels team=cf-k8s-networking-ci
+    gcloud container clusters create ${CLUSTER_NAME} --machine-type=${MACHINE_TYPE} --labels team=cf-k8s-networking-ci --enable-network-policy
 }
 
 function main() {
