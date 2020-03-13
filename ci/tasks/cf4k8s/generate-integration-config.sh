@@ -10,7 +10,8 @@ function write_cats_config() {
 {
    "api": "api.${dns_domain}",
    "admin_user": "admin",
-   "admin_password": "${admin_password}"
+   "admin_password": "${admin_password}",
+   "apps_domain": "${dns_domain"
 }
 EOF
 }
