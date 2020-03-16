@@ -20,6 +20,8 @@ spec:
         externalTrafficPolicy: Local
         sds:
           enabled: true
+    prometheus:
+      enabled: false
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     global:
