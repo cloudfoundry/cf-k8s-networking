@@ -15,13 +15,5 @@ The following diagram shows what this might look like:
 ![Ingress Routing directly to workers](../assets/ingress-routing-no-lb.png)
 
 ## Installation
-### Prerequisites
-- A Kubernetes cluster with "CF for Kubernetes" installed
-- `kubectl` installed and access to the Kubernetes cluster
-- External IP addresses for the Kubernetes workers are discoverable and reachable
 
-### Deploy the DaemonSet
-
-```bash
-kubectl apply -f cf-k8s-networking/config/no-loadbalancer/node-to-ingressgateway-daemonset.yaml
-```
+The DaemonSet is now deployed by default with cf-k8s-networking.

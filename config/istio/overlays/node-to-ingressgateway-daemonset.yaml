@@ -1,5 +1,3 @@
-#! See README for usage information at doc/no-loadbalancer/README.md
-
 ---
 apiVersion: v1
 kind: ConfigMap
