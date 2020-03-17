@@ -36,7 +36,7 @@ See the following matrix:
 ### Istio Mesh mTLS
 When we refer to "Istio Mesh mTLS" in the matrix above, we are assuming the following Istio functionality is leveraged:
 
-* [Istio Auto mTLS](https://istio.io/docs/tasks/security/authentication/auto-mtls/)
+* [Istio Auto mTLS](https://istio.io/docs/tasks/security/authentication/authn-policy/#auto-mutual-tls)
 * Have a default Istio mesh [policy](https://istio.io/docs/tasks/security/authentication/authn-policy/) that [sets the peer authentication method to mTLS](https://istio.io/docs/reference/config/security/istio.authentication.v1alpha1/#PeerAuthenticationMethod) and sets the mTLS mode to `STRICT`. The [default is currently `STRICT`](https://istio.io/docs/reference/config/security/istio.authentication.v1alpha1/#MutualTls) but we would like to explicitly set it in case the default changes.
 * Istio [sidecar autoinjection](https://istio.io/docs/setup/additional-setup/sidecar-injection/) enabled
 
