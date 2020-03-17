@@ -2,7 +2,9 @@
 
 set -euo pipefail
 
-source methods.sh
+ROOT="$(cd $(dirname $0) && pwd)"
+
+source "${ROOT}/methods.sh"
 
 # ENV
 CLUSTER_NAME=${CLUSTER_NAME:-$1}
