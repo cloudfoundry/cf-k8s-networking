@@ -12,7 +12,7 @@ CF_DOMAIN=${CF_DOMAIN:-$CLUSTER_NAME.routing.lol}
 
 
 function main() {
-  create_and_target_cluster
+  create_and_target_huge_cluster
   deploy_cf_for_k8s
   configure_dns
   target_cf
