@@ -8,7 +8,7 @@ Proposal
 
 ## Context
 
-One of our [goals for networking in CF for Kubernetes](https://docs.google.com/document/d/1D12MZbZwVPSKmq97VNSNaoJbgUchM1xSC2VRIhXu7qU/edit) is to have all egress/ingress network traffic within the platform to be encrypted.
+One of our [goals for networking in CF for Kubernetes](https://docs.google.com/document/d/1D12MZbZwVPSKmq97VNSNaoJbgUchM1xSC2VRIhXu7qU/edit) is to have all network traffic to and from the platform be encrypted, and have all traffic within the platform be encrypted and mutually authenticated (mTLS).
 
 ## Decision
 
