@@ -13,3 +13,4 @@ istio_ports:
   sds_service_monitoring: 8080 #! used by Citadel agent
   sni_monitoring: 15443 #! used by Ingress and Egress Gateways.
   telemetry_prometheus: 42422 #! used by Mixer
+  sidecar_injector: 9443 #! used by the K8s API server
