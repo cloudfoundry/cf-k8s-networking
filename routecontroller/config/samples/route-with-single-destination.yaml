@@ -1,0 +1,35 @@
+---
+# Route with a single destination
+apiVersion: networking.cloudfoundry.org/v1alpha1
+kind: Route
+metadata:
+  labels:
+    app.kubernetes.io/component: cf-networking
+    app.kubernetes.io/managed-by: cloudfoundry
+    app.kubernetes.io/name: 7390d59b-f5f1-4c3c-9cb6-c1e2c5c3cf84 # route guid
+    app.kubernetes.io/part-of: cloudfoundry
+    app.kubernetes.io/version: 0.0.0
+    cloudfoundry.org/domain_guid: 23bb47a0-b042-4087-8e55-97ec4b69b43a
+    cloudfoundry.org/org_guid: b7ab8526-b63b-4156-90b7-2cacfd686a8b
+    cloudfoundry.org/route_guid: 7390d59b-f5f1-4c3c-9cb6-c1e2c5c3cf84
+    cloudfoundry.org/space_guid: d4a93829-fed3-497a-bcba-00bb2d454681
+  name: 7390d59b-f5f1-4c3c-9cb6-c1e2c5c3cf84 # route guid
+  namespace: cf-workloads
+spec:
+  destinations:
+  - app:
+      guid: be261513-3ccd-4000-b9d8-0023bbb08fbf
+      process:
+        type: web
+    guid: 9363095c-6be5-4982-a7db-a493e74af2f4 # destination guid
+    port: 8080
+    selector:
+      matchLabels:
+        cloudfoundry.org/app_guid: be261513-3ccd-4000-b9d8-0023bbb08fbf
+        cloudfoundry.org/process_type: web
+  domain:
+    internal: false
+    name: apps.example.com
+  host: catnip
+  path: ""
+  url: catnip.apps.example.com

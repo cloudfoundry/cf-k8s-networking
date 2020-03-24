@@ -1,0 +1,70 @@
+---
+apiVersion: networking.cloudfoundry.org/v1alpha1
+kind: Route
+metadata:
+ name: cc-route-guid-1
+ annotations: {}
+ labels:
+   app.kubernetes.io/name: cc-route-guid-1
+   app.kubernetes.io/version: cloud-controller-api-version
+   app.kubernetes.io/managed-by: cloudfoundry
+   app.kubernetes.io/component: cf-networking
+   app.kubernetes.io/part-of: cloudfoundry
+   cloudfoundry.org/org_guid: cc-org-guid
+   cloudfoundry.org/space_guid: cc-space-guid
+   cloudfoundry.org/domain_guid: cc-domain-guid
+   cloudfoundry.org/route_guid: cc-route-guid-1
+spec:
+  host: hostname-1
+  path: /some/path
+  url: hostname-1.apps.example.com/some/path
+  domain:
+    name: apps.example.com
+    internal: false
+  destinations:
+  - weight: 100
+    port: 8080
+    guid: destination-guid-1
+    selector:
+      matchLabels:
+        cloudfoundry.org/app_guid: cc-app1-guid
+        cloudfoundry.org/process_type: web
+    app:
+      guid: cc-app1-guid
+      process:
+        type: web
+---
+apiVersion: networking.cloudfoundry.org/v1alpha1
+kind: Route
+metadata:
+ name: cc-route-guid-2
+ annotations: {}
+ labels:
+   app.kubernetes.io/name: cc-route-guid-2
+   app.kubernetes.io/version: cloud-controller-api-version
+   app.kubernetes.io/managed-by: cloudfoundry
+   app.kubernetes.io/component: cf-networking
+   app.kubernetes.io/part-of: cloudfoundry
+   cloudfoundry.org/org_guid: cc-org-guid
+   cloudfoundry.org/space_guid: cc-space-guid
+   cloudfoundry.org/domain_guid: cc-domain-guid
+   cloudfoundry.org/route_guid: cc-route-guid-2
+spec:
+  host: hostname-2
+  path: /some/different/path
+  url: hostname-2.apps.example.com/some/different/path
+  domain:
+    name: apps.example.com
+    internal: false
+  destinations:
+  - weight: 100
+    port: 8080
+    guid: destination-guid-2
+    selector:
+      matchLabels:
+        cloudfoundry.org/app_guid: cc-app2-guid
+        cloudfoundry.org/process_type: web
+    app:
+      guid: cc-app2-guid
+      process:
+        type: web

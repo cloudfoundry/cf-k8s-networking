@@ -13,3 +13,4 @@ tags
 *.coverprofile
 cfroutesync/integration/.kube
 ci/scale/scale*
+.kube

@@ -1,0 +1,11 @@
+domain: cloudfoundry.org
+multigroup: true
+repo: code.cloudfoundry.org/cf-k8s-networking/routecontroller
+resources:
+- group: apps
+  kind: Route
+  version: v1alpha1
+- group: networking
+  kind: VirtualService
+  version: v1alpha3
+version: "2"
