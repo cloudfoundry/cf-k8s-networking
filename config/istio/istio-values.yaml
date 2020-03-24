@@ -17,6 +17,7 @@ spec:
   values:
     gateways:
       istio-ingressgateway:
+        autoscaleEnabled: false
         externalTrafficPolicy: Local
         sds:
           enabled: true
