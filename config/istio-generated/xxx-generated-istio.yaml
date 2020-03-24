@@ -9868,13 +9868,8 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  - from:
-    - namespaceSelector:
-        matchLabels:
-          cf-for-k8s.cloudfoundry.org/istio-system-ns: ""
-    ports:
-    - port: 15004
   - ports:
+    - port: 15004
     - port: 15010
     - port: 15011
 ---
@@ -9897,6 +9892,7 @@ spec:
     ports:
     - port: 8060
     - port: 8080
+  - ports:
     - port: 15014
 ---
 apiVersion: networking.k8s.io/v1
@@ -9920,6 +9916,8 @@ spec:
     - port: 15004
     - port: 15090
     - port: 42422
+  - ports:
+    - port: 15014
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -9935,6 +9933,7 @@ spec:
   ingress:
   - ports:
     - port: 9443
+    - port: 15014
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
