@@ -19,7 +19,7 @@ function install_cf() {
      gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
 
      echo "Generating install values..."
-     cf-for-k8s-master/hack/generate-values.sh "${CF_DOMAIN}" > cf-install-values.yml
+     cf-for-k8s-master/hack/generate-values.sh -d "${CF_DOMAIN}" > cf-install-values.yml
 
      echo "Installing CF..."
      cf-for-k8s-master/bin/install-cf.sh cf-install-values.yml
