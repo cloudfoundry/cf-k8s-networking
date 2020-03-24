@@ -78,13 +78,8 @@ spec:
   policyTypes:
   - Ingress
   ingress:
-  - from:
-    - #@ istio_ns_selector()
-    ports:
-    - port: #@ data.values.istio_ports.policy_telemetry
-    - port: #@ data.values.istio_ports.policy_telemetry_mtls
-    - port: #@ data.values.istio_ports.proxy
-    - port: #@ data.values.istio_ports.telemetry_prometheus
+  - ports:
+    - port: #@ data.values.istio_ports.sidecar_injector
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
