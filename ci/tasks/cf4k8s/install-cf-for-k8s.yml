@@ -6,6 +6,7 @@ image_resource:
 
 inputs:
   - name: cf-k8s-networking-ci
+  - name: cf-k8s-networking
   - name: cf-for-k8s-master
 
 outputs:
