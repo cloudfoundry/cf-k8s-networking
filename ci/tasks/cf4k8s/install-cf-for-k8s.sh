@@ -13,20 +13,25 @@ set -euo pipefail
 
 
 function install_cf() {
-     export KUBECONFIG=kube-config.yml
+    echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
+    pushd cf-for-k8s-master
+        vendir sync --directory config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=../cf-k8s-networking
+    popd
 
-     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
-     gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
+    export KUBECONFIG=kube-config.yml
 
-     echo "Generating install values..."
-     echo -n $KPACK_GCR_ACCOUNT_KEY > /tmp/service-account.json
-     cf-for-k8s-master/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values.yml
+    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
+    gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
 
-     echo "Installing CF..."
-     cf-for-k8s-master/bin/install-cf.sh cf-install-values.yml
+    echo "Generating install values..."
+    echo -n $KPACK_GCR_ACCOUNT_KEY > /tmp/service-account.json
+    cf-for-k8s-master/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values.yml
 
-     bosh interpolate --path /cf_admin_password cf-install-values.yml > env-metadata/cf-admin-password.txt
-     echo "${CF_DOMAIN}" > env-metadata/dns-domain.txt
+    echo "Installing CF..."
+    cf-for-k8s-master/bin/install-cf.sh cf-install-values.yml
+
+    bosh interpolate --path /cf_admin_password cf-install-values.yml > env-metadata/cf-admin-password.txt
+    echo "${CF_DOMAIN}" > env-metadata/dns-domain.txt
 }
 
 function configure_dns() {

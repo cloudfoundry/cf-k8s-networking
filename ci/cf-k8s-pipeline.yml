@@ -44,7 +44,7 @@ groups:
     jobs:
       - run-units
       - publish-image
-  - name: cf-for-k8s
+  - name: dont-smoke
     jobs:
       - dont-smoke-for-k8s-deploy-and-test
 jobs:
