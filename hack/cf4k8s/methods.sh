@@ -10,7 +10,7 @@ function create_and_target_huge_cluster() {
           --zone us-west1-a \
           --machine-type=n1-standard-8 \
           --enable-network-policy \
-          --labels team=cf-k8s-networking,date="$(date)" \
+          --labels team=cf-k8s-networking \
           --enable-ip-alias \
           --num-nodes 100
     fi
@@ -22,7 +22,7 @@ function create_and_target_cluster() {
         echo "${CLUSTER_NAME} already exists! Continuing..."
     else
         echo "Creating cluster: ${CLUSTER_NAME} ..."
-        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --enable-network-policy --labels team=cf-k8s-networking,date="$(date)"
+        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --enable-network-policy --labels team=cf-k8s-networking
     fi
     gcloud container clusters get-credentials --project ${GCP_PROJECT} ${CLUSTER_NAME} --zone us-west1-a
 }
