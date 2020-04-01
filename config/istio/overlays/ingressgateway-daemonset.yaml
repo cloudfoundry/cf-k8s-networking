@@ -10,7 +10,7 @@ spec:
   #@overlay/match missing_ok=True
   updateStrategy:
     rollingUpdate:
-      maxUnavailable: 25%
+      maxUnavailable: 1
   template:
     spec:
       containers:

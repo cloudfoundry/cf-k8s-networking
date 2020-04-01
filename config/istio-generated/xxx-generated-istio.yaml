@@ -6068,7 +6068,7 @@ spec:
           secretName: istio-ingressgateway-ca-certs
   updateStrategy:
     rollingUpdate:
-      maxUnavailable: 25%
+      maxUnavailable: 1
 ---
 apiVersion: networking.istio.io/v1alpha3
 kind: Gateway
