@@ -4,7 +4,7 @@ COPY ./ /go/src/cfroutesync/
 WORKDIR /go/src/cfroutesync/
 RUN go install
 
-FROM debian:stretch-slim
+FROM cloudfoundry/run:tiny
 COPY --from=build /go/bin/cfroutesync /cfroutesync/
 WORKDIR /cfroutesync
 ENTRYPOINT ["/cfroutesync/cfroutesync"]
