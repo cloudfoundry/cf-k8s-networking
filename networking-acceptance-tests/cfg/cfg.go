@@ -8,16 +8,17 @@ import (
 )
 
 // Example config:
-// 	{
-// 	  "kubeconfig_path": "/Users/user/.kube/config",
-// 	  "api": "api.example.com",
-// 	  "admin_user": "admin",
-// 	  "admin_password": "PASSWORD"
-// 	}
+//  {
+//    "kubeconfig_path": "/Users/user/.kube/config",
+//    "api": "api.example.com",
+//    "admin_user": "admin",
+//    "admin_password": "PASSWORD"
+//    "apps_domain": "example.com"
+//  }
 type Config struct {
 	KubeConfigPath     string `json:"kubeconfig_path"`
-	KeepClusterChanges bool `json:"keep_cluster_changes"`
-	KeepCFChanges      bool `json:"keep_cf_changes"`
+	KeepClusterChanges bool   `json:"keep_cluster_changes"`
+	KeepCFChanges      bool   `json:"keep_cf_changes"`
 
 	API           string `json:"api"`
 	AdminUser     string `json:"admin_user"`
