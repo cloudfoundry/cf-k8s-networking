@@ -15,3 +15,7 @@ outputs:
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.sh
+
+params:
+  GIT_COMMIT_USERNAME: "CF Networking Team CI Bot"
+  GIT_COMMIT_EMAIL: "CF-Networking@pivotal.io"
