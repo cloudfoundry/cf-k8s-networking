@@ -21,4 +21,5 @@ pushd cf-k8s-networking
     fi
 popd
 
-cp -r cf-k8s-networking cf-k8s-networking-modified
+shopt -s dotglob
+cp -r cf-k8s-networking/* cf-k8s-networking-modified
