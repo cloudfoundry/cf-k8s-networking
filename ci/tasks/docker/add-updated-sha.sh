@@ -20,3 +20,5 @@ pushd cf-k8s-networking
         echo "no changes in repo, no commit necessary"
     fi
 popd
+
+cp -r cf-k8s-networking cf-k8s-networking-modified
