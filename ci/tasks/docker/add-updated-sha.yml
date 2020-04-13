@@ -11,7 +11,7 @@ inputs:
   - name: k8s-deploy-image
 
 outputs:
-  - name: cf-k8s-networking
+  - name: cf-k8s-networking-modified
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.sh
