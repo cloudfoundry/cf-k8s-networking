@@ -22,6 +22,7 @@ spec:
     - port: #@ data.values.istio_ports.policy_telemetry_mtls
     - port: #@ data.values.istio_ports.pilot_service_discovery
     - port: #@ data.values.istio_ports.pilot_service_proxy_discovery_mtls
+    - port: #@ data.values.istio_ports.control_plane_monitoring
 
 ---
 apiVersion: networking.k8s.io/v1
