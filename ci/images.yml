@@ -1,12 +1,13 @@
 resources:
-  - name: k8s-deploy-dockerfile
+  - name: cfroutesync
     type: git
     icon: github-box
     source:
-      uri: git://github.com/cloudfoundry/cf-k8s-networking
+      private_key: ((github_private_key.private_key))
+      uri: git@github.com:cloudfoundry/cf-k8s-networking.git
       branch: master
       paths:
-        - ci/dockerfiles/deploy
+        - cfroutesync
 
   - name: cf-k8s-networking-mod
     type: git
@@ -32,8 +33,9 @@ resources:
     type: git
     icon: github-box
     source:
-      uri: https://github.com/cloudfoundry/cf-k8s-networking
+      uri: git@github.com:cloudfoundry/cf-k8s-networking.git
       branch: master
+      private_key: ((github_private_key.private_key))
 
   - name: cf-k8s-networking-ci
     type: git
@@ -67,13 +69,18 @@ jobs:
 #          - get: every-week
 #            trigger: true
           - get: cf-k8s-networking
-          - get: k8s-deploy-dockerfile
+          - get: cf-k8s-networking-ci
+          - get: cfroutesync
             trigger: true
       - put: k8s-deploy-image
         params:
           build: cf-k8s-networking/ci/dockerfiles/deploy
           tag_as_latest: true
-
+      - task: add-updated-sha
+        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
+      - put: cf-k8s-networking
+        params:
+          repository: cf-k8s-networking-modified
 
   - name: build-integration-test-env-image
     plan:
