@@ -44,4 +44,4 @@ This overlay can be applied during installation of
 
 ### Rotation:
 
-- SDS will swap certs automatically when the secret is updated.
+- Istio uses [SDS](https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/) for the Ingress Gateway. SDS allows the Ingress Gateway to reload certificates without restarting Envoy. When the secret is updated, Istio will reload the certificate automatically.
