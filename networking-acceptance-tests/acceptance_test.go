@@ -50,10 +50,10 @@ func TestAcceptance(t *testing.T) {
 			panic(err)
 		}
 
-		Eventually(cf.Cf("enable-feature-flag", "diego_docker")).Should(gexec.Exit(0))
-
 		TestSetup = workflowhelpers.NewTestSuiteSetup(config)
 		TestSetup.Setup()
+
+		Eventually(cf.Cf("enable-feature-flag", "diego_docker")).Should(gexec.Exit(0))
 
 		g := &Globals{}
 		g.SysComponentSelector = createSystemComponent()
