@@ -3,6 +3,7 @@
 For each domain in CF:
 
 1. Create a secret with the certificate and the key in `istio-system` namespace:
+_Note: The secret name should not start with `istio` or `prometheus` for dynamic reloading of the secret._
 ```
 kubectl create secret tls wildcard-apps-example-com-cert \
     -n istio-system \
