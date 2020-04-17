@@ -7,6 +7,8 @@
 #
 # To enable this hook, rename this file to "pre-commit".
 
+set -e
+
 echo "Regenerating sweet sweet istio config 🎩🎩🎩"
 
 pushd $(git rev-parse --show-toplevel)
