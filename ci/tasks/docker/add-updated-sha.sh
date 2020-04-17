@@ -5,7 +5,7 @@ pushd k8s-deploy-image > /dev/null
 popd
 
 pushd cf-k8s-networking
-    sed -i "s/cf-k8s-networking\/cfroutesync:.*/cf-k8s-networking\/cfroutesync@$digest/" config/cfroutesync/values.yaml
+    sed -i "s/cf-k8s-networking\/cfroutesync:.*/cf-k8s-networking\/cfroutesync:$digest/" config/cfroutesync/values.yaml
 
     git config user.name "${GIT_COMMIT_USERNAME}"
     git config user.email "${GIT_COMMIT_EMAIL}"
