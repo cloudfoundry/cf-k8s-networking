@@ -95,7 +95,7 @@ var _ = Describe("Integration", func() {
 		output, err = kubectlWithConfig(kubeConfigPath, kustomizeOutputReader, "-n", namespace, "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply crd failed with err: %s", string(output)))
 
-		session = startRouteController(kubeConfigPath, namespace)
+		session = startRouteController(kubeConfigPath)
 
 		kubectlGetVirtualServices = func() ([]virtualService, error) {
 			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "-o", "json", "get", "virtualservices")
@@ -271,11 +271,10 @@ var _ = Describe("Integration", func() {
 	})
 })
 
-func startRouteController(kubeConfigPath, namespace string) *gexec.Session {
+func startRouteController(kubeConfigPath string) *gexec.Session {
 	cmd := exec.Command(routeControllerBinaryPath)
 	cmd.Env = os.Environ()
-	// cmd.Env = append(cmd.Env, fmt.Sprintf("ROUTING_NAMESPACE=%s", namespace)) TODO: Not sure about
-	// cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
