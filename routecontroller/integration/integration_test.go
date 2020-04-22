@@ -29,7 +29,8 @@ type virtualService struct {
 }
 
 type virtualServiceSpec struct {
-	Hosts []string
+	Gateways []string
+	Hosts    []string
 }
 
 type service struct {
@@ -56,6 +57,7 @@ var _ = Describe("Integration", func() {
 		clusterName    string
 		kubeConfigPath string
 		namespace      string
+		gateway        string
 		clientset      kubernetes.Interface
 
 		yamlToApply string
@@ -67,6 +69,7 @@ var _ = Describe("Integration", func() {
 	BeforeEach(func() {
 		clusterName = fmt.Sprintf("test-%d-%d", GinkgoParallelNode(), rand.Uint64())
 		namespace = "cf-k8s-networking-tests"
+		gateway = "cf-test-gateway"
 
 		kubeConfigPath = createKindCluster(clusterName)
 		config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
@@ -95,7 +98,7 @@ var _ = Describe("Integration", func() {
 		output, err = kubectlWithConfig(kubeConfigPath, kustomizeOutputReader, "-n", namespace, "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply crd failed with err: %s", string(output)))
 
-		session = startRouteController(kubeConfigPath)
+		session = startRouteController(kubeConfigPath, gateway)
 
 		kubectlGetVirtualServices = func() ([]virtualService, error) {
 			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "-o", "json", "get", "virtualservices")
@@ -183,7 +186,8 @@ var _ = Describe("Integration", func() {
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
 					Spec: virtualServiceSpec{
-						Hosts: []string{"hostname.apps.example.com"},
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
 					},
 				},
 			))
@@ -199,7 +203,8 @@ var _ = Describe("Integration", func() {
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
 					Spec: virtualServiceSpec{
-						Hosts: []string{"hostname.apps.example.com"},
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
 					},
 				},
 			))
@@ -215,12 +220,14 @@ var _ = Describe("Integration", func() {
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
 					Spec: virtualServiceSpec{
-						Hosts: []string{"hostname-1.apps.example.com"},
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname-1.apps.example.com"},
 					},
 				},
 				virtualService{
 					Spec: virtualServiceSpec{
-						Hosts: []string{"hostname-2.apps.example.com"},
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname-2.apps.example.com"},
 					},
 				},
 			))
@@ -236,7 +243,8 @@ var _ = Describe("Integration", func() {
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
 					Spec: virtualServiceSpec{
-						Hosts: []string{"hostname.apps.example.com"},
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
 					},
 				},
 			))
@@ -271,10 +279,11 @@ var _ = Describe("Integration", func() {
 	})
 })
 
-func startRouteController(kubeConfigPath string) *gexec.Session {
+func startRouteController(kubeConfigPath, gateway string) *gexec.Session {
 	cmd := exec.Command(routeControllerBinaryPath)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
@@ -307,11 +316,11 @@ func deleteKindCluster(name, kubeConfigPath string) {
 }
 
 func kustomizeConfigCRD() ([]byte, error) {
-	args := []string{"build", filepath.Join("..", "config", "crd")}
-	cmd := exec.Command("kustomize", args...)
+	args := []string{"kustomize", filepath.Join("..", "config", "crd")}
+	cmd := exec.Command("kubectl", args...)
 	cmd.Stderr = GinkgoWriter
 
-	fmt.Fprintf(GinkgoWriter, "+ kustomize %s\n", strings.Join(args, " "))
+	fmt.Fprintf(GinkgoWriter, "+ kubectl %s\n", strings.Join(args, " "))
 
 	output, err := cmd.Output()
 

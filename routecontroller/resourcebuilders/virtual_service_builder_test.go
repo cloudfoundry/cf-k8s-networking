@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"strings"
 
-	appsv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/apps/v1alpha1"
-	networkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha3"
+	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
+	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
@@ -15,7 +15,7 @@ import (
 
 var _ = Describe("VirtualServiceBuilder", func() {
 	It("returns a VirtualService resource for each route destination", func() {
-		routes := appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+		routes := networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 			{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      "route-guid-0",
@@ -25,39 +25,39 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						"cloudfoundry.org/org_guid":   "org-guid-0",
 					},
 				},
-				Spec: appsv1alpha1.RouteSpec{
+				Spec: networkingv1alpha1.RouteSpec{
 					Host: "test0",
 					Path: "/path0",
 					Url:  "test0.domain0.example.com/path0",
-					Domain: appsv1alpha1.RouteDomain{
+					Domain: networkingv1alpha1.RouteDomain{
 						Name:     "domain0.example.com",
 						Internal: false,
 					},
-					Destinations: []appsv1alpha1.RouteDestination{
-						appsv1alpha1.RouteDestination{
+					Destinations: []networkingv1alpha1.RouteDestination{
+						networkingv1alpha1.RouteDestination{
 							Guid:   "route-0-destination-guid-0",
 							Port:   intPtr(9000),
 							Weight: intPtr(91),
-							App: appsv1alpha1.DestinationApp{
+							App: networkingv1alpha1.DestinationApp{
 								Guid:    "app-guid-0",
-								Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+								Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 							},
-							Selector: appsv1alpha1.DestinationSelector{
+							Selector: networkingv1alpha1.DestinationSelector{
 								MatchLabels: map[string]string{
 									"cloudfoundry.org/app_guid":     "app-guid-0",
 									"cloudfoundry.org/process_type": "process-type-1",
 								},
 							},
 						},
-						appsv1alpha1.RouteDestination{
+						networkingv1alpha1.RouteDestination{
 							Guid:   "route-0-destination-guid-1",
 							Port:   intPtr(9001),
 							Weight: intPtr(9),
-							App: appsv1alpha1.DestinationApp{
+							App: networkingv1alpha1.DestinationApp{
 								Guid:    "app-guid-1",
-								Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+								Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 							},
-							Selector: appsv1alpha1.DestinationSelector{
+							Selector: networkingv1alpha1.DestinationSelector{
 								MatchLabels: map[string]string{
 									"cloudfoundry.org/app_guid":     "app-guid-1",
 									"cloudfoundry.org/process_type": "process-type-1",
@@ -76,24 +76,24 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						"cloudfoundry.org/org_guid":   "org-guid-1",
 					},
 				},
-				Spec: appsv1alpha1.RouteSpec{
+				Spec: networkingv1alpha1.RouteSpec{
 					Host: "test1",
 					Path: "",
 					Url:  "test1.domain1.example.com",
-					Domain: appsv1alpha1.RouteDomain{
+					Domain: networkingv1alpha1.RouteDomain{
 						Name:     "domain1.example.com",
 						Internal: false,
 					},
-					Destinations: []appsv1alpha1.RouteDestination{
-						appsv1alpha1.RouteDestination{
+					Destinations: []networkingv1alpha1.RouteDestination{
+						networkingv1alpha1.RouteDestination{
 							Guid:   "route-1-destination-guid-0",
 							Port:   intPtr(8080),
 							Weight: intPtr(100),
-							App: appsv1alpha1.DestinationApp{
+							App: networkingv1alpha1.DestinationApp{
 								Guid:    "app-guid-1",
-								Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+								Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 							},
-							Selector: appsv1alpha1.DestinationSelector{
+							Selector: networkingv1alpha1.DestinationSelector{
 								MatchLabels: map[string]string{
 									"cloudfoundry.org/app_guid":     "app-guid-1",
 									"cloudfoundry.org/process_type": "process-type-1",
@@ -106,8 +106,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 		},
 		}
 
-		expectedVirtualServices := []networkingv1alpha3.VirtualService{
-			networkingv1alpha3.VirtualService{
+		expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
+			istionetworkingv1alpha3.VirtualService{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      VirtualServiceName("test0.domain0.example.com"),
 					Namespace: "workload-namespace",
@@ -116,7 +116,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 					},
 				},
-				Spec: networkingv1alpha3.VirtualServiceSpec{
+				Spec: istionetworkingv1alpha3.VirtualServiceSpec{
 					VirtualService: istiov1alpha3.VirtualService{
 						Hosts:    []string{"test0.domain0.example.com"},
 						Gateways: []string{"some-gateway0", "some-gateway1"},
@@ -166,7 +166,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					},
 				},
 			},
-			networkingv1alpha3.VirtualService{
+			istionetworkingv1alpha3.VirtualService{
 				ObjectMeta: metav1.ObjectMeta{
 					Name:      VirtualServiceName("test1.domain1.example.com"),
 					Namespace: "workload-namespace",
@@ -175,7 +175,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						"cloudfoundry.org/fqdn": "test1.domain1.example.com",
 					},
 				},
-				Spec: networkingv1alpha3.VirtualServiceSpec{
+				Spec: istionetworkingv1alpha3.VirtualServiceSpec{
 					VirtualService: istiov1alpha3.VirtualService{
 						Hosts:    []string{"test1.domain1.example.com"},
 						Gateways: []string{"some-gateway0", "some-gateway1"},
@@ -211,10 +211,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 	})
 
 	Describe("inferring weights", func() {
-		var routes appsv1alpha1.RouteList
+		var routes networkingv1alpha1.RouteList
 
 		BeforeEach(func() {
-			routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+			routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 				{
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "route-guid-0",
@@ -224,38 +224,38 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							"cloudfoundry.org/org_guid":   "org-guid-1",
 						},
 					},
-					Spec: appsv1alpha1.RouteSpec{
+					Spec: networkingv1alpha1.RouteSpec{
 						Host: "test0",
 						Path: "/path0",
 						Url:  "test0.domain0.example.com/path0",
-						Domain: appsv1alpha1.RouteDomain{
+						Domain: networkingv1alpha1.RouteDomain{
 							Name:     "domain0.example.com",
 							Internal: false,
 						},
-						Destinations: []appsv1alpha1.RouteDestination{
-							appsv1alpha1.RouteDestination{
+						Destinations: []networkingv1alpha1.RouteDestination{
+							networkingv1alpha1.RouteDestination{
 								Guid: "route-0-destination-guid-0",
-								App: appsv1alpha1.DestinationApp{
+								App: networkingv1alpha1.DestinationApp{
 									Guid:    "app-guid-0",
-									Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+									Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 								},
 								Port:   intPtr(9000),
 								Weight: nil,
 							},
-							appsv1alpha1.RouteDestination{
+							networkingv1alpha1.RouteDestination{
 								Guid: "route-0-destination-guid-1",
-								App: appsv1alpha1.DestinationApp{
+								App: networkingv1alpha1.DestinationApp{
 									Guid:    "app-guid-1",
-									Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+									Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 								},
 								Port:   intPtr(8080),
 								Weight: nil,
 							},
-							appsv1alpha1.RouteDestination{
+							networkingv1alpha1.RouteDestination{
 								Guid: "route-0-destination-guid-2",
-								App: appsv1alpha1.DestinationApp{
+								App: networkingv1alpha1.DestinationApp{
 									Guid:    "app-guid-2",
-									Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+									Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 								},
 								Port:   intPtr(8080),
 								Weight: nil,
@@ -282,21 +282,21 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("when the destinations DO evenly divide to 100", func() {
 				It("evenly distributes the weights", func() {
-					routes.Items[0].Spec.Destinations = []appsv1alpha1.RouteDestination{
-						appsv1alpha1.RouteDestination{
+					routes.Items[0].Spec.Destinations = []networkingv1alpha1.RouteDestination{
+						networkingv1alpha1.RouteDestination{
 							Guid: "route-0-destination-guid-0",
-							App: appsv1alpha1.DestinationApp{
+							App: networkingv1alpha1.DestinationApp{
 								Guid:    "app-guid-0",
-								Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+								Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 							},
 							Port:   intPtr(9000),
 							Weight: nil,
 						},
-						appsv1alpha1.RouteDestination{
+						networkingv1alpha1.RouteDestination{
 							Guid: "route-0-destination-guid-1",
-							App: appsv1alpha1.DestinationApp{
+							App: networkingv1alpha1.DestinationApp{
 								Guid:    "app-guid-1",
-								Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+								Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 							},
 							Port:   intPtr(8080),
 							Weight: nil,
@@ -332,8 +332,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			})
 
 			Context("when the weights do not sum up to 100", func() {
-				It("omits the invalid networkingv1alpha3.VirtualService", func() {
-					invalidRoute := appsv1alpha1.Route{
+				It("omits the invalid istionetworkingv1alpha3.VirtualService", func() {
+					invalidRoute := networkingv1alpha1.Route{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route-guid-0",
 							Namespace: "workload-namespace",
@@ -342,29 +342,29 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/org_guid":   "org-guid-1",
 							},
 						},
-						Spec: appsv1alpha1.RouteSpec{
+						Spec: networkingv1alpha1.RouteSpec{
 							Host: "invalid-route",
 							Path: "/path0",
 							Url:  "invalid-route.domain0.example.com/path0",
-							Domain: appsv1alpha1.RouteDomain{
+							Domain: networkingv1alpha1.RouteDomain{
 								Name:     "domain0.example.com",
 								Internal: false,
 							},
-							Destinations: []appsv1alpha1.RouteDestination{
-								appsv1alpha1.RouteDestination{
+							Destinations: []networkingv1alpha1.RouteDestination{
+								networkingv1alpha1.RouteDestination{
 									Guid: "route-0-destination-guid-0",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-0",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 									},
 									Port:   intPtr(9000),
 									Weight: intPtr(80),
 								},
-								appsv1alpha1.RouteDestination{
+								networkingv1alpha1.RouteDestination{
 									Guid: "route-0-destination-guid-1",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-1",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 									},
 									Port:   intPtr(8080),
 									Weight: intPtr(80),
@@ -388,7 +388,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("when one destination for a given route has a weight but the rest do not", func() {
 				BeforeEach(func() {
-					invalidRoute := appsv1alpha1.Route{
+					invalidRoute := networkingv1alpha1.Route{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route-guid-0",
 							Namespace: "workload-namespace",
@@ -397,29 +397,29 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/org_guid":   "org-guid-1",
 							},
 						},
-						Spec: appsv1alpha1.RouteSpec{
+						Spec: networkingv1alpha1.RouteSpec{
 							Host: "invalid-route",
 							Path: "/path0",
 							Url:  "invalid-route.domain0.example.com/path0",
-							Domain: appsv1alpha1.RouteDomain{
+							Domain: networkingv1alpha1.RouteDomain{
 								Name:     "domain0.example.com",
 								Internal: false,
 							},
-							Destinations: []appsv1alpha1.RouteDestination{
-								appsv1alpha1.RouteDestination{
+							Destinations: []networkingv1alpha1.RouteDestination{
+								networkingv1alpha1.RouteDestination{
 									Guid: "route-0-destination-guid-0",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-0",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 									},
 									Port:   intPtr(9000),
 									Weight: intPtr(80),
 								},
-								appsv1alpha1.RouteDestination{
+								networkingv1alpha1.RouteDestination{
 									Guid: "route-0-destination-guid-1",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-1",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 									},
 									Port:   intPtr(8080),
 									Weight: nil,
@@ -430,7 +430,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					routes.Items = append(routes.Items, invalidRoute)
 				})
 
-				It("omits the invalid networkingv1alpha3.VirtualService", func() {
+				It("omits the invalid istionetworkingv1alpha3.VirtualService", func() {
 					builder := VirtualServiceBuilder{
 						IstioGateways: []string{"some-gateway0", "some-gateway1"},
 					}
@@ -446,7 +446,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 		Context("when a route is for an internal domain", func() {
 			BeforeEach(func() {
-				routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+				routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 					{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route-guid-0",
@@ -456,20 +456,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/org_guid":   "org-guid-0",
 							},
 						},
-						Spec: appsv1alpha1.RouteSpec{
+						Spec: networkingv1alpha1.RouteSpec{
 							Host: "test0",
 							Path: "",
 							Url:  "test0.domain0.apps.internal",
-							Domain: appsv1alpha1.RouteDomain{
+							Domain: networkingv1alpha1.RouteDomain{
 								Name:     "domain0.apps.internal",
 								Internal: true,
 							},
-							Destinations: []appsv1alpha1.RouteDestination{
+							Destinations: []networkingv1alpha1.RouteDestination{
 								{
 									Guid: "route-0-destination-guid-0",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-0",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-0"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-0"},
 									},
 									Port:   intPtr(8080),
 									Weight: intPtr(100),
@@ -494,7 +494,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 		Context("when two routes have the same fqdn", func() {
 			BeforeEach(func() {
-				routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+				routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 					{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      "route-guid-0",
@@ -504,20 +504,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/org_guid":   "org-guid-0",
 							},
 						},
-						Spec: appsv1alpha1.RouteSpec{
+						Spec: networkingv1alpha1.RouteSpec{
 							Host: "test0",
 							Path: "/path0",
 							Url:  "test0.domain0.example.com/path0",
-							Domain: appsv1alpha1.RouteDomain{
+							Domain: networkingv1alpha1.RouteDomain{
 								Name:     "domain0.example.com",
 								Internal: false,
 							},
-							Destinations: []appsv1alpha1.RouteDestination{
+							Destinations: []networkingv1alpha1.RouteDestination{
 								{
 									Guid: "route-0-destination-guid-0",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-0",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 									},
 									Port:   intPtr(9000),
 									Weight: intPtr(100),
@@ -534,20 +534,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/org_guid":   "org-guid-0",
 							},
 						},
-						Spec: appsv1alpha1.RouteSpec{
+						Spec: networkingv1alpha1.RouteSpec{
 							Host: "test0",
 							Path: "/path0/deeper",
 							Url:  "test0.domain0.example.com/path0/deeper",
-							Domain: appsv1alpha1.RouteDomain{
+							Domain: networkingv1alpha1.RouteDomain{
 								Name:     "domain0.example.com",
 								Internal: false,
 							},
-							Destinations: []appsv1alpha1.RouteDestination{
+							Destinations: []networkingv1alpha1.RouteDestination{
 								{
 									Guid: "route-1-destination-guid-0",
-									App: appsv1alpha1.DestinationApp{
+									App: networkingv1alpha1.DestinationApp{
 										Guid:    "app-guid-1",
-										Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 									},
 									Port:   intPtr(8080),
 									Weight: intPtr(100),
@@ -560,8 +560,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			})
 
 			It("orders the paths by longest matching prefix", func() {
-				expectedVirtualServices := []networkingv1alpha3.VirtualService{
-					networkingv1alpha3.VirtualService{
+				expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
+					istionetworkingv1alpha3.VirtualService{
 						ObjectMeta: metav1.ObjectMeta{
 							Name:      VirtualServiceName("test0.domain0.example.com"),
 							Namespace: "workload-namespace",
@@ -570,7 +570,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 							},
 						},
-						Spec: networkingv1alpha3.VirtualServiceSpec{
+						Spec: istionetworkingv1alpha3.VirtualServiceSpec{
 							VirtualService: istiov1alpha3.VirtualService{
 								Hosts:    []string{"test0.domain0.example.com"},
 								Gateways: []string{"some-gateway0", "some-gateway1"},
@@ -643,7 +643,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("and one of the routes has no destinations", func() {
 				It("ignores the route without destinations", func() {
-					routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route-guid-0",
@@ -653,20 +653,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path0",
 								Url:  "test0.domain0.example.com/path0",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-0-destination-guid-0",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-0",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -683,15 +683,15 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path0/deeper",
 								Url:  "test0.domain0.example.com/path0/deeper",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{},
+								Destinations: []networkingv1alpha1.RouteDestination{},
 							},
 						},
 					},
@@ -711,7 +711,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("and one route is internal and one is external", func() {
 				It("does not create a VirtualService for the fqdn", func() {
-					routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route-guid-0",
@@ -721,20 +721,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path0",
 								Url:  "test0.domain0.example.com/path0",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-0-destination-guid-0",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-0",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -751,20 +751,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path1",
 								Url:  "test0.domain0.example.com/path1",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: true,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-0-destination-guid-0",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-0",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -781,20 +781,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test1",
 								Path: "",
 								Url:  "test1.domain1.example.com",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain1.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-1-destination-guid-1",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-1",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -818,7 +818,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("and the routes have different namespaces", func() {
 				It("does not create a VirtualService for the fqdn", func() {
-					routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route-guid-0",
@@ -828,20 +828,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path0",
 								Url:  "test0.domain0.example.com/path0",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-0-destination-guid-0",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-0",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -858,20 +858,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path1",
 								Url:  "test0.domain0.example.com/path1",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-0-destination-guid-0",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-0",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -888,20 +888,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test1",
 								Path: "",
 								Url:  "test1.domain1.example.com",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain1.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-1-destination-guid-1",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-1",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port:   intPtr(9000),
 										Weight: intPtr(100),
@@ -925,7 +925,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("when a route has no destinations", func() {
 				It("does not create a VirtualService", func() {
-					routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route-guid-0",
@@ -935,15 +935,15 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path0",
 								Url:  "test0.domain0.example.com/path0",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{},
+								Destinations: []networkingv1alpha1.RouteDestination{},
 							},
 						},
 					},
@@ -959,7 +959,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("when a destination has no weight", func() {
 				It("sets the weight to 100", func() {
-					routes = appsv1alpha1.RouteList{Items: []appsv1alpha1.Route{
+					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 						{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route-guid-0",
@@ -969,20 +969,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
 							},
-							Spec: appsv1alpha1.RouteSpec{
+							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
 								Path: "/path0",
 								Url:  "test0.domain0.example.com/path0",
-								Domain: appsv1alpha1.RouteDomain{
+								Domain: networkingv1alpha1.RouteDomain{
 									Name:     "domain0.example.com",
 									Internal: false,
 								},
-								Destinations: []appsv1alpha1.RouteDestination{
+								Destinations: []networkingv1alpha1.RouteDestination{
 									{
 										Guid: "route-0-destination-guid-0",
-										App: appsv1alpha1.DestinationApp{
+										App: networkingv1alpha1.DestinationApp{
 											Guid:    "app-guid-0",
-											Process: appsv1alpha1.AppProcess{Type: "process-type-1"},
+											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
 										},
 										Port: intPtr(9000),
 									},

@@ -1,14 +1,14 @@
 package resourcebuilders
 
 import (
-	appsv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/apps/v1alpha1"
+	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
 	core "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
 type ServiceBuilder struct{}
 
-func (b *ServiceBuilder) Build(routes *appsv1alpha1.RouteList) []core.Service {
+func (b *ServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []core.Service {
 	resources := []core.Service{}
 	for _, route := range routes.Items {
 		resources = append(resources, routeToServices(route)...)
@@ -16,7 +16,7 @@ func (b *ServiceBuilder) Build(routes *appsv1alpha1.RouteList) []core.Service {
 	return resources
 }
 
-func routeToServices(route appsv1alpha1.Route) []core.Service {
+func routeToServices(route networkingv1alpha1.Route) []core.Service {
 	const httpPortName = "http"
 	services := []core.Service{}
 	for _, dest := range route.Spec.Destinations {

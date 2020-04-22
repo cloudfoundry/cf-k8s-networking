@@ -25,10 +25,11 @@ import (
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	appsv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/apps/v1alpha1"
-	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/controllers/apps"
+	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
+	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/cfg"
+	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/controllers/networking"
 
-	networkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha3"
+	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -39,8 +40,8 @@ var (
 
 func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
-	_ = appsv1alpha1.AddToScheme(scheme)
-	_ = networkingv1alpha3.AddToScheme(scheme)
+	_ = networkingv1alpha1.AddToScheme(scheme)
+	_ = istionetworkingv1alpha3.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
@@ -56,6 +57,12 @@ func main() {
 		o.Development = true
 	}))
 
+	config, err := cfg.Load()
+	if err != nil {
+		setupLog.Error(err, "unable to load config")
+		os.Exit(1)
+	}
+
 	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
 		Scheme:             scheme,
 		MetricsBindAddress: metricsAddr,
@@ -67,10 +74,11 @@ func main() {
 		os.Exit(1)
 	}
 
-	if err = (&apps.RouteReconciler{
-		Client: mgr.GetClient(),
-		Log:    ctrl.Log.WithName("controllers").WithName("Route"),
-		Scheme: mgr.GetScheme(),
+	if err = (&networking.RouteReconciler{
+		Client:       mgr.GetClient(),
+		Log:          ctrl.Log.WithName("controllers").WithName("Route"),
+		Scheme:       mgr.GetScheme(),
+		IstioGateway: config.Istio.Gateway,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Route")
 		os.Exit(1)

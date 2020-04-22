@@ -13,12 +13,12 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package apps
+package networking
 
 import (
 	"context"
 
-	appsv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/apps/v1alpha1"
+	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -30,8 +30,9 @@ import (
 // RouteReconciler reconciles a Route object
 type RouteReconciler struct {
 	client.Client
-	Log    logr.Logger
-	Scheme *runtime.Scheme
+	Log          logr.Logger
+	Scheme       *runtime.Scheme
+	IstioGateway string
 }
 
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes,verbs=get;list;watch
@@ -42,7 +43,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("route", req.NamespacedName)
 
 	// your logic goes here
-	routes := &appsv1alpha1.RouteList{}
+	routes := &networkingv1alpha1.RouteList{}
 
 	// TODO: only act on changes to routes? consider doing this in the update story
 
@@ -55,7 +56,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		log.Error(err, "failed to list routes")
 	}
 
-	vsb := resourcebuilders.VirtualServiceBuilder{IstioGateways: []string{"foo"}}
+	vsb := resourcebuilders.VirtualServiceBuilder{IstioGateways: []string{r.IstioGateway}}
 	sb := resourcebuilders.ServiceBuilder{}
 
 	virtualservices := vsb.Build(routes)
@@ -88,6 +89,6 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&appsv1alpha1.Route{}).
+		For(&networkingv1alpha1.Route{}).
 		Complete(r)
 }
