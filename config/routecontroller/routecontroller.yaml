@@ -1,0 +1,33 @@
+#@ load("@ytt:data", "data")
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routecontroller
+  namespace: #@ data.values.systemNamespace
+  labels:
+    app: routecontroller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: routecontroller
+  template:
+    metadata:
+      namespace: cf-system
+      labels:
+        app: routecontroller
+    spec:
+      containers:
+      - name: routecontroller
+        image: #@ data.values.routecontroller.image
+        resources:
+          limits:
+            cpu: 100m
+            memory: 30Mi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+      terminationGracePeriodSeconds: 10
+      serviceAccountName: routecontroller
