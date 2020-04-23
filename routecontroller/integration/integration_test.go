@@ -31,6 +31,19 @@ type virtualService struct {
 type virtualServiceSpec struct {
 	Gateways []string
 	Hosts    []string
+	Http     []http
+}
+
+type http struct {
+	Match []match
+}
+
+type match struct {
+	Uri uri
+}
+
+type uri struct {
+	Prefix string
 }
 
 type service struct {
@@ -188,6 +201,15 @@ var _ = Describe("Integration", func() {
 					Spec: virtualServiceSpec{
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+							},
+						},
 					},
 				},
 			))
@@ -205,6 +227,22 @@ var _ = Describe("Integration", func() {
 					Spec: virtualServiceSpec{
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+							},
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/different/path"},
+									},
+								},
+							},
+						},
 					},
 				},
 			))
@@ -222,12 +260,30 @@ var _ = Describe("Integration", func() {
 					Spec: virtualServiceSpec{
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname-1.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+							},
+						},
 					},
 				},
 				virtualService{
 					Spec: virtualServiceSpec{
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname-2.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/different/path"},
+									},
+								},
+							},
+						},
 					},
 				},
 			))
@@ -245,6 +301,15 @@ var _ = Describe("Integration", func() {
 					Spec: virtualServiceSpec{
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+							},
+						},
 					},
 				},
 			))
