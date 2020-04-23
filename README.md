@@ -83,7 +83,7 @@ Confirm that the namespaces are labeled correctly:
    kubectl get -n istio-system configmap prometheus -o yaml > ${prometheus_file}
 
    ytt \
-    -f "config/cfroutesync/values.yaml" \
+    -f "config/values.yaml" \
     -f "${prometheus_file}" \
     -f "config/deps/prometheus-config.yaml" | \
     kubectl apply -f -

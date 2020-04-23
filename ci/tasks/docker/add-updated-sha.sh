@@ -7,14 +7,14 @@ pushd k8s-deploy-image > /dev/null
 popd
 
 pushd cf-k8s-networking
-    sed -i "s/cf-k8s-networking\/cfroutesync:.*/cf-k8s-networking\/cfroutesync@$digest/" config/cfroutesync/values.yaml
+    sed -i "s/cf-k8s-networking\/cfroutesync:.*/cf-k8s-networking\/cfroutesync@$digest/" config/values.yaml
 
     git config user.name "${GIT_COMMIT_USERNAME}"
     git config user.email "${GIT_COMMIT_EMAIL}"
 
     if [[ -n $(git status --porcelain) ]]; then
         echo "changes detected, will commit..."
-        git add config/cfroutesync/values.yaml
+        git add config/values.yaml
         git commit -m "Update cfroutesync image digest to ${digest}"
 
         git log -1 --color | cat
