@@ -42,28 +42,37 @@ resources:
 groups:
   - name: build
     jobs:
-      - run-units
-      - publish-image
+      - run-cfroutesync-units
+      - run-routecontroller-units
+      - publish-cfroutesync-image
   - name: dont-smoke
     jobs:
       - dont-smoke-for-k8s-deploy-and-test
 jobs:
 # Build
-- name: run-units
+- name: run-cfroutesync-units
   plan:
     - in_parallel:
         - get: cf-k8s-networking
           trigger: true
         - get: cf-k8s-networking-ci
-    - task: run-unit-tests
-      file: cf-k8s-networking-ci/ci/tasks/tests/run-units.yml
+    - task: unit-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-cfroutesync-units.yml
 
-
-- name: publish-image
+- name: run-routecontroller-units
   plan:
     - in_parallel:
         - get: cf-k8s-networking
-          passed: [run-units]
+          trigger: true
+        - get: cf-k8s-networking-ci
+    - task: unit-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-units.yml
+
+- name: publish-cfroutesync-image
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+          passed: [run-cfroutesync-units]
           trigger: true
         - get: cf-k8s-networking-ci
     - task: build-tag-file
