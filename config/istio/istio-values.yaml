@@ -26,7 +26,6 @@ spec:
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     global:
-      hub: gcr.io/cf-routing
       controlPlaneSecurityEnabled: true
       mtls:
         auto: true
