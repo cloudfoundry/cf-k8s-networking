@@ -48,7 +48,7 @@ jobs:
       working-directory: routecontroller
       run: scripts/test
   routecontroller_docker_push:
-    name: CF Route Syncer Docker Push
+    name: Route Controller Docker Push
     needs: [routecontroller_tests]
     runs-on: ubuntu-latest
     container:
