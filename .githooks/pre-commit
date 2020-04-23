@@ -11,9 +11,12 @@ set -e
 
 echo "Regenerating sweet sweet istio config 🎩🎩🎩"
 
-pushd $(git rev-parse --show-toplevel)
+pushd "$(git rev-parse --show-toplevel)" > /dev/null
   ./config/istio/build.sh
-  git add config/istio-generated/xxx-generated-istio.yaml
-popd
+  if [[ -n "$(git diff -- ./config/istio-generated/xxx-generated-istio.yaml)" ]]; then
+    echo "Generated istio config has been changed. Validate and add before committing.";
+    exit 1
+  fi
+popd > /dev/null
 
-echo "Regenerated and added! ✨✨✨"
+echo "No changes to istio config! ✨✨✨"
