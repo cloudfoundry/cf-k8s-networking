@@ -8,7 +8,7 @@ image_resource:
 inputs:
   - name: cf-k8s-networking
   - name: cf-k8s-networking-ci
-  - name: k8s-deploy-image
+  - name: cfroutesync-image
 
 outputs:
   - name: cf-k8s-networking-modified

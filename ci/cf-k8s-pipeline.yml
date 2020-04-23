@@ -83,6 +83,11 @@ jobs:
         dockerfile: cf-k8s-networking/cfroutesync/deploy/Dockerfile
         additional_tags: docker-info/tags
         tag_as_latest: true
+    - task: add-updated-sha
+      file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
+    - put: cf-k8s-networking
+      params:
+        repository: cf-k8s-networking-modified
 
 # Environment to run tests
 - name: dont-smoke-for-k8s-deploy-and-test

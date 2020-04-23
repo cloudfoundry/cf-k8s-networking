@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-pushd k8s-deploy-image > /dev/null
+pushd cfroutesync-image > /dev/null
     digest="$(cat digest)"
 popd
 
