@@ -9,7 +9,7 @@ inputs:
   - name: cf-k8s-networking
 
 run:
-  path: cf-k8s-networking/routecontroller/bin/test
+  path: cf-k8s-networking/routecontroller/scripts/test
   args:
   - "local"
 
