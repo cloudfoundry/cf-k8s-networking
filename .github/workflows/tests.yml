@@ -19,7 +19,7 @@ jobs:
 
   cfroutesync_docker_push:
     name: CF Route Syncer Docker Push
-    needs: [tests]
+    needs: [cfroutesync_tests]
     runs-on: ubuntu-latest
     container:
       image: "concourse/docker-image-resource:ubuntu"
@@ -49,7 +49,7 @@ jobs:
       run: scripts/test
   routecontroller_docker_push:
     name: CF Route Syncer Docker Push
-    needs: [tests]
+    needs: [routecontroller_tests]
     runs-on: ubuntu-latest
     container:
       image: "concourse/docker-image-resource:ubuntu"
