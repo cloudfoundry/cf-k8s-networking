@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+set -euo pipefail
+
 pushd k8s-deploy-image > /dev/null
     digest="$(cat digest)"
 popd
