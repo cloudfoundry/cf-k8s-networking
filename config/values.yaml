@@ -7,7 +7,7 @@ systemNamespace: cf-system
 workloadsNamespace: cf-workloads
 
 cfroutesync:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync@sha256:c96927ce4e354289e435d33a5dd7a39c75fc2b15cf6a632985967ec81ede3d96
+  image: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync@sha256:b75699ca36462e8e0530f74c0a76a26fdfb9b6e5c6743d8f9d1810d40d2ca222
 
   ccCA: 'base64_encoded_cloud_controller_ca'
   ccBaseURL: 'https://api.example.com'
