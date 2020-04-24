@@ -22,6 +22,14 @@ resources:
     ignore_paths:
       - config/values.yaml # Do not want resource to trigger on image digest updates
 
+- name: cf-k8s-networking-values
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+
 - name: cf-k8s-networking-ci
   type: git
   icon: github-box
@@ -91,7 +99,12 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
       input_mapping:
         cf-k8s-networking: cf-k8s-networking-latest
-    - put: cf-k8s-networking
+    # Put to a separate resource to avoid the pipeline getting this commit by
+    # ignoring the config/values.yaml path. When putting to a git resource, the
+    # commit is added to the concourse resource regardless of whether or not
+    # the files that are committed are in ignore_paths. This should prevent a
+    # cyclical commit loop.
+    - put: cf-k8s-networking-values
       params:
         repository: cf-k8s-networking-modified
 
