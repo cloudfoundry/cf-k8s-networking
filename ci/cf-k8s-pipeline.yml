@@ -19,6 +19,8 @@ resources:
     branch: master
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    ignore_paths:
+      - config/values.yaml # Do not want resource to trigger on image digest updates
 
 - name: cf-k8s-networking-ci
   type: git
