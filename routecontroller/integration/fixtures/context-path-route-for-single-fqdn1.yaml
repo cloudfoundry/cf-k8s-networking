@@ -1,0 +1,34 @@
+apiVersion: networking.cloudfoundry.org/v1alpha1
+kind: Route
+metadata:
+ name: context-path-route-guid-1
+ annotations: {}
+ labels:
+   app.kubernetes.io/name: context-path-route-guid-1
+   app.kubernetes.io/version: cloud-controller-api-version
+   app.kubernetes.io/managed-by: cloudfoundry
+   app.kubernetes.io/component: cf-networking
+   app.kubernetes.io/part-of: cloudfoundry
+   cloudfoundry.org/org_guid: cc-org-guid
+   cloudfoundry.org/space_guid: cc-space-guid
+   cloudfoundry.org/domain_guid: cc-domain-guid
+   cloudfoundry.org/route_guid: context-path-route-guid-1
+spec:
+  host: hostname
+  path: /hello
+  url: hostname.apps.example.com/hello
+  domain:
+    name: apps.example.com
+    internal: false
+  destinations:
+  - weight: 100
+    port: 8080
+    guid: destination-guid-1
+    selector:
+      matchLabels:
+        cloudfoundry.org/app_guid: cc-app1-guid
+        cloudfoundry.org/process_type: web
+    app:
+      guid: cc-app1-guid
+      process:
+        type: web

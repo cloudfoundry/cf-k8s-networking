@@ -342,6 +342,61 @@ var _ = Describe("Integration", func() {
 			))
 		})
 	})
+
+	When("Route resources are created in succession for the same FQDN", func() {
+		BeforeEach(func() {
+			yamlToApply = filepath.Join("fixtures", "context-path-route-for-single-fqdn1.yaml")
+		})
+
+		It("updates the virtualservice for that FQDN", func() {
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/hello"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
+			secondYAMLToApply := filepath.Join("fixtures", "context-path-route-for-single-fqdn2.yaml")
+			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/hello/world"},
+									},
+								},
+							},
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/hello"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+		})
+	})
 })
 
 func startRouteController(kubeConfigPath, gateway string) *gexec.Session {

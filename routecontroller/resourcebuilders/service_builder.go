@@ -2,34 +2,45 @@ package resourcebuilders
 
 import (
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
-	core "k8s.io/api/core/v1"
+	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 )
 
 type ServiceBuilder struct{}
 
-func (b *ServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []core.Service {
-	resources := []core.Service{}
+func (b *ServiceBuilder) BuildMutateFunction(actualService, desiredService *corev1.Service) controllerutil.MutateFn {
+	return func() error {
+		actualService.ObjectMeta.Labels = desiredService.ObjectMeta.Labels
+		actualService.ObjectMeta.Annotations = desiredService.ObjectMeta.Annotations
+		actualService.Spec.Selector = desiredService.Spec.Selector
+		actualService.Spec.Ports = desiredService.Spec.Ports
+		return nil
+	}
+}
+
+func (b *ServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []corev1.Service {
+	resources := []corev1.Service{}
 	for _, route := range routes.Items {
 		resources = append(resources, routeToServices(route)...)
 	}
 	return resources
 }
 
-func routeToServices(route networkingv1alpha1.Route) []core.Service {
+func routeToServices(route networkingv1alpha1.Route) []corev1.Service {
 	const httpPortName = "http"
-	services := []core.Service{}
+	services := []corev1.Service{}
 	for _, dest := range route.Spec.Destinations {
-		service := core.Service{
+		service := corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:        serviceName(dest),
 				Namespace:   route.ObjectMeta.Namespace,
 				Labels:      map[string]string{},
 				Annotations: map[string]string{},
 			},
-			Spec: core.ServiceSpec{
+			Spec: corev1.ServiceSpec{
 				Selector: dest.Selector.MatchLabels,
-				Ports: []core.ServicePort{
+				Ports: []corev1.ServicePort{
 					{
 						Port: int32(*dest.Port),
 						Name: httpPortName,

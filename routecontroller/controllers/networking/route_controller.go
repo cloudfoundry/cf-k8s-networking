@@ -17,14 +17,19 @@ package networking
 
 import (
 	"context"
+	"fmt"
 
-	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
-	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	"k8s.io/apimachinery/pkg/runtime"
-	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
+
+	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
+	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
+	corev1 "k8s.io/api/core/v1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	ctrl "sigs.k8s.io/controller-runtime"
 )
 
 // RouteReconciler reconciles a Route object
@@ -62,26 +67,34 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	virtualservices := vsb.Build(routes)
 	services := sb.Build(routes)
 
-	for _, service := range services {
-		if err := r.Client.Create(ctx, &service); err != nil {
-			if apierrors.IsAlreadyExists(err) {
-				continue
-			}
-
-			log.Error(err, "failed create Service")
+	for _, desiredService := range services {
+		service := &corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      desiredService.ObjectMeta.Name,
+				Namespace: desiredService.ObjectMeta.Namespace,
+			},
+		}
+		mutateFn := sb.BuildMutateFunction(service, &desiredService)
+		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, service, mutateFn)
+		if err != nil {
 			return ctrl.Result{}, err
 		}
+		log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
 	}
 
-	for _, vs := range virtualservices {
-		if err := r.Client.Create(ctx, &vs); err != nil {
-			if apierrors.IsAlreadyExists(err) {
-				continue
-			}
-
-			log.Error(err, "failed create VirtualService")
+	for _, desiredVirtualService := range virtualservices {
+		virtualService := &istionetworkingv1alpha3.VirtualService{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      desiredVirtualService.ObjectMeta.Name,
+				Namespace: desiredVirtualService.ObjectMeta.Namespace,
+			},
+		}
+		mutateFn := vsb.BuildMutateFunction(virtualService, &desiredVirtualService)
+		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, virtualService, mutateFn)
+		if err != nil {
 			return ctrl.Result{}, err
 		}
+		log.Info(fmt.Sprintf("VirtualService %s/%s has been %s", virtualService.Namespace, virtualService.Name, result))
 	}
 
 	return ctrl.Result{}, nil

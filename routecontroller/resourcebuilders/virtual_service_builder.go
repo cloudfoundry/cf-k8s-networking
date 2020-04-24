@@ -10,6 +10,7 @@ import (
 	log "github.com/sirupsen/logrus"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
 	"sort"
 )
@@ -26,6 +27,21 @@ const IstioExpectedWeight = int(100)
 
 type VirtualServiceBuilder struct {
 	IstioGateways []string
+}
+
+// virtual service names cannot contain special characters
+func VirtualServiceName(fqdn string) string {
+	sum := sha256.Sum256([]byte(fqdn))
+	return fmt.Sprintf("vs-%x", sum)
+}
+
+func (b *VirtualServiceBuilder) BuildMutateFunction(actualVirtualService, desiredVirtualService *istionetworkingv1alpha3.VirtualService) controllerutil.MutateFn {
+	return func() error {
+		actualVirtualService.ObjectMeta.Labels = desiredVirtualService.ObjectMeta.Labels
+		actualVirtualService.ObjectMeta.Annotations = desiredVirtualService.ObjectMeta.Annotations
+		actualVirtualService.Spec = desiredVirtualService.Spec
+		return nil
+	}
 }
 
 func (b *VirtualServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []istionetworkingv1alpha3.VirtualService {
@@ -49,16 +65,11 @@ func (b *VirtualServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []is
 	return resources
 }
 
-// virtual service names cannot contain special characters
-func VirtualServiceName(fqdn string) string {
-	sum := sha256.Sum256([]byte(fqdn))
-	return fmt.Sprintf("vs-%x", sum)
-}
-
 func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []networkingv1alpha1.Route) (istionetworkingv1alpha3.VirtualService, error) {
+	name := VirtualServiceName(fqdn)
 	vs := istionetworkingv1alpha3.VirtualService{
 		ObjectMeta: metav1.ObjectMeta{
-			Name:      VirtualServiceName(fqdn),
+			Name:      name,
 			Namespace: routes[0].ObjectMeta.Namespace,
 			Labels:    map[string]string{},
 			Annotations: map[string]string{
