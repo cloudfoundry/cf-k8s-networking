@@ -19,15 +19,7 @@ func (b *ServiceBuilder) BuildMutateFunction(actualService, desiredService *core
 	}
 }
 
-func (b *ServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []corev1.Service {
-	resources := []corev1.Service{}
-	for _, route := range routes.Items {
-		resources = append(resources, routeToServices(route)...)
-	}
-	return resources
-}
-
-func routeToServices(route networkingv1alpha1.Route) []corev1.Service {
+func (b *ServiceBuilder) Build(route *networkingv1alpha1.Route) []corev1.Service {
 	const httpPortName = "http"
 	services := []corev1.Service{}
 	for _, dest := range route.Spec.Destinations {

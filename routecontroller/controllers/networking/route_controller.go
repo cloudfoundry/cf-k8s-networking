@@ -40,6 +40,8 @@ type RouteReconciler struct {
 	IstioGateway string
 }
 
+const fqdnFieldKey string = "spec.fqdn"
+
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes,verbs=get;list;watch
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
 
@@ -47,16 +49,15 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
 	log := r.Log.WithValues("route", req.NamespacedName)
 
-	// your logic goes here
 	routes := &networkingv1alpha1.RouteList{}
+	route := &networkingv1alpha1.Route{}
 
-	// TODO: only act on changes to routes? consider doing this in the update story
+	if err := r.Get(ctx, req.NamespacedName, route); err != nil {
+		log.Error(err, "unable to fetch Route")
+		return ctrl.Result{}, client.IgnoreNotFound(err)
+	}
 
-	// watch finds a new route or change to a route
-	// find all routes that share that fqdn and reconcile the single Virtual Service for that fqdn
-	// reconcile the many Services for the route that was created/changed
-
-	err := r.List(ctx, routes)
+	err := r.List(ctx, routes, client.InNamespace(req.Namespace), client.MatchingFields{fqdnFieldKey: route.FQDN()})
 	if err != nil {
 		log.Error(err, "failed to list routes")
 	}
@@ -65,7 +66,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	sb := resourcebuilders.ServiceBuilder{}
 
 	virtualservices := vsb.Build(routes)
-	services := sb.Build(routes)
+	services := sb.Build(route)
 
 	for _, desiredService := range services {
 		service := &corev1.Service{
@@ -101,6 +102,14 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 }
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
+	err := mgr.GetFieldIndexer().IndexField(&networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
+		route := rawObj.(*networkingv1alpha1.Route)
+		return []string{route.FQDN()}
+	})
+	if err != nil {
+		return err
+	}
+
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&networkingv1alpha1.Route{}).
 		Complete(r)
