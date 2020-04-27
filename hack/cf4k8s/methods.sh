@@ -41,7 +41,7 @@ function deploy_cf_for_k8s() {
 function target_cf() {
     echo "Targeting CF!"
     cf api --skip-ssl-validation "https://api.${CF_DOMAIN}"
-    cf auth admin "$(cat "/tmp/${CLUSTER_NAME}/cf-values.yml" | yq .cf_admin_password -r)"
+    cf auth admin "$(cat "/tmp/${CLUSTER_NAME}/cf-values.yml" | grep cf_admin_password | awk '{print $2}')"
     cf create-org o
     cf create-space -o o s
     cf target -o o -s s
@@ -91,11 +91,13 @@ function configure_dns() {
 
   resolved_ip=''
   set +o pipefail
+  sleep_time=5
   while [ "$resolved_ip" != "$external_static_ip" ]; do
-    echo "Waiting for DNS to propagate..."
-    sleep 5
+    echo "Waiting $sleep_time seconds for DNS to propagate..."
+    sleep $sleep_time
     resolved_ip=$(nslookup "*.${CF_DOMAIN}" | (grep ${external_static_ip} || true) | cut -d ' ' -f2)
     echo "Resolved IP: ${resolved_ip}, Actual IP: ${external_static_ip}"
+    sleep_time=$(($sleep_time + 5))
   done
   set -o pipefail
   echo "We did it! DNS propagated! 🥳"

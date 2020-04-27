@@ -35,9 +35,14 @@ function delete_dns() {
   gcloud dns record-sets transaction execute --project ${GCP_PROJECT} --zone="${SHARED_DNS_ZONE_NAME}" --verbosity=debug
 }
 
+function cleanup() {
+  rm -rf /tmp/${CF_DOMAIN}*
+}
+
 function main() {
     delete_dns
     delete_cluster
+    cleanup
 }
 
 main
