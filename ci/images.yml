@@ -67,7 +67,7 @@ resources:
     type: docker-image
     icon: docker
     source:
-      repository: gcr.io/cf-networking-images/cfroutesync-integration-test-env
+      repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
       username: _json_key
       password: ((gcp_gcr_service_account_key))
 
@@ -78,8 +78,6 @@ jobs:
           - get: cf-k8s-networking
           - get: cf-k8s-networking-ci
           - get: cf-k8s-networking-docker-images
-            trigger: true
-          - get: cfroutesync
             trigger: true
       - put: k8s-deploy-image
         params:
