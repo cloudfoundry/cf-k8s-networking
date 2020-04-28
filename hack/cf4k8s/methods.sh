@@ -40,7 +40,7 @@ function deploy_cf_for_k8s() {
 
 function target_cf() {
     echo "Targeting CF!"
-    cf api --skip-ssl-validation "https://api.${CF_DOMAIN}"
+    cf api --skip-ssl-validation "https://api.sys.${CF_DOMAIN}"
     cf auth admin "$(cat "/tmp/${CLUSTER_NAME}/cf-values.yml" | grep cf_admin_password | awk '{print $2}')"
     cf create-org o
     cf create-space -o o s
