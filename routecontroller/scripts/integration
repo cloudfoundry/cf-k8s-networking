@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+
+set -euo pipefail
+
+function printStatus {
+      if [ $? -eq 0 ]; then
+          echo -e "\nSWEET SUITE SUCCESS"
+      else
+          echo -e "\nSUITE FAILURE"
+      fi
+  }
+
+trap printStatus EXIT
+
+
+script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "${script_dir}/.."
+
+set -x
+# TODO make these runnable in parallel
+ginkgo -keepGoing -trace -progress -failOnPending -randomizeAllSpecs -race -slowSpecThreshold 45 integration
+set +x
