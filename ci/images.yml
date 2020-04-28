@@ -1,14 +1,4 @@
 resources:
-  - name: cfroutesync
-    type: git
-    icon: github-box
-    source:
-      private_key: ((github_private_key.private_key))
-      uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-      branch: master
-      paths:
-        - cfroutesync
-
   - name: cf-k8s-networking-mod
     type: git
     icon: github-box
