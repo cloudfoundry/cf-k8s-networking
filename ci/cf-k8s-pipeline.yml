@@ -49,6 +49,14 @@ resources:
     username: _json_key
     password: ((gcp_gcr_service_account_key))
 
+- name: routecontroller-image
+  type: docker-image
+  icon: docker
+  source:
+    repository: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller
+    username: _json_key
+    password: ((gcp_gcr_service_account_key))
+
 - name: concourse-dcind
   type: git
   source:
@@ -63,6 +71,7 @@ groups:
       - run-routecontroller-units
       - run-routecontroller-integration-tests
       - publish-cfroutesync-image
+      - publish-routecontroller-image
   - name: dont-smoke
     jobs:
       - dont-smoke-for-k8s-deploy-and-test
@@ -122,7 +131,43 @@ jobs:
     - task: add-updated-sha
       file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
       input_mapping:
+        image-resource: cfroutesync-image
         cf-k8s-networking: cf-k8s-networking-latest
+      params:
+        COMPONENT_NAME: cfroutesync
+    # Put to a separate resource to avoid the pipeline getting this commit by
+    # ignoring the config/values.yaml path. When putting to a git resource, the
+    # commit is added to the concourse resource regardless of whether or not
+    # the files that are committed are in ignore_paths. This should prevent a
+    # cyclical commit loop.
+    - put: cf-k8s-networking-values
+      params:
+        repository: cf-k8s-networking-modified
+
+- name: publish-routecontroller-image
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+          passed: [run-routecontroller-integration-tests]
+          trigger: true
+        - get: cf-k8s-networking-latest
+          resource: cf-k8s-networking
+        - get: cf-k8s-networking-ci
+    - task: build-tag-file
+      file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
+    - put: routecontroller-image
+      params:
+        build: cf-k8s-networking/routecontroller
+        dockerfile: cf-k8s-networking/routecontroller/Dockerfile
+        additional_tags: docker-info/tags
+        tag_as_latest: true
+    - task: add-updated-sha
+      file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
+      input_mapping:
+        image-resource: routecontroller-image
+        cf-k8s-networking: cf-k8s-networking-latest
+      params:
+        COMPONENT_NAME: routecontroller
     # Put to a separate resource to avoid the pipeline getting this commit by
     # ignoring the config/values.yaml path. When putting to a git resource, the
     # commit is added to the concourse resource regardless of whether or not

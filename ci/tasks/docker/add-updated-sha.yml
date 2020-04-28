@@ -8,7 +8,7 @@ image_resource:
 inputs:
   - name: cf-k8s-networking
   - name: cf-k8s-networking-ci
-  - name: cfroutesync-image
+  - name: image-resource
 
 outputs:
   - name: cf-k8s-networking-modified
@@ -17,5 +17,6 @@ run:
   path: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.sh
 
 params:
+  COMPONENT_NAME: # e.g. cfroutesync, routecontroller
   GIT_COMMIT_USERNAME: "CF Networking Team CI Bot"
   GIT_COMMIT_EMAIL: "CF-Networking@pivotal.io"
