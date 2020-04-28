@@ -112,13 +112,14 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-integration-tests.yml
 
 - name: publish-cfroutesync-image
+  serial: true
+  serial_groups: [image-publishing]
   plan:
     - in_parallel:
         - get: cf-k8s-networking
           passed: [run-cfroutesync-units]
           trigger: true
-        - get: cf-k8s-networking-latest
-          resource: cf-k8s-networking
+        - get: cf-k8s-networking-values
         - get: cf-k8s-networking-ci
     - task: build-tag-file
       file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
@@ -132,7 +133,7 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
       input_mapping:
         image-resource: cfroutesync-image
-        cf-k8s-networking: cf-k8s-networking-latest
+        cf-k8s-networking: cf-k8s-networking-values
       params:
         COMPONENT_NAME: cfroutesync
     # Put to a separate resource to avoid the pipeline getting this commit by
@@ -143,15 +144,17 @@ jobs:
     - put: cf-k8s-networking-values
       params:
         repository: cf-k8s-networking-modified
+        rebase: true
 
 - name: publish-routecontroller-image
+  serial: true
+  serial_groups: [image-publishing]
   plan:
     - in_parallel:
         - get: cf-k8s-networking
           passed: [run-routecontroller-integration-tests]
           trigger: true
-        - get: cf-k8s-networking-latest
-          resource: cf-k8s-networking
+        - get: cf-k8s-networking-values
         - get: cf-k8s-networking-ci
     - task: build-tag-file
       file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
@@ -165,7 +168,7 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-sha.yml
       input_mapping:
         image-resource: routecontroller-image
-        cf-k8s-networking: cf-k8s-networking-latest
+        cf-k8s-networking: cf-k8s-networking-values
       params:
         COMPONENT_NAME: routecontroller
     # Put to a separate resource to avoid the pipeline getting this commit by
@@ -176,6 +179,7 @@ jobs:
     - put: cf-k8s-networking-values
       params:
         repository: cf-k8s-networking-modified
+        rebase: true
 
 # Environment to run tests
 - name: dont-smoke-for-k8s-deploy-and-test
