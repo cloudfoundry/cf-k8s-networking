@@ -66,6 +66,9 @@ func Load(configDir string) (*Config, error) {
 	if err != nil {
 		return nil, err
 	}
+	if err != nil {
+		return nil, err
+	}
 
 	uaaCA, err := loadCert(configDir, FileUAACA)
 	if err != nil {
@@ -84,7 +87,7 @@ func Load(configDir string) (*Config, error) {
 	c.UAA.CA = uaaCA
 	c.CC.BaseURL = ccBaseUrl
 	c.CC.CA = ccCA
-	c.Istio.Gateways = []string{"cf-system/istio-ingressgateway"}
+	c.Istio.Gateways = []string{"istio-ingress"}
 	return c, nil
 }
 
