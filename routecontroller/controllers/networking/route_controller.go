@@ -61,22 +61,35 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	err := r.List(ctx, routes, client.InNamespace(req.Namespace), client.MatchingFields{fqdnFieldKey: route.FQDN()})
 	if err != nil {
 		log.Error(err, "failed to list routes")
+		return ctrl.Result{}, err
 	}
 
-	vsb := resourcebuilders.VirtualServiceBuilder{IstioGateways: []string{r.IstioGateway}}
+	err = r.reconcileServices(req, route, log, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	err = r.reconcileVirtualServices(req, routes, log, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	return ctrl.Result{}, nil
+}
+
+func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv1alpha1.Route, log logr.Logger, ctx context.Context) error {
 	sb := resourcebuilders.ServiceBuilder{}
+	desiredServices := sb.Build(route)
 
-	virtualservices := vsb.Build(routes)
-	services := sb.Build(route)
-
-	servicesForRoute := &corev1.ServiceList{}
+	actualServicesForRoute := &corev1.ServiceList{}
 	// get services owned by that route
-	err = r.List(ctx, servicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
+	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
 	if err != nil {
 		log.Error(err, "failed to list services")
+		return err
 	}
 
-	for _, desiredService := range services {
+	for _, desiredService := range desiredServices {
 		service := &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      desiredService.ObjectMeta.Name,
@@ -87,37 +100,31 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, service, mutateFn)
 		if err != nil {
 			log.Error(err, fmt.Sprintf("Service %s/%s could not be created or updated", service.Namespace, service.Name))
+			return err
 		} else {
 			log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
 		}
 	}
 
-	servicesToDelete := []corev1.Service{}
-	for _, existingService := range servicesForRoute.Items {
-		log.Info(fmt.Sprintf("existing service: %+v", existingService))
-		foundInDesired := false
-		for _, desiredService := range services {
-			if desiredService.Name == existingService.Name &&
-				desiredService.Namespace == existingService.Namespace {
-				foundInDesired = true
-			}
-		}
-		if !foundInDesired {
-			servicesToDelete = append(servicesToDelete, existingService)
-		}
-	}
+	servicesToDelete := findServicesForDeletion(actualServicesForRoute.Items, desiredServices)
 
-	log.Info(fmt.Sprintf("Found %d services to delete", len(servicesToDelete)))
 	for _, service := range servicesToDelete {
 		err := r.Delete(ctx, &service)
 		if err != nil {
 			log.Error(err, fmt.Sprintf("Service %s/%s could not be deleted", service.Namespace, service.Name))
-			return ctrl.Result{}, err
+			return err
 		}
 		log.Info(fmt.Sprintf("Service %s/%s has been deleted", service.Namespace, service.Name))
 	}
 
-	for _, desiredVirtualService := range virtualservices {
+	return nil
+}
+
+func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
+	vsb := resourcebuilders.VirtualServiceBuilder{IstioGateways: []string{r.IstioGateway}}
+	desiredVirtualServices := vsb.Build(routes)
+
+	for _, desiredVirtualService := range desiredVirtualServices {
 		virtualService := &istionetworkingv1alpha3.VirtualService{
 			ObjectMeta: metav1.ObjectMeta{
 				Name:      desiredVirtualService.ObjectMeta.Name,
@@ -127,12 +134,31 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		mutateFn := vsb.BuildMutateFunction(virtualService, &desiredVirtualService)
 		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, virtualService, mutateFn)
 		if err != nil {
-			return ctrl.Result{}, err
+			return err
 		}
 		log.Info(fmt.Sprintf("VirtualService %s/%s has been %s", virtualService.Namespace, virtualService.Name, result))
 	}
 
-	return ctrl.Result{}, nil
+	return nil
+}
+
+func findServicesForDeletion(actualServices, desiredServices []corev1.Service) []corev1.Service {
+	servicesToDelete := []corev1.Service{}
+	for _, existingService := range actualServices {
+		foundInDesired := false
+		for _, desiredService := range desiredServices {
+			if desiredService.Name == existingService.Name &&
+				desiredService.Namespace == existingService.Namespace {
+				foundInDesired = true
+			}
+		}
+
+		if !foundInDesired {
+			servicesToDelete = append(servicesToDelete, existingService)
+		}
+	}
+
+	return servicesToDelete
 }
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
