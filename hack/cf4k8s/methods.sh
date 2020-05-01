@@ -34,7 +34,7 @@ function deploy_cf_for_k8s() {
         if [ ! -f "/tmp/${CLUSTER_NAME}/cf-values.yml" ]; then
           ./hack/generate-values.sh -d ${CF_DOMAIN} > "/tmp/${CLUSTER_NAME}/cf-values.yml"
         fi
-        ./bin/install-cf.sh "/tmp/${CLUSTER_NAME}/cf-values.yml"
+        kapp deploy -a cf -f <(ytt -f config -f "/tmp/${CLUSTER_NAME}/cf-values.yml") -y
     popd
 }
 
