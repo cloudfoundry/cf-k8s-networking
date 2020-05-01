@@ -26,6 +26,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							"cloudfoundry.org/space_guid": "space-guid-0",
 							"cloudfoundry.org/org_guid":   "org-guid-0",
 						},
+						UID: "route-guid-0-k8s-uid",
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind: "Route",
 					},
 					Spec: networkingv1alpha1.RouteSpec{
 						Host: "test0",
@@ -77,6 +81,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							"cloudfoundry.org/space_guid": "space-guid-1",
 							"cloudfoundry.org/org_guid":   "org-guid-1",
 						},
+						UID: "route-guid-1-k8s-uid",
+					},
+					TypeMeta: metav1.TypeMeta{
+						Kind: "Route",
 					},
 					Spec: networkingv1alpha1.RouteSpec{
 						Host: "test1",
@@ -116,6 +124,14 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Labels:    map[string]string{},
 						Annotations: map[string]string{
 							"cloudfoundry.org/fqdn": "test0.domain0.example.com",
+						},
+						OwnerReferences: []metav1.OwnerReference{
+							metav1.OwnerReference{
+								APIVersion: "networking.cloudfoundry.org/v1alpha1",
+								Kind:       "Route",
+								Name:       routes.Items[0].ObjectMeta.Name,
+								UID:        routes.Items[0].ObjectMeta.UID,
+							},
 						},
 					},
 					Spec: istionetworkingv1alpha3.VirtualServiceSpec{
@@ -176,6 +192,14 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Annotations: map[string]string{
 							"cloudfoundry.org/fqdn": "test1.domain1.example.com",
 						},
+						OwnerReferences: []metav1.OwnerReference{
+							metav1.OwnerReference{
+								APIVersion: "networking.cloudfoundry.org/v1alpha1",
+								Kind:       "Route",
+								Name:       routes.Items[1].ObjectMeta.Name,
+								UID:        routes.Items[1].ObjectMeta.UID,
+							},
+						},
 					},
 					Spec: istionetworkingv1alpha3.VirtualServiceSpec{
 						VirtualService: istiov1alpha3.VirtualService{
@@ -225,6 +249,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								"cloudfoundry.org/space_guid": "space-guid-1",
 								"cloudfoundry.org/org_guid":   "org-guid-1",
 							},
+							UID: "route-guid-0-k8s-uid",
+						},
+						TypeMeta: metav1.TypeMeta{
+							Kind: "Route",
 						},
 						Spec: networkingv1alpha1.RouteSpec{
 							Host: "test0",
@@ -343,6 +371,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/space_guid": "space-guid-1",
 									"cloudfoundry.org/org_guid":   "org-guid-1",
 								},
+								UID: "route-guid-0-k8s-uid",
+							},
+							TypeMeta: metav1.TypeMeta{
+								Kind: "Route",
 							},
 							Spec: networkingv1alpha1.RouteSpec{
 								Host: "invalid-route",
@@ -398,6 +430,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/space_guid": "space-guid-1",
 									"cloudfoundry.org/org_guid":   "org-guid-1",
 								},
+								UID: "route-guid-0-k8s-uid",
+							},
+							TypeMeta: metav1.TypeMeta{
+								Kind: "Route",
 							},
 							Spec: networkingv1alpha1.RouteSpec{
 								Host: "invalid-route",
@@ -457,6 +493,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/space_guid": "space-guid-0",
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
+								UID: "route-guid-0-k8s-uid",
+							},
+							TypeMeta: metav1.TypeMeta{
+								Kind: "Route",
 							},
 							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
@@ -505,6 +545,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/space_guid": "space-guid-0",
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
+								UID: "route-guid-0-k8s-uid",
+							},
+							TypeMeta: metav1.TypeMeta{
+								Kind: "Route",
 							},
 							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
@@ -535,6 +579,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 									"cloudfoundry.org/space_guid": "space-guid-0",
 									"cloudfoundry.org/org_guid":   "org-guid-0",
 								},
+								UID: "route-guid-1-k8s-uid",
+							},
+							TypeMeta: metav1.TypeMeta{
+								Kind: "Route",
 							},
 							Spec: networkingv1alpha1.RouteSpec{
 								Host: "test0",
@@ -570,6 +618,20 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								Labels:    map[string]string{},
 								Annotations: map[string]string{
 									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
+								},
+								OwnerReferences: []metav1.OwnerReference{
+									metav1.OwnerReference{
+										APIVersion: "networking.cloudfoundry.org/v1alpha1",
+										Kind:       "Route",
+										Name:       routes.Items[1].ObjectMeta.Name,
+										UID:        routes.Items[1].ObjectMeta.UID,
+									},
+									metav1.OwnerReference{
+										APIVersion: "networking.cloudfoundry.org/v1alpha1",
+										Kind:       "Route",
+										Name:       routes.Items[0].ObjectMeta.Name,
+										UID:        routes.Items[0].ObjectMeta.UID,
+									},
 								},
 							},
 							Spec: istionetworkingv1alpha3.VirtualServiceSpec{
@@ -654,6 +716,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-0-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -722,6 +788,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-0-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -746,12 +816,16 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							},
 							{
 								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
+									Name:      "route-guid-1",
 									Namespace: "workload-namespace",
 									Labels: map[string]string{
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-1-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -776,12 +850,16 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							},
 							{
 								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-1",
+									Name:      "route-guid-2",
 									Namespace: "workload-namespace",
 									Labels: map[string]string{
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-2-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test1",
@@ -829,6 +907,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-0-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -853,12 +935,16 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							},
 							{
 								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
+									Name:      "route-guid-1",
 									Namespace: "some-different-namespace",
 									Labels: map[string]string{
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-1-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -883,12 +969,16 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							},
 							{
 								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-1",
+									Name:      "route-guid-2",
 									Namespace: "workload-namespace",
 									Labels: map[string]string{
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-2-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test1",
@@ -936,6 +1026,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-0-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -970,6 +1064,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										"cloudfoundry.org/space_guid": "space-guid-0",
 										"cloudfoundry.org/org_guid":   "org-guid-0",
 									},
+									UID: "route-guid-0-k8s-uid",
+								},
+								TypeMeta: metav1.TypeMeta{
+									Kind: "Route",
 								},
 								Spec: networkingv1alpha1.RouteSpec{
 									Host: "test0",
@@ -1029,6 +1127,14 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					Annotations: map[string]string{
 						"cloudfoundry.org/fqdn": "test0.domain0.example.com",
 					},
+					OwnerReferences: []metav1.OwnerReference{
+						metav1.OwnerReference{
+							APIVersion: "networking.cloudfoundry.org/v1alpha1",
+							Kind:       "Route",
+							Name:       "banana",
+							UID:        "ham-ding-er",
+						},
+					},
 				},
 				Spec: istionetworkingv1alpha3.VirtualServiceSpec{
 					VirtualService: istiov1alpha3.VirtualService{
@@ -1067,6 +1173,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				},
 			}
 
+			Expect(len(actualVirtualService.ObjectMeta.OwnerReferences)).To(BeZero())
+
 			builder := VirtualServiceBuilder{}
 			mutateFn := builder.BuildMutateFunction(actualVirtualService, desiredVirtualService)
 			err := mutateFn()
@@ -1077,6 +1185,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			Expect(actualVirtualService.ObjectMeta.UID).To(Equal(types.UID("some-uid")))
 			Expect(actualVirtualService.ObjectMeta.Labels).To(Equal(desiredVirtualService.ObjectMeta.Labels))
 			Expect(actualVirtualService.ObjectMeta.Annotations).To(Equal(desiredVirtualService.ObjectMeta.Annotations))
+			Expect(len(actualVirtualService.ObjectMeta.OwnerReferences)).NotTo(BeZero())
+			Expect(actualVirtualService.ObjectMeta.OwnerReferences).To(Equal(desiredVirtualService.ObjectMeta.OwnerReferences))
 			Expect(actualVirtualService.Spec).To(Equal(desiredVirtualService.Spec))
 		})
 	})

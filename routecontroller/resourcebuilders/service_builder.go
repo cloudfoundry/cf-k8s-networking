@@ -13,6 +13,7 @@ func (b *ServiceBuilder) BuildMutateFunction(actualService, desiredService *core
 	return func() error {
 		actualService.ObjectMeta.Labels = desiredService.ObjectMeta.Labels
 		actualService.ObjectMeta.Annotations = desiredService.ObjectMeta.Annotations
+		actualService.ObjectMeta.OwnerReferences = desiredService.ObjectMeta.OwnerReferences
 		actualService.Spec.Selector = desiredService.Spec.Selector
 		actualService.Spec.Ports = desiredService.Spec.Ports
 		return nil
@@ -25,10 +26,11 @@ func (b *ServiceBuilder) Build(route *networkingv1alpha1.Route) []corev1.Service
 	for _, dest := range route.Spec.Destinations {
 		service := corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
-				Name:        serviceName(dest),
-				Namespace:   route.ObjectMeta.Namespace,
-				Labels:      map[string]string{},
-				Annotations: map[string]string{},
+				OwnerReferences: []metav1.OwnerReference{routeToOwnerRef(route)},
+				Name:            serviceName(dest),
+				Namespace:       route.ObjectMeta.Namespace,
+				Labels:          map[string]string{},
+				Annotations:     map[string]string{},
 			},
 			Spec: corev1.ServiceSpec{
 				Selector: dest.Selector.MatchLabels,
@@ -46,4 +48,17 @@ func (b *ServiceBuilder) Build(route *networkingv1alpha1.Route) []corev1.Service
 		services = append(services, service)
 	}
 	return services
+}
+
+func routeToOwnerRef(r *networkingv1alpha1.Route) metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: networkingv1alpha1.SchemeBuilder.GroupVersion.String(),
+		Kind:       r.TypeMeta.Kind,
+		Name:       r.ObjectMeta.Name,
+		UID:        r.ObjectMeta.UID,
+	}
+}
+
+func boolPtr(x bool) *bool {
+	return &x
 }

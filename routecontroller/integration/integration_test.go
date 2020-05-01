@@ -36,6 +36,7 @@ type virtualServiceSpec struct {
 
 type http struct {
 	Match []match
+	Route []route
 }
 
 type match struct {
@@ -44,6 +45,14 @@ type match struct {
 
 type uri struct {
 	Prefix string
+}
+
+type route struct {
+	Destination destination
+}
+
+type destination struct {
+	Host string
 }
 
 type service struct {
@@ -208,6 +217,11 @@ var _ = Describe("Integration", func() {
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
 							},
 						},
 					},
@@ -234,11 +248,21 @@ var _ = Describe("Integration", func() {
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
 							},
 							http{
 								Match: []match{
 									match{
 										Uri: uri{Prefix: "/some/different/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
 							},
@@ -267,6 +291,11 @@ var _ = Describe("Integration", func() {
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
 							},
 						},
 					},
@@ -280,6 +309,11 @@ var _ = Describe("Integration", func() {
 								Match: []match{
 									match{
 										Uri: uri{Prefix: "/some/different/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
 							},
@@ -306,6 +340,14 @@ var _ = Describe("Integration", func() {
 								Match: []match{
 									match{
 										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
 							},
@@ -361,6 +403,11 @@ var _ = Describe("Integration", func() {
 										Uri: uri{Prefix: "/hello"},
 									},
 								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
 							},
 						},
 					},
@@ -383,6 +430,11 @@ var _ = Describe("Integration", func() {
 										Uri: uri{Prefix: "/hello/world"},
 									},
 								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
+									},
+								},
 							},
 							http{
 								Match: []match{
@@ -390,11 +442,225 @@ var _ = Describe("Integration", func() {
 										Uri: uri{Prefix: "/hello"},
 									},
 								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
 							},
 						},
 					},
 				},
 			))
+		})
+	})
+
+	When("Adding a destination to an existing route", func() {
+		BeforeEach(func() {
+			yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+		})
+
+		It("adds a new service for the new destination, and updates the virtual service with the backend", func() {
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
+			secondYAMLToApply := filepath.Join("fixtures", "single-route-with-multiple-destinations.yaml")
+			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-2",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 9000,
+							},
+						},
+					},
+				},
+			))
+
+		})
+	})
+
+	When("Removing a destination from an existing route", func() {
+		BeforeEach(func() {
+			yamlToApply = filepath.Join("fixtures", "single-route-with-multiple-destinations.yaml")
+		})
+
+		It("removes the service for the removed destination, and updates the virtual service to remove the backend", func() {
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-2",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 9000,
+							},
+						},
+					},
+				},
+			))
+
+			secondYAMLToApply := filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
 		})
 	})
 })

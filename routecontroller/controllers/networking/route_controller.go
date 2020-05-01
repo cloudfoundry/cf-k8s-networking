@@ -41,6 +41,7 @@ type RouteReconciler struct {
 }
 
 const fqdnFieldKey string = "spec.fqdn"
+const serviceOwnerKey string = "spec.owner"
 
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes,verbs=get;list;watch
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
@@ -68,6 +69,13 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	virtualservices := vsb.Build(routes)
 	services := sb.Build(route)
 
+	servicesForRoute := &corev1.ServiceList{}
+	// get services owned by that route
+	err = r.List(ctx, servicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
+	if err != nil {
+		log.Error(err, "failed to list services")
+	}
+
 	for _, desiredService := range services {
 		service := &corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
@@ -78,9 +86,35 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		mutateFn := sb.BuildMutateFunction(service, &desiredService)
 		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, service, mutateFn)
 		if err != nil {
+			log.Error(err, fmt.Sprintf("Service %s/%s could not be created or updated", service.Namespace, service.Name))
+		} else {
+			log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
+		}
+	}
+
+	servicesToDelete := []corev1.Service{}
+	for _, existingService := range servicesForRoute.Items {
+		log.Info(fmt.Sprintf("existing service: %+v", existingService))
+		foundInDesired := false
+		for _, desiredService := range services {
+			if desiredService.Name == existingService.Name &&
+				desiredService.Namespace == existingService.Namespace {
+				foundInDesired = true
+			}
+		}
+		if !foundInDesired {
+			servicesToDelete = append(servicesToDelete, existingService)
+		}
+	}
+
+	log.Info(fmt.Sprintf("Found %d services to delete", len(servicesToDelete)))
+	for _, service := range servicesToDelete {
+		err := r.Delete(ctx, &service)
+		if err != nil {
+			log.Error(err, fmt.Sprintf("Service %s/%s could not be deleted", service.Namespace, service.Name))
 			return ctrl.Result{}, err
 		}
-		log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
+		log.Info(fmt.Sprintf("Service %s/%s has been deleted", service.Namespace, service.Name))
 	}
 
 	for _, desiredVirtualService := range virtualservices {
@@ -105,6 +139,17 @@ func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	err := mgr.GetFieldIndexer().IndexField(&networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
 		route := rawObj.(*networkingv1alpha1.Route)
 		return []string{route.FQDN()}
+	})
+	if err != nil {
+		return err
+	}
+
+	err = mgr.GetFieldIndexer().IndexField(&corev1.Service{}, serviceOwnerKey, func(rawObj runtime.Object) []string {
+		service := rawObj.(*corev1.Service)
+		if len(service.ObjectMeta.OwnerReferences) == 0 {
+			return []string{}
+		}
+		return []string{string(service.ObjectMeta.OwnerReferences[0].UID)}
 	})
 	if err != nil {
 		return err

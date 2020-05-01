@@ -21,6 +21,10 @@ var _ = Describe("ServiceBuilder", func() {
 						"cloudfoundry.org/space_guid": "space-guid-0",
 						"cloudfoundry.org/org_guid":   "org-guid-0",
 					},
+					UID: "route-guid-0-k8s-uid",
+				},
+				TypeMeta: metav1.TypeMeta{
+					Kind: "Route",
 				},
 				Spec: networkingv1alpha1.RouteSpec{
 					Host: "test0",
@@ -68,6 +72,14 @@ var _ = Describe("ServiceBuilder", func() {
 			expectedServices := []corev1.Service{
 				corev1.Service{
 					ObjectMeta: metav1.ObjectMeta{
+						OwnerReferences: []metav1.OwnerReference{
+							metav1.OwnerReference{
+								APIVersion: "networking.cloudfoundry.org/v1alpha1",
+								Kind:       "Route",
+								Name:       route.ObjectMeta.Name,
+								UID:        route.ObjectMeta.UID,
+							},
+						},
 						Name:      "s-route-0-destination-guid-0",
 						Namespace: "workload-namespace",
 						Labels: map[string]string{
@@ -95,7 +107,15 @@ var _ = Describe("ServiceBuilder", func() {
 				},
 				corev1.Service{
 					ObjectMeta: metav1.ObjectMeta{
-						Name:      "s-route-0-destination-guid-1",
+						Name: "s-route-0-destination-guid-1",
+						OwnerReferences: []metav1.OwnerReference{
+							metav1.OwnerReference{
+								APIVersion: "networking.cloudfoundry.org/v1alpha1",
+								Kind:       "Route",
+								Name:       route.ObjectMeta.Name,
+								UID:        route.ObjectMeta.UID,
+							},
+						},
 						Namespace: "workload-namespace",
 						Labels: map[string]string{
 							"cloudfoundry.org/route_guid":   "route-guid-0",
@@ -130,6 +150,7 @@ var _ = Describe("ServiceBuilder", func() {
 		Context("when a route has no destinations", func() {
 			It("does not create a Service", func() {
 				route := networkingv1alpha1.Route{
+					TypeMeta: metav1.TypeMeta{Kind: "Route"},
 					ObjectMeta: metav1.ObjectMeta{
 						Name:      "route-guid-0",
 						Namespace: "workload-namespace",
@@ -137,6 +158,7 @@ var _ = Describe("ServiceBuilder", func() {
 							"cloudfoundry.org/space_guid": "space-guid-0",
 							"cloudfoundry.org/org_guid":   "org-guid-0",
 						},
+						UID: "route-guid-0-k8s-uid",
 					},
 					Spec: networkingv1alpha1.RouteSpec{
 						Host: "test0",
@@ -160,9 +182,10 @@ var _ = Describe("ServiceBuilder", func() {
 		It("builds a mutate function that copies desired state to actual resource", func() {
 			actualService := &corev1.Service{
 				ObjectMeta: metav1.ObjectMeta{
-					Name:      "s-route-0-destination-guid-1",
-					Namespace: "workload-namespace",
-					UID:       "some-uid",
+					Name:            "s-route-0-destination-guid-1",
+					Namespace:       "workload-namespace",
+					UID:             "some-uid",
+					OwnerReferences: []metav1.OwnerReference{},
 				},
 				Spec: corev1.ServiceSpec{
 					ClusterIP: "1.2.3.4",
@@ -181,6 +204,14 @@ var _ = Describe("ServiceBuilder", func() {
 					Annotations: map[string]string{
 						"cloudfoundry.org/route-fqdn": "test0.domain0.example.com",
 					},
+					OwnerReferences: []metav1.OwnerReference{
+						metav1.OwnerReference{
+							APIVersion: "networking.cloudfoundry.org/v1alpha1",
+							Kind:       "Route",
+							Name:       "routey-boi",
+							UID:        "asdfa-adfsdf-fdsfdsf",
+						},
+					},
 				},
 				Spec: corev1.ServiceSpec{
 					Selector: map[string]string{
@@ -197,6 +228,7 @@ var _ = Describe("ServiceBuilder", func() {
 				},
 			}
 
+			Expect(len(actualService.ObjectMeta.OwnerReferences)).To(BeZero())
 			builder := ServiceBuilder{}
 			mutateFn := builder.BuildMutateFunction(actualService, desiredService)
 			err := mutateFn()
@@ -207,6 +239,8 @@ var _ = Describe("ServiceBuilder", func() {
 			Expect(actualService.ObjectMeta.UID).To(Equal(types.UID("some-uid")))
 			Expect(actualService.ObjectMeta.Labels).To(Equal(desiredService.ObjectMeta.Labels))
 			Expect(actualService.ObjectMeta.Annotations).To(Equal(desiredService.ObjectMeta.Annotations))
+			Expect(len(actualService.ObjectMeta.OwnerReferences)).NotTo(BeZero())
+			Expect(actualService.ObjectMeta.OwnerReferences).To(Equal(desiredService.ObjectMeta.OwnerReferences))
 			Expect(actualService.Spec).To(Equal(corev1.ServiceSpec{
 				ClusterIP: "1.2.3.4",
 				Selector: map[string]string{

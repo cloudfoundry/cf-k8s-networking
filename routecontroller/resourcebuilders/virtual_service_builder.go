@@ -39,6 +39,7 @@ func (b *VirtualServiceBuilder) BuildMutateFunction(actualVirtualService, desire
 	return func() error {
 		actualVirtualService.ObjectMeta.Labels = desiredVirtualService.ObjectMeta.Labels
 		actualVirtualService.ObjectMeta.Annotations = desiredVirtualService.ObjectMeta.Annotations
+		actualVirtualService.ObjectMeta.OwnerReferences = desiredVirtualService.ObjectMeta.OwnerReferences
 		actualVirtualService.Spec = desiredVirtualService.Spec
 		return nil
 	}
@@ -75,6 +76,7 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []netwo
 			Annotations: map[string]string{
 				"cloudfoundry.org/fqdn": fqdn,
 			},
+			OwnerReferences: []metav1.OwnerReference{},
 		},
 		Spec: istionetworkingv1alpha3.VirtualServiceSpec{
 			VirtualService: istiov1alpha3.VirtualService{Hosts: []string{fqdn}},
@@ -100,6 +102,8 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []netwo
 			if err != nil {
 				return istionetworkingv1alpha3.VirtualService{}, err
 			}
+
+			vs.ObjectMeta.OwnerReferences = append(vs.ObjectMeta.OwnerReferences, routeToOwnerRef(&route))
 
 			istioRoute := istiov1alpha3.HTTPRoute{
 				Route: istioDestinations,
