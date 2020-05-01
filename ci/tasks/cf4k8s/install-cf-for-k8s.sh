@@ -28,7 +28,7 @@ function install_cf() {
     cf-for-k8s-master/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values.yml
 
     echo "Installing CF..."
-    cf-for-k8s-master/bin/install-cf.sh cf-install-values.yml
+    kapp deploy -a cf -f <(ytt -f cf-for-k8s-master/config -f cf-install-values.yml) -y
 
     bosh interpolate --path /cf_admin_password cf-install-values.yml > env-metadata/cf-admin-password.txt
     echo "${CF_DOMAIN}" > env-metadata/dns-domain.txt
