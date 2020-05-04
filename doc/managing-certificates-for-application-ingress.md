@@ -15,15 +15,14 @@ _Note: This can be either a wildcard cert or a cert for a single domain._
 
 2. Add a new entry under `spec.servers` to the [Istio
    `Gateway`](https://istio.io/docs/reference/config/networking/gateway/) object
-   in the namespace that your apps are running in. This is `cf-workloads` by
-   default. So, to add configuration for `'*.apps.example.com'` you would need
-   to add this entry to the `spec.servers` array. Here is an example [`ytt`](https://get-ytt.io/)
-   overlay that adds it:
+   in the. This is `cf-workloads` by default. So, to add configuration for
+   `'*.apps.example.com'` you would need to add this entry to the `spec.servers`
+   array. Here is an example [`ytt`](https://get-ytt.io/) overlay that adds it:
 
 ```yaml
 #@ load("@ytt:overlay", "overlay")
 
-#@overlay/match by=overlay.and_op(overlay.subset({"metadata":{"name":"istio-ingress"}}), overlay.subset({"kind": "Gateway"}))
+#@overlay/match by=overlay.and_op(overlay.subset({"metadata":{"name":"istio-ingressgateway"}}), overlay.subset({"kind": "Gateway"}))
 ---
 spec:
   servers:
