@@ -14,10 +14,6 @@ import (
 	"strings"
 
 	"github.com/onsi/gomega/gexec"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/kubernetes"
-	"k8s.io/client-go/tools/clientcmd"
 	"sigs.k8s.io/kind/pkg/cluster"
 
 	. "github.com/onsi/ginkgo"
@@ -80,7 +76,6 @@ var _ = Describe("Integration", func() {
 		kubeConfigPath string
 		namespace      string
 		gateway        string
-		clientset      kubernetes.Interface
 
 		yamlToApply string
 
@@ -94,22 +89,11 @@ var _ = Describe("Integration", func() {
 		gateway = "cf-test-gateway"
 
 		kubeConfigPath = createKindCluster(clusterName)
-		config, err := clientcmd.BuildConfigFromFlags("", kubeConfigPath)
-		Expect(err).NotTo(HaveOccurred())
-
-		clientset, err = kubernetes.NewForConfig(config)
-		Expect(err).NotTo(HaveOccurred())
-
-		// Create testing namespace
-		_, err = clientset.CoreV1().Namespaces().Create(&corev1.Namespace{
-			ObjectMeta: metav1.ObjectMeta{
-				Name: namespace,
-			},
-		})
-		Expect(err).NotTo(HaveOccurred())
+		output, err := kubectlWithConfig(kubeConfigPath, nil, "create", "namespace", namespace)
+		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl create namespace failed with err: %s", string(output)))
 
 		istioCRDPath := filepath.Join("fixtures", "istio-virtual-service.yaml")
-		output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", istioCRDPath)
+		output, err = kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", istioCRDPath)
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply crd failed with err: %s", string(output)))
 
 		// Generate the YAML for the Route CRD with Kustomize, and then apply it with kubectl apply.
@@ -455,107 +439,192 @@ var _ = Describe("Integration", func() {
 		})
 	})
 
-	When("Adding a destination to an existing route", func() {
+	Context("For an existing route with a single destination", func() {
 		BeforeEach(func() {
 			yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
 		})
 
-		It("adds a new service for the new destination, and updates the virtual service with the backend", func() {
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
+		When("adding an additional destination to the Route", func() {
+			It("adds a new service for the new destination, and updates the virtual service with the backend", func() {
+				Eventually(kubectlGetServices).Should(ConsistOf(
+					service{
+						Metadata: metadata{
+							Name: "s-destination-guid-1",
 						},
-					},
-				},
-			))
-
-			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-				virtualService{
-					Spec: virtualServiceSpec{
-						Gateways: []string{gateway},
-						Hosts:    []string{"hostname.apps.example.com"},
-						Http: []http{
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-1"},
-									},
+						Spec: serviceSpec{
+							Ports: []serviceSpecPort{
+								{
+									TargetPort: 8080,
 								},
 							},
 						},
 					},
-				},
-			))
+				))
 
-			secondYAMLToApply := filepath.Join("fixtures", "single-route-with-multiple-destinations.yaml")
-			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
-			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
-
-			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-				virtualService{
-					Spec: virtualServiceSpec{
-						Gateways: []string{gateway},
-						Hosts:    []string{"hostname.apps.example.com"},
-						Http: []http{
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/path"},
+				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+					virtualService{
+						Spec: virtualServiceSpec{
+							Gateways: []string{gateway},
+							Hosts:    []string{"hostname.apps.example.com"},
+							Http: []http{
+								http{
+									Match: []match{
+										match{
+											Uri: uri{Prefix: "/some/path"},
+										},
 									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-1"},
-									},
-									route{
-										Destination: destination{Host: "s-destination-guid-2"},
+									Route: []route{
+										route{
+											Destination: destination{Host: "s-destination-guid-1"},
+										},
 									},
 								},
 							},
 						},
 					},
-				},
-			))
+				))
 
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
+				secondYAMLToApply := filepath.Join("fixtures", "single-route-with-multiple-destinations.yaml")
+				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
+				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+					virtualService{
+						Spec: virtualServiceSpec{
+							Gateways: []string{gateway},
+							Hosts:    []string{"hostname.apps.example.com"},
+							Http: []http{
+								http{
+									Match: []match{
+										match{
+											Uri: uri{Prefix: "/some/path"},
+										},
+									},
+									Route: []route{
+										route{
+											Destination: destination{Host: "s-destination-guid-1"},
+										},
+										route{
+											Destination: destination{Host: "s-destination-guid-2"},
+										},
+									},
+								},
 							},
 						},
 					},
-				},
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-2",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 9000,
+				))
+
+				Eventually(kubectlGetServices).Should(ConsistOf(
+					service{
+						Metadata: metadata{
+							Name: "s-destination-guid-1",
+						},
+						Spec: serviceSpec{
+							Ports: []serviceSpecPort{
+								{
+									TargetPort: 8080,
+								},
 							},
 						},
 					},
-				},
-			))
+					service{
+						Metadata: metadata{
+							Name: "s-destination-guid-2",
+						},
+						Spec: serviceSpec{
+							Ports: []serviceSpecPort{
+								{
+									TargetPort: 9000,
+								},
+							},
+						},
+					},
+				))
+			})
+		})
 
+		When("changing the destination on the Route", func() {
+			It("updates the service and virtual service", func() {
+				Eventually(kubectlGetServices).Should(ConsistOf(
+					service{
+						Metadata: metadata{
+							Name: "s-destination-guid-1",
+						},
+						Spec: serviceSpec{
+							Ports: []serviceSpecPort{
+								{
+									TargetPort: 8080,
+								},
+							},
+						},
+					},
+				))
+
+				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+					virtualService{
+						Spec: virtualServiceSpec{
+							Gateways: []string{gateway},
+							Hosts:    []string{"hostname.apps.example.com"},
+							Http: []http{
+								http{
+									Match: []match{
+										match{
+											Uri: uri{Prefix: "/some/path"},
+										},
+									},
+									Route: []route{
+										route{
+											Destination: destination{Host: "s-destination-guid-1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				))
+
+				secondYAMLToApply := filepath.Join("fixtures", "single-route-with-updated-single-destination.yaml")
+				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
+				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+				Eventually(kubectlGetServices).Should(ConsistOf(
+					service{
+						Metadata: metadata{
+							Name: "s-destination-guid-1",
+						},
+						Spec: serviceSpec{
+							Ports: []serviceSpecPort{
+								{
+									TargetPort: 9090,
+								},
+							},
+						},
+					},
+				))
+
+				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+					virtualService{
+						Spec: virtualServiceSpec{
+							Gateways: []string{gateway},
+							Hosts:    []string{"hostname.apps.example.com"},
+							Http: []http{
+								http{
+									Match: []match{
+										match{
+											Uri: uri{Prefix: "/some/path"},
+										},
+									},
+									Route: []route{
+										route{
+											Destination: destination{Host: "s-destination-guid-1"},
+										},
+									},
+								},
+							},
+						},
+					},
+				))
+			})
 		})
 	})
 
@@ -660,7 +729,6 @@ var _ = Describe("Integration", func() {
 					},
 				},
 			))
-
 		})
 	})
 })
