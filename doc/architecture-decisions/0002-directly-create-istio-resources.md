@@ -4,7 +4,7 @@ Date: 2019-10-22
 
 ## Status
 
-Accepted
+Superseded by [ADR 10](0010-route-crd-and-kubebuilder-instead-of-metacontroller.md)
 
 ## Context
 
