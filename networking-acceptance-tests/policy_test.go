@@ -52,11 +52,27 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		cf.Cf("delete", app1name)
 		cf.Cf("delete", app2name)
 	})
+	Context("to metrics / stats endpoints", func() {
+		It("succeeds", func() {
+			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istio-pilot.istio-system:15014/metrics"))
+			fmt.Printf("Attempting to reach %s", route)
+			resp, err := http.Get(route)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(resp.StatusCode).To(Equal(200))
+			defer resp.Body.Close()
+
+			body, err := ioutil.ReadAll(resp.Body)
+			Expect(err).NotTo(HaveOccurred())
+
+			Expect(string(body)).To(ContainSubstring("component=\"pilot\""))
+		})
+
+	})
 
 	Context("from apps", func() {
 		Context("to istio control plane components", func() {
 			It("fails", func() {
-				route := fmt.Sprintf("http://%s.%s/proxy/istio-pilot.istio-system%%3A8080%%2Fdebug%%2Fedsz", app1name, domain)
+				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istio-pilot.istio-system:8080/debug/edsz"))
 				expectConnectError(route)
 			})
 		})
