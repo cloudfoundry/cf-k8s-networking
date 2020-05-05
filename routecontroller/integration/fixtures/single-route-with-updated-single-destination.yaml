@@ -1,7 +1,7 @@
 apiVersion: networking.cloudfoundry.org/v1alpha1
 kind: Route
 metadata:
- name: cc-route-guid
+ name: cc-route-guid-1
  annotations: {}
  labels:
    app.kubernetes.io/name: cc-route-guid

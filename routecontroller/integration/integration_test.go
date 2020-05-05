@@ -236,6 +236,9 @@ var _ = Describe("Integration", func() {
 									route{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
+									route{
+										Destination: destination{Host: "s-additional-destination-for-route-1"},
+									},
 								},
 							},
 							http{
@@ -628,13 +631,12 @@ var _ = Describe("Integration", func() {
 		})
 	})
 
-	When("Removing a destination from an existing route", func() {
+	When("removing a destination from an existing route", func() {
 		BeforeEach(func() {
-			yamlToApply = filepath.Join("fixtures", "single-route-with-multiple-destinations.yaml")
+			yamlToApply = filepath.Join("fixtures", "multiple-routes-with-same-fqdn.yaml")
 		})
 
-		It("removes the service for the removed destination, and updates the virtual service to remove the backend", func() {
-
+		It("removes the Service/updates the VirtualService without deleting Services owned by other routes", func() {
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
 					Spec: virtualServiceSpec{
@@ -651,6 +653,18 @@ var _ = Describe("Integration", func() {
 									route{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
+									route{
+										Destination: destination{Host: "s-additional-destination-for-route-1"},
+									},
+								},
+							},
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/different/path"},
+									},
+								},
+								Route: []route{
 									route{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
@@ -676,12 +690,24 @@ var _ = Describe("Integration", func() {
 				},
 				service{
 					Metadata: metadata{
+						Name: "s-additional-destination-for-route-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 9090,
+							},
+						},
+					},
+				},
+				service{
+					Metadata: metadata{
 						Name: "s-destination-guid-2",
 					},
 					Spec: serviceSpec{
 						Ports: []serviceSpecPort{
 							{
-								TargetPort: 9000,
+								TargetPort: 8080,
 							},
 						},
 					},
@@ -696,6 +722,18 @@ var _ = Describe("Integration", func() {
 				service{
 					Metadata: metadata{
 						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-2",
 					},
 					Spec: serviceSpec{
 						Ports: []serviceSpecPort{
@@ -722,6 +760,18 @@ var _ = Describe("Integration", func() {
 								Route: []route{
 									route{
 										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
+							},
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/different/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
 							},

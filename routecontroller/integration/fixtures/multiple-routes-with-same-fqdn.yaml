@@ -21,9 +21,20 @@ spec:
     name: apps.example.com
     internal: false
   destinations:
-  - weight: 100
+  - weight: 50
     port: 8080
     guid: destination-guid-1
+    selector:
+      matchLabels:
+        cloudfoundry.org/app_guid: cc-app1-guid
+        cloudfoundry.org/process_type: web
+    app:
+      guid: cc-app1-guid
+      process:
+        type: web
+  - weight: 50
+    port: 9090
+    guid: additional-destination-for-route-1
     selector:
       matchLabels:
         cloudfoundry.org/app_guid: cc-app1-guid
