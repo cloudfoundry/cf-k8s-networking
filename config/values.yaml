@@ -17,7 +17,7 @@ cfroutesync:
   clientSecret: 'base64_encoded_uaaClientSecret'
 
 routecontroller:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:e097d844f30ad4516b646ee3dc32614d9e76ba764c7ac280c3d1094163a35692
+  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:7cd11726a3dcb9c4d9ef2b8d304fc1ca19b1909f812b67ade66fb16a92cd8bfe
 
 service:
   externalPort: 80
