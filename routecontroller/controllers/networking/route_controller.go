@@ -42,6 +42,7 @@ type RouteReconciler struct {
 
 const fqdnFieldKey string = "spec.fqdn"
 const serviceOwnerKey string = "spec.owner"
+const finalizerName string = "routes.networking.cloudfoundry.org"
 
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes,verbs=get;list;watch
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
@@ -54,7 +55,9 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	route := &networkingv1alpha1.Route{}
 
 	if err := r.Get(ctx, req.NamespacedName, route); err != nil {
-		log.Error(err, "unable to fetch Route")
+		if client.IgnoreNotFound(err) == nil {
+			log.Info("Route no longer exists")
+		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
 	}
 
@@ -62,6 +65,30 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	if err != nil {
 		log.Error(err, "failed to list routes")
 		return ctrl.Result{}, err
+	}
+
+	if route.ObjectMeta.DeletionTimestamp.IsZero() {
+		if !containsString(route.ObjectMeta.Finalizers, finalizerName) {
+			route.ObjectMeta.Finalizers = append(route.ObjectMeta.Finalizers, finalizerName)
+			if err := r.Update(context.Background(), route); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+	} else {
+		if containsString(route.ObjectMeta.Finalizers, finalizerName) {
+			// run finalizer on deletion
+			routes.Items = removeRouteFromRouteList(route, routes)
+			if err := r.reconcileVirtualServices(req, routes, log, ctx); err != nil {
+				return ctrl.Result{}, err
+			}
+
+			route.ObjectMeta.Finalizers = removeString(route.ObjectMeta.Finalizers, finalizerName)
+			if err := r.Update(context.Background(), route); err != nil {
+				return ctrl.Result{}, err
+			}
+		}
+
+		return ctrl.Result{}, nil
 	}
 
 	err = r.reconcileServices(req, route, log, ctx)
@@ -184,4 +211,34 @@ func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
 		For(&networkingv1alpha1.Route{}).
 		Complete(r)
+}
+
+// Helper functions to check and remove string from a slice of strings.
+func containsString(slice []string, s string) bool {
+	for _, item := range slice {
+		if item == s {
+			return true
+		}
+	}
+	return false
+}
+
+func removeString(slice []string, s string) (result []string) {
+	for _, item := range slice {
+		if item == s {
+			continue
+		}
+		result = append(result, item)
+	}
+	return
+}
+
+func removeRouteFromRouteList(routeToRemove *networkingv1alpha1.Route, routes *networkingv1alpha1.RouteList) []networkingv1alpha1.Route {
+	for idx, route := range routes.Items {
+		if route.ObjectMeta.Name == routeToRemove.ObjectMeta.Name {
+			return append(routes.Items[:idx], routes.Items[idx+1:]...)
+		}
+	}
+
+	return routes.Items
 }
