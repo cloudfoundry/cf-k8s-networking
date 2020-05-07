@@ -680,9 +680,9 @@ var _ = Describe("Integration", func() {
 				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "routes", "cc-route-guid-1")
 				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete route CR failed with err: %s", string(output)))
 
-				Eventually(kubectlGetVirtualServices).Should(ConsistOf([]virtualService{}))
+				Eventually(kubectlGetVirtualServices, "5s", "1s").Should(BeEmpty())
 
-				Eventually(kubectlGetServices).Should(ConsistOf([]service{}))
+				Eventually(kubectlGetServices, "5s", "1s").Should(BeEmpty())
 			})
 		})
 
@@ -1008,14 +1008,11 @@ var _ = Describe("Integration", func() {
 				},
 			))
 
-			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "services", "--all")
+			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "services", "--all", "--wait=true")
 			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete services failed with err: %s", string(output)))
 
-			output, err = kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "virtualservices", "--all")
+			output, err = kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "virtualservices", "--all", "--wait=true")
 			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete virtualservices failed with err: %s", string(output)))
-
-			Eventually(kubectlGetServices).Should(BeEmpty())
-			Eventually(kubectlGetVirtualServices).Should(BeEmpty())
 
 			Eventually(kubectlGetServices).Should(ConsistOf(
 				service{
@@ -1063,6 +1060,7 @@ func startRouteController(kubeConfigPath, gateway string) *gexec.Session {
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("RESYNC_INTERVAL=%s", "5"))
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())

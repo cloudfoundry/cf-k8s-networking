@@ -23,6 +23,7 @@ import (
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
@@ -70,27 +71,20 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	if route.ObjectMeta.DeletionTimestamp.IsZero() {
-		if !containsString(route.ObjectMeta.Finalizers, finalizerName) {
-			route.ObjectMeta.Finalizers = append(route.ObjectMeta.Finalizers, finalizerName)
+		if !hasFinalizer(route, finalizerName) {
+			controllerutil.AddFinalizer(route, finalizerName)
 			if err := r.Update(context.Background(), route); err != nil {
 				return ctrl.Result{}, err
 			}
 		}
 	} else {
-		if containsString(route.ObjectMeta.Finalizers, finalizerName) {
-			// run finalizer on deletion
-			routes.Items = removeRouteFromRouteList(route, routes)
-			if err := r.reconcileVirtualServices(req, routes, log, ctx); err != nil {
-				return ctrl.Result{}, err
-			}
-
-			route.ObjectMeta.Finalizers = removeString(route.ObjectMeta.Finalizers, finalizerName)
-			if err := r.Update(context.Background(), route); err != nil {
+		if hasFinalizer(route, finalizerName) {
+			err = r.finalizeRouteForDeletion(req, route, routes, log, ctx)
+			if err != nil {
 				return ctrl.Result{}, err
 			}
 		}
 
-		// finalizer occurs before deletion, no need to requeue
 		return ctrl.Result{}, nil
 	}
 
@@ -137,17 +131,9 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 	}
 
 	servicesToDelete := findServicesForDeletion(actualServicesForRoute.Items, desiredServices)
+	err = r.deleteServiceList(servicesToDelete, log, ctx)
 
-	for _, service := range servicesToDelete {
-		err := r.Delete(ctx, &service)
-		if err != nil {
-			log.Error(err, fmt.Sprintf("Service %s/%s could not be deleted", service.Namespace, service.Name))
-			return err
-		}
-		log.Info(fmt.Sprintf("Service %s/%s has been deleted", service.Namespace, service.Name))
-	}
-
-	return nil
+	return err
 }
 
 func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
@@ -172,6 +158,57 @@ func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *net
 	return nil
 }
 
+func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *networkingv1alpha1.Route, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
+	// delete all services owned by route
+	actualServicesForRoute := &corev1.ServiceList{}
+	// get services owned by that route
+	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
+	if err != nil {
+		log.Error(err, "failed to list services")
+		return err
+	}
+
+	err = r.deleteServiceList(actualServicesForRoute.Items, log, ctx)
+	if err != nil {
+		log.Error(err, "failed to delete services")
+		return err
+	}
+
+	// run finalizer on deletion
+	routes.Items = removeRouteFromRouteList(route, routes)
+	if len(routes.Items) == 0 {
+		// get vs to delet
+		vs := &istionetworkingv1alpha3.VirtualService{}
+		vsName := resourcebuilders.VirtualServiceName(route.FQDN())
+		namespacedVSName := types.NamespacedName{Namespace: req.Namespace, Name: vsName}
+		if err := r.Get(ctx, namespacedVSName, vs); err != nil {
+			if client.IgnoreNotFound(err) == nil {
+				log.Info("VirtualService no longer exists")
+			}
+			return client.IgnoreNotFound(err)
+		}
+
+		// delet it
+		err := r.Delete(ctx, vs)
+		if err != nil {
+			log.Error(err, fmt.Sprintf("VirtualService %s/%s could not be deleted", vs.Namespace, vs.Name))
+			return err
+		}
+		log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
+	} else {
+		if err := r.reconcileVirtualServices(req, routes, log, ctx); err != nil {
+			return err
+		}
+	}
+
+	controllerutil.RemoveFinalizer(route, finalizerName)
+	if err := r.Update(context.Background(), route); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func findServicesForDeletion(actualServices, desiredServices []corev1.Service) []corev1.Service {
 	servicesToDelete := []corev1.Service{}
 	for _, existingService := range actualServices {
@@ -189,6 +226,18 @@ func findServicesForDeletion(actualServices, desiredServices []corev1.Service) [
 	}
 
 	return servicesToDelete
+}
+
+func (r *RouteReconciler) deleteServiceList(services []corev1.Service, log logr.Logger, ctx context.Context) error {
+	for _, service := range services {
+		err := r.Delete(ctx, &service)
+		if err != nil {
+			log.Error(err, fmt.Sprintf("Service %s/%s could not be deleted", service.Namespace, service.Name))
+			return err
+		}
+		log.Info(fmt.Sprintf("Service %s/%s has been deleted", service.Namespace, service.Name))
+	}
+	return nil
 }
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
@@ -216,24 +265,13 @@ func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		Complete(r)
 }
 
-// Helper functions to check and remove string from a slice of strings.
-func containsString(slice []string, s string) bool {
-	for _, item := range slice {
-		if item == s {
+func hasFinalizer(o metav1.Object, finalizerName string) bool {
+	for _, f := range o.GetFinalizers() {
+		if f == finalizerName {
 			return true
 		}
 	}
 	return false
-}
-
-func removeString(slice []string, s string) (result []string) {
-	for _, item := range slice {
-		if item == s {
-			continue
-		}
-		result = append(result, item)
-	}
-	return
 }
 
 func removeRouteFromRouteList(routeToRemove *networkingv1alpha1.Route, routes *networkingv1alpha1.RouteList) []networkingv1alpha1.Route {
