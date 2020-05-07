@@ -41,6 +41,26 @@ resources:
       - ci
       - config
 
+- name: cfroutesync
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - cfroutesync
+
+- name: routecontroller
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - routecontroller
+
 - name: cfroutesync-image
   type: docker-image
   icon: docker
@@ -81,6 +101,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
+        - get: cfroutesync
           trigger: true
         - get: cf-k8s-networking-ci
     - task: unit-tests
@@ -90,6 +111,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
+        - get: routecontroller
           trigger: true
         - get: cf-k8s-networking-ci
     - task: unit-tests
@@ -99,6 +121,8 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
+          tags: [overlay-storage-driver]
+        - get: routecontroller
           passed: [run-routecontroller-units]
           tags: [overlay-storage-driver]
           trigger: true
@@ -117,6 +141,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
+        - get: cfroutesync
           passed: [run-cfroutesync-units]
           trigger: true
         - get: cf-k8s-networking-values
@@ -152,6 +177,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-k8s-networking
+        - get: routecontroller
           passed: [run-routecontroller-integration-tests]
           trigger: true
         - get: cf-k8s-networking-values
