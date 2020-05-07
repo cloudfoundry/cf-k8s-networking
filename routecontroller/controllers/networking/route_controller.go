@@ -18,6 +18,7 @@ package networking
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
@@ -35,9 +36,10 @@ import (
 // RouteReconciler reconciles a Route object
 type RouteReconciler struct {
 	client.Client
-	Log          logr.Logger
-	Scheme       *runtime.Scheme
-	IstioGateway string
+	Log            logr.Logger
+	Scheme         *runtime.Scheme
+	IstioGateway   string
+	ResyncInterval time.Duration
 }
 
 const fqdnFieldKey string = "spec.fqdn"
@@ -88,6 +90,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			}
 		}
 
+		// finalizer occurs before deletion, no need to requeue
 		return ctrl.Result{}, nil
 	}
 
@@ -101,7 +104,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	return ctrl.Result{}, nil
+	return ctrl.Result{RequeueAfter: r.ResyncInterval}, nil
 }
 
 func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv1alpha1.Route, log logr.Logger, ctx context.Context) error {

@@ -963,6 +963,99 @@ var _ = Describe("Integration", func() {
 			))
 		})
 	})
+
+	When("a Route's child resources are deleted unexpectedly", func() {
+		BeforeEach(func() {
+			yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+		})
+
+		It("recreates the VirtualService and Service for the Route", func() {
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
+			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "services", "--all")
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete services failed with err: %s", string(output)))
+
+			output, err = kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "virtualservices", "--all")
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete virtualservices failed with err: %s", string(output)))
+
+			Eventually(kubectlGetServices).Should(BeEmpty())
+			Eventually(kubectlGetVirtualServices).Should(BeEmpty())
+
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+		})
+	})
 })
 
 func startRouteController(kubeConfigPath, gateway string) *gexec.Session {
