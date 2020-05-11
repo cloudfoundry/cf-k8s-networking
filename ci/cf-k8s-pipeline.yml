@@ -114,7 +114,7 @@ groups:
     jobs:
       - dont-smoke-for-k8s-deploy-and-test
       - bump-rc
-      - bump-patch
+      - ship-it
 jobs:
 # Build
 - name: run-cfroutesync-units
@@ -265,7 +265,17 @@ jobs:
       params:
         repository: cf-k8s-networking-config
 
-- name: bump-patch
+- name: ship-it
   plan:
-  - put: version
-    params: {bump: patch}
+    - in_parallel:
+        - get: cf-k8s-networking-rc
+          passed: [bump-rc]
+        - get: version
+    - put: cf-k8s-networking-rc
+      params:
+        repository: cf-k8s-networking-rc
+        tag: version/version
+        only_tag: true
+        tag_prefix: v
+    - put: version
+      params: {bump: patch}
