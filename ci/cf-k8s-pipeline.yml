@@ -20,6 +20,14 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
+- name: cf-k8s-networking-rc
+  type: git
+  icon: github-box
+  source:
+    branch: release-candidate
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+
 - name: cf-k8s-networking-config
   type: git
   icon: github-box
@@ -84,6 +92,16 @@ resources:
     uri: git@github.com:karlkfi/concourse-dcind.git
     private_key: ((github_private_key.private_key))
 
+- name: version
+  type: semver
+  source:
+    driver: git
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    private_key: ((github_private_key.private_key))
+    branch: version
+    file: version
+    git_user: cf-networking@pivotal.io
+
 groups:
   - name: build
     jobs:
@@ -95,6 +113,8 @@ groups:
   - name: dont-smoke
     jobs:
       - dont-smoke-for-k8s-deploy-and-test
+      - bump-rc
+      - bump-patch
 jobs:
 # Build
 - name: run-cfroutesync-units
@@ -234,3 +254,18 @@ jobs:
         CF_DOMAIN: *dont-smoke-for-k8s-domain
         CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+- name: bump-rc
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking-config
+          passed: [dont-smoke-for-k8s-deploy-and-test]
+          trigger: true
+    - put: cf-k8s-networking-rc
+      params:
+        repository: cf-k8s-networking-config
+
+- name: bump-patch
+  plan:
+  - put: version
+    params: {bump: patch}
