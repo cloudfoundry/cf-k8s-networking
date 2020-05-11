@@ -233,7 +233,9 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			builder := VirtualServiceBuilder{
 				IstioGateways: []string{"some-gateway0", "some-gateway1"},
 			}
-			Expect(builder.Build(&routes)).To(Equal(expectedVirtualServices))
+			virtualservice, err := builder.Build(&routes)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(virtualservice).To(Equal(expectedVirtualServices))
 		})
 
 		Describe("inferring weights", func() {
@@ -303,10 +305,11 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
-						virtualservice := builder.Build(&routes)[0]
-						Expect(virtualservice.Spec.Http[0].Route[0].Weight).To(Equal(int32(34)))
-						Expect(virtualservice.Spec.Http[0].Route[1].Weight).To(Equal(int32(33)))
-						Expect(virtualservice.Spec.Http[0].Route[2].Weight).To(Equal(int32(33)))
+						virtualservices, err := builder.Build(&routes)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(virtualservices[0].Spec.Http[0].Route[0].Weight).To(Equal(int32(34)))
+						Expect(virtualservices[0].Spec.Http[0].Route[1].Weight).To(Equal(int32(33)))
+						Expect(virtualservices[0].Spec.Http[0].Route[2].Weight).To(Equal(int32(33)))
 					})
 				})
 
@@ -336,9 +339,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
-						virtualservice := builder.Build(&routes)[0]
-						Expect(virtualservice.Spec.Http[0].Route[0].Weight).To(Equal(int32(50)))
-						Expect(virtualservice.Spec.Http[0].Route[1].Weight).To(Equal(int32(50)))
+						virtualservices, err := builder.Build(&routes)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(virtualservices[0].Spec.Http[0].Route[0].Weight).To(Equal(int32(50)))
+						Expect(virtualservices[0].Spec.Http[0].Route[1].Weight).To(Equal(int32(50)))
 					})
 				})
 			})
@@ -354,15 +358,16 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
 
-						virtualservices := builder.Build(&routes)[0]
-						Expect(virtualservices.Spec.Http[0].Route[0].Weight).To(Equal(int32(70)))
-						Expect(virtualservices.Spec.Http[0].Route[1].Weight).To(Equal(int32(20)))
-						Expect(virtualservices.Spec.Http[0].Route[2].Weight).To(Equal(int32(10)))
+						virtualservices, err := builder.Build(&routes)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(virtualservices[0].Spec.Http[0].Route[0].Weight).To(Equal(int32(70)))
+						Expect(virtualservices[0].Spec.Http[0].Route[1].Weight).To(Equal(int32(20)))
+						Expect(virtualservices[0].Spec.Http[0].Route[2].Weight).To(Equal(int32(10)))
 					})
 				})
 
 				Context("when the weights do not sum up to 100", func() {
-					It("omits the invalid istionetworkingv1alpha3.VirtualService", func() {
+					It("returns an error", func() {
 						invalidRoute := networkingv1alpha1.Route{
 							ObjectMeta: metav1.ObjectMeta{
 								Name:      "route-guid-0",
@@ -412,11 +417,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
 
-						k8sResources := builder.Build(&routes)
-						Expect(len(k8sResources)).To(Equal(1))
-
-						virtualservices := k8sResources[0]
-						Expect(len(virtualservices.Spec.Http)).To(Equal(1))
+						_, err := builder.Build(&routes)
+						Expect(err).To(MatchError("invalid destinations for route route-guid-0: weights must sum up to 100"))
 					})
 				})
 
@@ -468,16 +470,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						routes.Items = append(routes.Items, invalidRoute)
 					})
 
-					It("omits the invalid istionetworkingv1alpha3.VirtualService", func() {
+					It("returns an error", func() {
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
 
-						k8sResources := builder.Build(&routes)
-						Expect(len(k8sResources)).To(Equal(1))
-
-						virtualservices := k8sResources[0]
-						Expect(len(virtualservices.Spec.Http)).To(Equal(1))
+						_, err := builder.Build(&routes)
+						Expect(err).To(MatchError("invalid destinations for route route-guid-0: weights must be set on all or none"))
 					})
 				})
 			})
@@ -528,9 +527,10 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						IstioGateways: []string{"some-gateway0", "some-gateway1"},
 					}
 
-					virtualservices := builder.Build(&routes)[0]
-					Expect(len(virtualservices.Spec.Gateways)).To(Equal(1))
-					Expect(virtualservices.Spec.Gateways[0]).To(Equal("mesh"))
+					virtualservices, err := builder.Build(&routes)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(len(virtualservices[0].Spec.Gateways)).To(Equal(1))
+					Expect(virtualservices[0].Spec.Gateways[0]).To(Equal("mesh"))
 				})
 			})
 
@@ -702,7 +702,9 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					builder := VirtualServiceBuilder{
 						IstioGateways: []string{"some-gateway0", "some-gateway1"},
 					}
-					Expect(builder.Build(&routes)).To(Equal(expectedVirtualServices))
+					virtualservice, err := builder.Build(&routes)
+					Expect(err).NotTo(HaveOccurred())
+					Expect(virtualservice).To(Equal(expectedVirtualServices))
 				})
 
 				Context("and one of the routes has no destinations", func() {
@@ -768,7 +770,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
-						k8sResources := builder.Build(&routes)
+						k8sResources, err := builder.Build(&routes)
+						Expect(err).NotTo(HaveOccurred())
 						Expect(len(k8sResources)).To(Equal(1))
 
 						virtualservice := k8sResources[0]
@@ -778,7 +781,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("and one route is internal and one is external", func() {
-					It("does not create a VirtualService for the fqdn", func() {
+					It("returns an error", func() {
 						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 							{
 								ObjectMeta: metav1.ObjectMeta{
@@ -888,16 +891,13 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
-						k8sResources := builder.Build(&routes)
-						Expect(len(k8sResources)).To(Equal(1))
-
-						virtualservices := k8sResources[0]
-						Expect(virtualservices.Spec.Hosts[0]).To(Equal("test1.domain1.example.com"))
+						_, err := builder.Build(&routes)
+						Expect(err).To(MatchError("route guid route-guid-0 and route guid route-guid-1 disagree on whether or not the domain is internal"))
 					})
 				})
 
 				Context("and the routes have different namespaces", func() {
-					It("does not create a VirtualService for the fqdn", func() {
+					It("returns an error", func() {
 						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
 							{
 								ObjectMeta: metav1.ObjectMeta{
@@ -1007,11 +1007,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
-						k8sResources := builder.Build(&routes)
-						Expect(len(k8sResources)).To(Equal(1))
-
-						virtualservices := k8sResources[0]
-						Expect(virtualservices.Spec.Hosts[0]).To(Equal("test1.domain1.example.com"))
+						_, err := builder.Build(&routes)
+						Expect(err).To(MatchError("route guid route-guid-0 and route guid route-guid-1 share the same FQDN but have different namespaces"))
 					})
 				})
 
@@ -1049,7 +1046,9 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
 
-						Expect(builder.Build(&routes)).To(BeEmpty())
+						virtualservice, err := builder.Build(&routes)
+						Expect(err).NotTo(HaveOccurred())
+						Expect(virtualservice).To(BeEmpty())
 					})
 				})
 
@@ -1096,7 +1095,8 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
 
-						k8sResources := builder.Build(&routes)
+						k8sResources, err := builder.Build(&routes)
+						Expect(err).NotTo(HaveOccurred())
 						Expect(len(k8sResources)).To(Equal(1))
 
 						virtualservices := k8sResources[0]

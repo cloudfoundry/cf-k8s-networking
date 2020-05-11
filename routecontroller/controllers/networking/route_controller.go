@@ -30,6 +30,7 @@ import (
 	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
+	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	ctrl "sigs.k8s.io/controller-runtime"
 )
@@ -58,7 +59,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	route := &networkingv1alpha1.Route{}
 
 	if err := r.Get(ctx, req.NamespacedName, route); err != nil {
-		if client.IgnoreNotFound(err) == nil {
+		if apierrors.IsNotFound(err) {
 			log.Info("Route no longer exists")
 		}
 		return ctrl.Result{}, client.IgnoreNotFound(err)
@@ -66,7 +67,6 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 
 	err := r.List(ctx, routes, client.InNamespace(req.Namespace), client.MatchingFields{fqdnFieldKey: route.FQDN()})
 	if err != nil {
-		log.Error(err, "failed to list routes")
 		return ctrl.Result{}, err
 	}
 
@@ -109,7 +109,6 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 	// get services owned by that route
 	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
 	if err != nil {
-		log.Error(err, "failed to list services")
 		return err
 	}
 
@@ -123,11 +122,9 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 		mutateFn := sb.BuildMutateFunction(service, &desiredService)
 		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, service, mutateFn)
 		if err != nil {
-			log.Error(err, fmt.Sprintf("Service %s/%s could not be created or updated", service.Namespace, service.Name))
 			return err
-		} else {
-			log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
 		}
+		log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
 	}
 
 	servicesToDelete := findServicesForDeletion(actualServicesForRoute.Items, desiredServices)
@@ -138,7 +135,10 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 
 func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
 	vsb := resourcebuilders.VirtualServiceBuilder{IstioGateways: []string{r.IstioGateway}}
-	desiredVirtualServices := vsb.Build(routes)
+	desiredVirtualServices, err := vsb.Build(routes)
+	if err != nil {
+		return err
+	}
 
 	for _, desiredVirtualService := range desiredVirtualServices {
 		virtualService := &istionetworkingv1alpha3.VirtualService{
@@ -159,39 +159,31 @@ func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *net
 }
 
 func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *networkingv1alpha1.Route, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
-	// delete all services owned by route
 	actualServicesForRoute := &corev1.ServiceList{}
-	// get services owned by that route
 	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
 	if err != nil {
-		log.Error(err, "failed to list services")
 		return err
 	}
 
 	err = r.deleteServiceList(actualServicesForRoute.Items, log, ctx)
 	if err != nil {
-		log.Error(err, "failed to delete services")
 		return err
 	}
 
-	// run finalizer on deletion
 	routes.Items = removeRouteFromRouteList(route, routes)
 	if len(routes.Items) == 0 {
-		// get vs to delet
 		vs := &istionetworkingv1alpha3.VirtualService{}
 		vsName := resourcebuilders.VirtualServiceName(route.FQDN())
 		namespacedVSName := types.NamespacedName{Namespace: req.Namespace, Name: vsName}
 		if err := r.Get(ctx, namespacedVSName, vs); err != nil {
-			if client.IgnoreNotFound(err) == nil {
+			if apierrors.IsNotFound(err) {
 				log.Info("VirtualService no longer exists")
 			}
 			return client.IgnoreNotFound(err)
 		}
 
-		// delet it
 		err := r.Delete(ctx, vs)
 		if err != nil {
-			log.Error(err, fmt.Sprintf("VirtualService %s/%s could not be deleted", vs.Namespace, vs.Name))
 			return err
 		}
 		log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
@@ -232,7 +224,6 @@ func (r *RouteReconciler) deleteServiceList(services []corev1.Service, log logr.
 	for _, service := range services {
 		err := r.Delete(ctx, &service)
 		if err != nil {
-			log.Error(err, fmt.Sprintf("Service %s/%s could not be deleted", service.Namespace, service.Name))
 			return err
 		}
 		log.Info(fmt.Sprintf("Service %s/%s has been deleted", service.Namespace, service.Name))

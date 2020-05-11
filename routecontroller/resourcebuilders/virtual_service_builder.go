@@ -7,7 +7,6 @@ import (
 
 	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
-	log "github.com/sirupsen/logrus"
 	istiov1alpha3 "istio.io/api/networking/v1alpha3"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
@@ -45,7 +44,7 @@ func (b *VirtualServiceBuilder) BuildMutateFunction(actualVirtualService, desire
 	}
 }
 
-func (b *VirtualServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []istionetworkingv1alpha3.VirtualService {
+func (b *VirtualServiceBuilder) Build(routes *networkingv1alpha1.RouteList) ([]istionetworkingv1alpha3.VirtualService, error) {
 	resources := []istionetworkingv1alpha3.VirtualService{}
 
 	routesForFQDN := groupByFQDN(routes)
@@ -55,15 +54,15 @@ func (b *VirtualServiceBuilder) Build(routes *networkingv1alpha1.RouteList) []is
 		destinations := destinationsForFQDN(fqdn, routesForFQDN)
 		if len(destinations) != 0 {
 			virtualService, err := b.fqdnToVirtualService(fqdn, routesForFQDN[fqdn])
-			if err == nil {
-				resources = append(resources, virtualService)
-			} else {
-				log.WithError(err).Errorf("unable to create VirtualService for fqdn '%s'", fqdn)
+			if err != nil {
+				return []istionetworkingv1alpha3.VirtualService{}, err
 			}
+
+			resources = append(resources, virtualService)
 		}
 	}
 
-	return resources
+	return resources, nil
 }
 
 func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []networkingv1alpha1.Route) (istionetworkingv1alpha3.VirtualService, error) {
