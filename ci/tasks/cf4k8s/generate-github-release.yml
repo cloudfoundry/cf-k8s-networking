@@ -5,7 +5,7 @@ image_resource:
     repository: relintdockerhubpushbot/cf-for-k8s-ci
 
 inputs:
-  - name: cf-k8s-networking-rc
+  - name: cf-k8s-networking
   - name: version
   - name: cf-k8s-networking-ci
 
