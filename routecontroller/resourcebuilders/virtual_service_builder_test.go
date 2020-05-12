@@ -14,220 +14,268 @@ import (
 	. "github.com/onsi/gomega"
 )
 
+type virtualServiceParams struct {
+	fqdn     string
+	internal bool
+	https    []httpParams
+	owners   []ownerParams
+}
+
+type httpParams struct {
+	matchPrefix  string
+	destinations []destParams
+}
+
+type ownerParams struct {
+	routeName string
+	routeUID  types.UID
+}
+
+type destParams struct {
+	host      string
+	appGUID   string
+	spaceGUID string
+	orgGUID   string
+	weight    int32
+}
+
+type routeParams struct {
+	name         string
+	namespace    string
+	host         string
+	path         string
+	domain       string
+	internal     bool
+	destinations []routeDestParams
+}
+
+type routeDestParams struct {
+	destGUID string
+	port     int
+	weight   *int
+	appGUID  string
+}
+
+func constructVirtualService(params virtualServiceParams) istionetworkingv1alpha3.VirtualService {
+	vs := istionetworkingv1alpha3.VirtualService{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      VirtualServiceName(params.fqdn),
+			Namespace: "workload-namespace",
+			Labels:    map[string]string{},
+			Annotations: map[string]string{
+				"cloudfoundry.org/fqdn": params.fqdn,
+			},
+		},
+		Spec: istionetworkingv1alpha3.VirtualServiceSpec{
+			VirtualService: istiov1alpha3.VirtualService{
+				Hosts:    []string{params.fqdn},
+				Gateways: []string{"some-gateway0", "some-gateway1"},
+			},
+		},
+	}
+
+	if params.internal {
+		vs.Spec.Gateways = []string{"mesh"}
+	}
+
+	owners := []metav1.OwnerReference{}
+	for _, owner := range params.owners {
+		owners = append(owners, metav1.OwnerReference{
+			APIVersion: "networking.cloudfoundry.org/v1alpha1",
+			Kind:       "Route",
+			Name:       owner.routeName,
+			UID:        types.UID(owner.routeUID),
+		})
+	}
+	vs.ObjectMeta.OwnerReferences = owners
+
+	https := []*istiov1alpha3.HTTPRoute{}
+	for _, http := range params.https {
+		httpRoute := istiov1alpha3.HTTPRoute{}
+		if http.matchPrefix != "" {
+			httpRoute.Match = []*istiov1alpha3.HTTPMatchRequest{
+				{
+					Uri: &istiov1alpha3.StringMatch{
+						MatchType: &istiov1alpha3.StringMatch_Prefix{
+							Prefix: http.matchPrefix,
+						},
+					},
+				},
+			}
+		}
+
+		routes := []*istiov1alpha3.HTTPRouteDestination{}
+		for _, dest := range http.destinations {
+			routes = append(routes, &istiov1alpha3.HTTPRouteDestination{
+				Destination: &istiov1alpha3.Destination{Host: dest.host},
+				Headers: &istiov1alpha3.Headers{
+					Request: &istiov1alpha3.Headers_HeaderOperations{
+						Set: map[string]string{
+							"CF-App-Id":           dest.appGUID,
+							"CF-App-Process-Type": "process-type-1",
+							"CF-Space-Id":         dest.spaceGUID,
+							"CF-Organization-Id":  dest.orgGUID,
+						},
+					},
+				},
+				Weight: dest.weight,
+			})
+		}
+
+		httpRoute.Route = routes
+
+		https = append(https, &httpRoute)
+	}
+
+	vs.Spec.VirtualService.Http = https
+	return vs
+}
+
+func constructRoute(params routeParams) networkingv1alpha1.Route {
+	if params.namespace == "" {
+		params.namespace = "workload-namespace"
+	}
+
+	route := networkingv1alpha1.Route{
+		ObjectMeta: metav1.ObjectMeta{
+			Name:      params.name,
+			Namespace: params.namespace,
+			Labels: map[string]string{
+				"cloudfoundry.org/space_guid": "space-guid-0",
+				"cloudfoundry.org/org_guid":   "org-guid-0",
+			},
+			UID: types.UID(fmt.Sprintf("%s-k8s-uid", params.name)),
+		},
+		TypeMeta: metav1.TypeMeta{
+			Kind: "Route",
+		},
+		Spec: networkingv1alpha1.RouteSpec{
+			Host: params.host,
+			Path: params.path,
+			Url:  fmt.Sprintf("%s.%s%s", params.host, params.domain, params.path),
+			Domain: networkingv1alpha1.RouteDomain{
+				Name:     params.domain,
+				Internal: params.internal,
+			},
+		},
+	}
+
+	destinations := []networkingv1alpha1.RouteDestination{}
+	for _, destination := range params.destinations {
+		destinations = append(destinations, networkingv1alpha1.RouteDestination{
+			Guid:   destination.destGUID,
+			Port:   intPtr(destination.port),
+			Weight: destination.weight,
+			App: networkingv1alpha1.DestinationApp{
+				Guid:    destination.appGUID,
+				Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
+			},
+			Selector: networkingv1alpha1.DestinationSelector{
+				MatchLabels: map[string]string{
+					"cloudfoundry.org/app_guid":     destination.appGUID,
+					"cloudfoundry.org/process_type": "process-type-1",
+				},
+			},
+		})
+	}
+	route.Spec.Destinations = destinations
+	return route
+}
+
 var _ = Describe("VirtualServiceBuilder", func() {
 	Describe("Build", func() {
 		It("returns a VirtualService resource for each route destination", func() {
-			routes := networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "route-guid-0",
-						Namespace: "workload-namespace",
-						Labels: map[string]string{
-							"cloudfoundry.org/space_guid": "space-guid-0",
-							"cloudfoundry.org/org_guid":   "org-guid-0",
-						},
-						UID: "route-guid-0-k8s-uid",
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind: "Route",
-					},
-					Spec: networkingv1alpha1.RouteSpec{
-						Host: "test0",
-						Path: "/path0",
-						Url:  "test0.domain0.example.com/path0",
-						Domain: networkingv1alpha1.RouteDomain{
-							Name:     "domain0.example.com",
-							Internal: false,
-						},
-						Destinations: []networkingv1alpha1.RouteDestination{
-							networkingv1alpha1.RouteDestination{
-								Guid:   "route-0-destination-guid-0",
-								Port:   intPtr(9000),
-								Weight: intPtr(91),
-								App: networkingv1alpha1.DestinationApp{
-									Guid:    "app-guid-0",
-									Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-								},
-								Selector: networkingv1alpha1.DestinationSelector{
-									MatchLabels: map[string]string{
-										"cloudfoundry.org/app_guid":     "app-guid-0",
-										"cloudfoundry.org/process_type": "process-type-1",
-									},
-								},
+			routes := networkingv1alpha1.RouteList{
+				Items: []networkingv1alpha1.Route{
+					constructRoute(routeParams{
+						name:   "route-guid-0",
+						host:   "test0",
+						path:   "/path0",
+						domain: "domain0.example.com",
+						destinations: []routeDestParams{
+							{
+								destGUID: "route-0-destination-guid-0",
+								port:     9000,
+								weight:   intPtr(91),
+								appGUID:  "app-guid-0",
 							},
-							networkingv1alpha1.RouteDestination{
-								Guid:   "route-0-destination-guid-1",
-								Port:   intPtr(9001),
-								Weight: intPtr(9),
-								App: networkingv1alpha1.DestinationApp{
-									Guid:    "app-guid-1",
-									Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-								},
-								Selector: networkingv1alpha1.DestinationSelector{
-									MatchLabels: map[string]string{
-										"cloudfoundry.org/app_guid":     "app-guid-1",
-										"cloudfoundry.org/process_type": "process-type-1",
-									},
-								},
+							{
+								destGUID: "route-0-destination-guid-1",
+								port:     9001,
+								weight:   intPtr(9),
+								appGUID:  "app-guid-1",
 							},
 						},
-					},
-				},
-				{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      "route-guid-1",
-						Namespace: "workload-namespace",
-						Labels: map[string]string{
-							"cloudfoundry.org/space_guid": "space-guid-1",
-							"cloudfoundry.org/org_guid":   "org-guid-1",
-						},
-						UID: "route-guid-1-k8s-uid",
-					},
-					TypeMeta: metav1.TypeMeta{
-						Kind: "Route",
-					},
-					Spec: networkingv1alpha1.RouteSpec{
-						Host: "test1",
-						Path: "",
-						Url:  "test1.domain1.example.com",
-						Domain: networkingv1alpha1.RouteDomain{
-							Name:     "domain1.example.com",
-							Internal: false,
-						},
-						Destinations: []networkingv1alpha1.RouteDestination{
-							networkingv1alpha1.RouteDestination{
-								Guid:   "route-1-destination-guid-0",
-								Port:   intPtr(8080),
-								Weight: intPtr(100),
-								App: networkingv1alpha1.DestinationApp{
-									Guid:    "app-guid-1",
-									Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-								},
-								Selector: networkingv1alpha1.DestinationSelector{
-									MatchLabels: map[string]string{
-										"cloudfoundry.org/app_guid":     "app-guid-1",
-										"cloudfoundry.org/process_type": "process-type-1",
-									},
-								},
+					}),
+					constructRoute(routeParams{
+						name:   "route-guid-1",
+						host:   "test1",
+						path:   "",
+						domain: "domain1.example.com",
+						destinations: []routeDestParams{
+							{
+								destGUID: "route-1-destination-guid-0",
+								port:     8080,
+								weight:   intPtr(100),
+								appGUID:  "app-guid-1",
 							},
 						},
-					},
-				},
-			},
-			}
+					}),
+				}}
 
 			expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
-				istionetworkingv1alpha3.VirtualService{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      VirtualServiceName("test0.domain0.example.com"),
-						Namespace: "workload-namespace",
-						Labels:    map[string]string{},
-						Annotations: map[string]string{
-							"cloudfoundry.org/fqdn": "test0.domain0.example.com",
-						},
-						OwnerReferences: []metav1.OwnerReference{
-							metav1.OwnerReference{
-								APIVersion: "networking.cloudfoundry.org/v1alpha1",
-								Kind:       "Route",
-								Name:       routes.Items[0].ObjectMeta.Name,
-								UID:        routes.Items[0].ObjectMeta.UID,
-							},
+				constructVirtualService(virtualServiceParams{
+					fqdn: "test0.domain0.example.com",
+					owners: []ownerParams{
+						{
+							routeName: routes.Items[0].ObjectMeta.Name,
+							routeUID:  routes.Items[0].ObjectMeta.UID,
 						},
 					},
-					Spec: istionetworkingv1alpha3.VirtualServiceSpec{
-						VirtualService: istiov1alpha3.VirtualService{
-							Hosts:    []string{"test0.domain0.example.com"},
-							Gateways: []string{"some-gateway0", "some-gateway1"},
-							Http: []*istiov1alpha3.HTTPRoute{
+					https: []httpParams{
+						{
+							matchPrefix: "/path0",
+							destinations: []destParams{
 								{
-									Match: []*istiov1alpha3.HTTPMatchRequest{
-										{
-											Uri: &istiov1alpha3.StringMatch{
-												MatchType: &istiov1alpha3.StringMatch_Prefix{
-													Prefix: "/path0",
-												},
-											},
-										},
-									},
-									Route: []*istiov1alpha3.HTTPRouteDestination{
-										{
-											Destination: &istiov1alpha3.Destination{Host: "s-route-0-destination-guid-0"},
-											Headers: &istiov1alpha3.Headers{
-												Request: &istiov1alpha3.Headers_HeaderOperations{
-													Set: map[string]string{
-														"CF-App-Id":           "app-guid-0",
-														"CF-App-Process-Type": "process-type-1",
-														"CF-Space-Id":         "space-guid-0",
-														"CF-Organization-Id":  "org-guid-0",
-													},
-												},
-											},
-											Weight: 91,
-										},
-										{
-											Destination: &istiov1alpha3.Destination{Host: "s-route-0-destination-guid-1"},
-											Headers: &istiov1alpha3.Headers{
-												Request: &istiov1alpha3.Headers_HeaderOperations{
-													Set: map[string]string{
-														"CF-App-Id":           "app-guid-1",
-														"CF-App-Process-Type": "process-type-1",
-														"CF-Space-Id":         "space-guid-0",
-														"CF-Organization-Id":  "org-guid-0",
-													},
-												},
-											},
-											Weight: 9,
-										},
-									},
+									host:      "s-route-0-destination-guid-0",
+									appGUID:   "app-guid-0",
+									spaceGUID: "space-guid-0",
+									orgGUID:   "org-guid-0",
+									weight:    91,
+								},
+								{
+									host:      "s-route-0-destination-guid-1",
+									appGUID:   "app-guid-1",
+									spaceGUID: "space-guid-0",
+									orgGUID:   "org-guid-0",
+									weight:    9,
 								},
 							},
 						},
 					},
-				},
-				istionetworkingv1alpha3.VirtualService{
-					ObjectMeta: metav1.ObjectMeta{
-						Name:      VirtualServiceName("test1.domain1.example.com"),
-						Namespace: "workload-namespace",
-						Labels:    map[string]string{},
-						Annotations: map[string]string{
-							"cloudfoundry.org/fqdn": "test1.domain1.example.com",
-						},
-						OwnerReferences: []metav1.OwnerReference{
-							metav1.OwnerReference{
-								APIVersion: "networking.cloudfoundry.org/v1alpha1",
-								Kind:       "Route",
-								Name:       routes.Items[1].ObjectMeta.Name,
-								UID:        routes.Items[1].ObjectMeta.UID,
-							},
+				}),
+				constructVirtualService(virtualServiceParams{
+					fqdn: "test1.domain1.example.com",
+					owners: []ownerParams{
+						{
+							routeName: routes.Items[1].ObjectMeta.Name,
+							routeUID:  routes.Items[1].ObjectMeta.UID,
 						},
 					},
-					Spec: istionetworkingv1alpha3.VirtualServiceSpec{
-						VirtualService: istiov1alpha3.VirtualService{
-							Hosts:    []string{"test1.domain1.example.com"},
-							Gateways: []string{"some-gateway0", "some-gateway1"},
-							Http: []*istiov1alpha3.HTTPRoute{
+					https: []httpParams{
+						{
+							destinations: []destParams{
 								{
-									Route: []*istiov1alpha3.HTTPRouteDestination{
-										{
-											Destination: &istiov1alpha3.Destination{Host: "s-route-1-destination-guid-0"},
-											Headers: &istiov1alpha3.Headers{
-												Request: &istiov1alpha3.Headers_HeaderOperations{
-													Set: map[string]string{
-														"CF-App-Id":           "app-guid-1",
-														"CF-App-Process-Type": "process-type-1",
-														"CF-Space-Id":         "space-guid-1",
-														"CF-Organization-Id":  "org-guid-1",
-													},
-												},
-											},
-											Weight: 100,
-										},
-									},
+									host:      "s-route-1-destination-guid-0",
+									appGUID:   "app-guid-1",
+									spaceGUID: "space-guid-0",
+									orgGUID:   "org-guid-0",
+									weight:    100,
 								},
 							},
 						},
 					},
-				},
+				}),
 			}
 
 			builder := VirtualServiceBuilder{
@@ -242,60 +290,32 @@ var _ = Describe("VirtualServiceBuilder", func() {
 			var routes networkingv1alpha1.RouteList
 
 			BeforeEach(func() {
-				routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-					{
-						ObjectMeta: metav1.ObjectMeta{
-							Name:      "route-guid-0",
-							Namespace: "workload-namespace",
-							Labels: map[string]string{
-								"cloudfoundry.org/space_guid": "space-guid-1",
-								"cloudfoundry.org/org_guid":   "org-guid-1",
-							},
-							UID: "route-guid-0-k8s-uid",
-						},
-						TypeMeta: metav1.TypeMeta{
-							Kind: "Route",
-						},
-						Spec: networkingv1alpha1.RouteSpec{
-							Host: "test0",
-							Path: "/path0",
-							Url:  "test0.domain0.example.com/path0",
-							Domain: networkingv1alpha1.RouteDomain{
-								Name:     "domain0.example.com",
-								Internal: false,
-							},
-							Destinations: []networkingv1alpha1.RouteDestination{
-								networkingv1alpha1.RouteDestination{
-									Guid: "route-0-destination-guid-0",
-									App: networkingv1alpha1.DestinationApp{
-										Guid:    "app-guid-0",
-										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-									},
-									Port:   intPtr(9000),
-									Weight: nil,
+				routes = networkingv1alpha1.RouteList{
+					Items: []networkingv1alpha1.Route{
+						constructRoute(routeParams{
+							name:   "route-guid-0",
+							host:   "test0",
+							path:   "/path0",
+							domain: "domain0.example.com",
+							destinations: []routeDestParams{
+								{
+									destGUID: "route-0-destination-guid-0",
+									port:     9000,
+									appGUID:  "app-guid-0",
 								},
-								networkingv1alpha1.RouteDestination{
-									Guid: "route-0-destination-guid-1",
-									App: networkingv1alpha1.DestinationApp{
-										Guid:    "app-guid-1",
-										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-									},
-									Port:   intPtr(8080),
-									Weight: nil,
+								{
+									destGUID: "route-0-destination-guid-1",
+									port:     8080,
+									appGUID:  "app-guid-1",
 								},
-								networkingv1alpha1.RouteDestination{
-									Guid: "route-0-destination-guid-2",
-									App: networkingv1alpha1.DestinationApp{
-										Guid:    "app-guid-2",
-										Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-									},
-									Port:   intPtr(8080),
-									Weight: nil,
+								{
+									destGUID: "route-0-destination-guid-2",
+									port:     8080,
+									appGUID:  "app-guid-2",
 								},
 							},
-						},
+						}),
 					},
-				},
 				}
 			})
 
@@ -316,7 +336,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				Context("when the destinations DO evenly divide to 100", func() {
 					It("evenly distributes the weights", func() {
 						routes.Items[0].Spec.Destinations = []networkingv1alpha1.RouteDestination{
-							networkingv1alpha1.RouteDestination{
+							{
 								Guid: "route-0-destination-guid-0",
 								App: networkingv1alpha1.DestinationApp{
 									Guid:    "app-guid-0",
@@ -325,7 +345,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 								Port:   intPtr(9000),
 								Weight: nil,
 							},
-							networkingv1alpha1.RouteDestination{
+							{
 								Guid: "route-0-destination-guid-1",
 								App: networkingv1alpha1.DestinationApp{
 									Guid:    "app-guid-1",
@@ -367,51 +387,33 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("when the weights do not sum up to 100", func() {
-					It("returns an error", func() {
-						invalidRoute := networkingv1alpha1.Route{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "route-guid-0",
-								Namespace: "workload-namespace",
-								Labels: map[string]string{
-									"cloudfoundry.org/space_guid": "space-guid-1",
-									"cloudfoundry.org/org_guid":   "org-guid-1",
-								},
-								UID: "route-guid-0-k8s-uid",
-							},
-							TypeMeta: metav1.TypeMeta{
-								Kind: "Route",
-							},
-							Spec: networkingv1alpha1.RouteSpec{
-								Host: "invalid-route",
-								Path: "/path0",
-								Url:  "invalid-route.domain0.example.com/path0",
-								Domain: networkingv1alpha1.RouteDomain{
-									Name:     "domain0.example.com",
-									Internal: false,
-								},
-								Destinations: []networkingv1alpha1.RouteDestination{
-									networkingv1alpha1.RouteDestination{
-										Guid: "route-0-destination-guid-0",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-0",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
+					It("omits the invalid istionetworkingv1alpha3.VirtualService", func() {
+						invalidRoutes := networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:   "route-guid-0",
+									host:   "invalid-route",
+									path:   "/path0",
+									domain: "domain0.example.com",
+									destinations: []routeDestParams{
+										{
+											destGUID: "route-0-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(80),
+											appGUID:  "app-guid-0",
 										},
-										Port:   intPtr(9000),
-										Weight: intPtr(80),
-									},
-									networkingv1alpha1.RouteDestination{
-										Guid: "route-0-destination-guid-1",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-1",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
+										{
+											destGUID: "route-0-destination-guid-1",
+											port:     8080,
+											weight:   intPtr(80),
+											appGUID:  "app-guid-1",
 										},
-										Port:   intPtr(8080),
-										Weight: intPtr(80),
 									},
-								},
+								}),
 							},
 						}
-						routes.Items = append(routes.Items, invalidRoute)
+
+						routes.Items = append(routes.Items, invalidRoutes.Items[0])
 
 						builder := VirtualServiceBuilder{
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
@@ -424,50 +426,31 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 				Context("when one destination for a given route has a weight but the rest do not", func() {
 					BeforeEach(func() {
-						invalidRoute := networkingv1alpha1.Route{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "route-guid-0",
-								Namespace: "workload-namespace",
-								Labels: map[string]string{
-									"cloudfoundry.org/space_guid": "space-guid-1",
-									"cloudfoundry.org/org_guid":   "org-guid-1",
-								},
-								UID: "route-guid-0-k8s-uid",
-							},
-							TypeMeta: metav1.TypeMeta{
-								Kind: "Route",
-							},
-							Spec: networkingv1alpha1.RouteSpec{
-								Host: "invalid-route",
-								Path: "/path0",
-								Url:  "invalid-route.domain0.example.com/path0",
-								Domain: networkingv1alpha1.RouteDomain{
-									Name:     "domain0.example.com",
-									Internal: false,
-								},
-								Destinations: []networkingv1alpha1.RouteDestination{
-									networkingv1alpha1.RouteDestination{
-										Guid: "route-0-destination-guid-0",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-0",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
+						invalidRoutes := networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:   "route-guid-0",
+									host:   "invalid-route",
+									path:   "/path0",
+									domain: "invalid-route.domain0.example.com",
+									destinations: []routeDestParams{
+										{
+											destGUID: "route-0-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(80),
+											appGUID:  "app-guid-0",
 										},
-										Port:   intPtr(9000),
-										Weight: intPtr(80),
-									},
-									networkingv1alpha1.RouteDestination{
-										Guid: "route-0-destination-guid-1",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-1",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
+										{
+											destGUID: "route-0-destination-guid-1",
+											port:     8080,
+											appGUID:  "app-guid-1",
 										},
-										Port:   intPtr(8080),
-										Weight: nil,
 									},
-								},
+								}),
 							},
 						}
-						routes.Items = append(routes.Items, invalidRoute)
+
+						routes.Items = append(routes.Items, invalidRoutes.Items[0])
 					})
 
 					It("returns an error", func() {
@@ -483,42 +466,23 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("when a route is for an internal domain", func() {
 				BeforeEach(func() {
-					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "route-guid-0",
-								Namespace: "workload-namespace",
-								Labels: map[string]string{
-									"cloudfoundry.org/space_guid": "space-guid-0",
-									"cloudfoundry.org/org_guid":   "org-guid-0",
-								},
-								UID: "route-guid-0-k8s-uid",
-							},
-							TypeMeta: metav1.TypeMeta{
-								Kind: "Route",
-							},
-							Spec: networkingv1alpha1.RouteSpec{
-								Host: "test0",
-								Path: "",
-								Url:  "test0.domain0.apps.internal",
-								Domain: networkingv1alpha1.RouteDomain{
-									Name:     "domain0.apps.internal",
-									Internal: true,
-								},
-								Destinations: []networkingv1alpha1.RouteDestination{
+					routes = networkingv1alpha1.RouteList{
+						Items: []networkingv1alpha1.Route{
+							constructRoute(routeParams{
+								name:     "route-guid-0",
+								host:     "test0",
+								path:     "",
+								domain:   "domain0.apps.internal",
+								internal: true,
+								destinations: []routeDestParams{
 									{
-										Guid: "route-0-destination-guid-0",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-0",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-0"},
-										},
-										Port:   intPtr(8080),
-										Weight: intPtr(100),
+										weight:  intPtr(100),
+										port:    8080,
+										appGUID: "app-guid-0",
 									},
 								},
-							},
+							}),
 						},
-					},
 					}
 				})
 
@@ -536,167 +500,84 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 			Context("when two routes have the same fqdn", func() {
 				BeforeEach(func() {
-					routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "route-guid-0",
-								Namespace: "workload-namespace",
-								Labels: map[string]string{
-									"cloudfoundry.org/space_guid": "space-guid-0",
-									"cloudfoundry.org/org_guid":   "org-guid-0",
-								},
-								UID: "route-guid-0-k8s-uid",
-							},
-							TypeMeta: metav1.TypeMeta{
-								Kind: "Route",
-							},
-							Spec: networkingv1alpha1.RouteSpec{
-								Host: "test0",
-								Path: "/path0",
-								Url:  "test0.domain0.example.com/path0",
-								Domain: networkingv1alpha1.RouteDomain{
-									Name:     "domain0.example.com",
-									Internal: false,
-								},
-								Destinations: []networkingv1alpha1.RouteDestination{
+					routes = networkingv1alpha1.RouteList{
+						Items: []networkingv1alpha1.Route{
+							constructRoute(routeParams{
+								name:     "route-guid-0",
+								host:     "test0",
+								path:     "/path0",
+								domain:   "domain0.example.com",
+								internal: true,
+								destinations: []routeDestParams{
 									{
-										Guid: "route-0-destination-guid-0",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-0",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-										},
-										Port:   intPtr(9000),
-										Weight: intPtr(100),
+										destGUID: "route-0-destination-guid-0",
+										port:     9000,
+										weight:   intPtr(100),
+										appGUID:  "app-guid-0",
 									},
 								},
-							},
-						},
-						{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      "route-guid-1",
-								Namespace: "workload-namespace",
-								Labels: map[string]string{
-									"cloudfoundry.org/space_guid": "space-guid-0",
-									"cloudfoundry.org/org_guid":   "org-guid-0",
-								},
-								UID: "route-guid-1-k8s-uid",
-							},
-							TypeMeta: metav1.TypeMeta{
-								Kind: "Route",
-							},
-							Spec: networkingv1alpha1.RouteSpec{
-								Host: "test0",
-								Path: "/path0/deeper",
-								Url:  "test0.domain0.example.com/path0/deeper",
-								Domain: networkingv1alpha1.RouteDomain{
-									Name:     "domain0.example.com",
-									Internal: false,
-								},
-								Destinations: []networkingv1alpha1.RouteDestination{
+							}),
+							constructRoute(routeParams{
+								name:     "route-guid-1",
+								host:     "test0",
+								path:     "/path0/deeper",
+								domain:   "domain0.example.com",
+								internal: true,
+								destinations: []routeDestParams{
 									{
-										Guid: "route-1-destination-guid-0",
-										App: networkingv1alpha1.DestinationApp{
-											Guid:    "app-guid-1",
-											Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-										},
-										Port:   intPtr(8080),
-										Weight: intPtr(100),
+										destGUID: "route-1-destination-guid-0",
+										port:     8080,
+										weight:   intPtr(100),
+										appGUID:  "app-guid-1",
 									},
 								},
-							},
+							}),
 						},
-					},
 					}
 				})
 
 				It("orders the paths by longest matching prefix", func() {
 					expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
-						istionetworkingv1alpha3.VirtualService{
-							ObjectMeta: metav1.ObjectMeta{
-								Name:      VirtualServiceName("test0.domain0.example.com"),
-								Namespace: "workload-namespace",
-								Labels:    map[string]string{},
-								Annotations: map[string]string{
-									"cloudfoundry.org/fqdn": "test0.domain0.example.com",
+						constructVirtualService(virtualServiceParams{
+							fqdn:     "test0.domain0.example.com",
+							internal: true,
+							owners: []ownerParams{
+								{
+									routeName: routes.Items[1].ObjectMeta.Name,
+									routeUID:  routes.Items[1].ObjectMeta.UID,
 								},
-								OwnerReferences: []metav1.OwnerReference{
-									metav1.OwnerReference{
-										APIVersion: "networking.cloudfoundry.org/v1alpha1",
-										Kind:       "Route",
-										Name:       routes.Items[1].ObjectMeta.Name,
-										UID:        routes.Items[1].ObjectMeta.UID,
-									},
-									metav1.OwnerReference{
-										APIVersion: "networking.cloudfoundry.org/v1alpha1",
-										Kind:       "Route",
-										Name:       routes.Items[0].ObjectMeta.Name,
-										UID:        routes.Items[0].ObjectMeta.UID,
-									},
+								{
+									routeName: routes.Items[0].ObjectMeta.Name,
+									routeUID:  routes.Items[0].ObjectMeta.UID,
 								},
 							},
-							Spec: istionetworkingv1alpha3.VirtualServiceSpec{
-								VirtualService: istiov1alpha3.VirtualService{
-									Hosts:    []string{"test0.domain0.example.com"},
-									Gateways: []string{"some-gateway0", "some-gateway1"},
-									Http: []*istiov1alpha3.HTTPRoute{
+							https: []httpParams{
+								{
+									matchPrefix: "/path0/deeper",
+									destinations: []destParams{
 										{
-											Match: []*istiov1alpha3.HTTPMatchRequest{
-												{
-													Uri: &istiov1alpha3.StringMatch{
-														MatchType: &istiov1alpha3.StringMatch_Prefix{
-															Prefix: "/path0/deeper",
-														},
-													},
-												},
-											},
-											Route: []*istiov1alpha3.HTTPRouteDestination{
-												{
-													Destination: &istiov1alpha3.Destination{Host: "s-route-1-destination-guid-0"},
-													Headers: &istiov1alpha3.Headers{
-														Request: &istiov1alpha3.Headers_HeaderOperations{
-															Set: map[string]string{
-																"CF-App-Id":           "app-guid-1",
-																"CF-App-Process-Type": "process-type-1",
-																"CF-Space-Id":         "space-guid-0",
-																"CF-Organization-Id":  "org-guid-0",
-															},
-														},
-													},
-													Weight: 100,
-												},
-											},
+											host:      "s-route-1-destination-guid-0",
+											appGUID:   "app-guid-1",
+											spaceGUID: "space-guid-0",
+											orgGUID:   "org-guid-0",
+											weight:    100,
 										},
+									},
+								},
+								{
+									matchPrefix: "/path0",
+									destinations: []destParams{
 										{
-											Match: []*istiov1alpha3.HTTPMatchRequest{
-												{
-													Uri: &istiov1alpha3.StringMatch{
-														MatchType: &istiov1alpha3.StringMatch_Prefix{
-															Prefix: "/path0",
-														},
-													},
-												},
-											},
-											Route: []*istiov1alpha3.HTTPRouteDestination{
-												{
-													Destination: &istiov1alpha3.Destination{Host: "s-route-0-destination-guid-0"},
-													Headers: &istiov1alpha3.Headers{
-														Request: &istiov1alpha3.Headers_HeaderOperations{
-															Set: map[string]string{
-																"CF-App-Id":           "app-guid-0",
-																"CF-App-Process-Type": "process-type-1",
-																"CF-Space-Id":         "space-guid-0",
-																"CF-Organization-Id":  "org-guid-0",
-															},
-														},
-													},
-													Weight: 100,
-												},
-											},
+											host:      "s-route-0-destination-guid-0",
+											appGUID:   "app-guid-0",
+											spaceGUID: "space-guid-0",
+											orgGUID:   "org-guid-0",
+											weight:    100,
 										},
 									},
 								},
 							},
-						},
+						}),
 					}
 
 					builder := VirtualServiceBuilder{
@@ -709,62 +590,32 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 				Context("and one of the routes has no destinations", func() {
 					It("ignores the route without destinations", func() {
-						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-0-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path0",
-									Url:  "test0.domain0.example.com/path0",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+						routes = networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:     "route-guid-0",
+									host:     "test0",
+									path:     "/path0",
+									domain:   "domain0.example.com",
+									internal: true,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-0-destination-guid-0",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-0",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-0-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-0",
 										},
 									},
-								},
+								}),
+								constructRoute(routeParams{
+									name:         "route-guid-1",
+									host:         "test0",
+									path:         "/path0/deeper",
+									domain:       "domain0.example.com",
+									internal:     true,
+									destinations: []routeDestParams{},
+								}),
 							},
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-1",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path0/deeper",
-									Url:  "test0.domain0.example.com/path0/deeper",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{},
-								},
-							},
-						},
 						}
 
 						builder := VirtualServiceBuilder{
@@ -781,111 +632,55 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("and one route is internal and one is external", func() {
-					It("returns an error", func() {
-						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-0-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path0",
-									Url:  "test0.domain0.example.com/path0",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+					It("does not create a VirtualService for the fqdn", func() {
+						routes = networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:     "route-guid-0",
+									host:     "test0",
+									path:     "/path0",
+									domain:   "domain0.example.com",
+									internal: false,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-0-destination-guid-0",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-0",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-0-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-0",
 										},
 									},
-								},
-							},
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-1",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-1-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path1",
-									Url:  "test0.domain0.example.com/path1",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: true,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+								}),
+								constructRoute(routeParams{
+									name:     "route-guid-1",
+									host:     "test0",
+									path:     "/path1",
+									domain:   "domain0.example.com",
+									internal: true,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-0-destination-guid-0",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-0",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-1-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-0",
 										},
 									},
-								},
-							},
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-2",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-2-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test1",
-									Path: "",
-									Url:  "test1.domain1.example.com",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain1.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+								}),
+								constructRoute(routeParams{
+									name:     "route-guid-2",
+									host:     "test1",
+									path:     "",
+									domain:   "domain1.example.com",
+									internal: false,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-1-destination-guid-1",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-1",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-2-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-1",
 										},
 									},
-								},
+								}),
 							},
-						},
 						}
 
 						builder := VirtualServiceBuilder{
@@ -897,111 +692,56 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("and the routes have different namespaces", func() {
-					It("returns an error", func() {
-						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-0-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path0",
-									Url:  "test0.domain0.example.com/path0",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+					It("does not create a VirtualService for the fqdn", func() {
+						routes = networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:     "route-guid-0",
+									host:     "test0",
+									path:     "/path0",
+									domain:   "domain0.example.com",
+									internal: false,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-0-destination-guid-0",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-0",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-0-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-0",
 										},
 									},
-								},
-							},
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-1",
-									Namespace: "some-different-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-1-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path1",
-									Url:  "test0.domain0.example.com/path1",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+								}),
+								constructRoute(routeParams{
+									name:      "route-guid-1",
+									namespace: "some-different-namespace",
+									host:      "test0",
+									path:      "/path1",
+									domain:    "domain0.example.com",
+									internal:  false,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-0-destination-guid-0",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-0",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-1-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-0",
 										},
 									},
-								},
-							},
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-2",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-2-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test1",
-									Path: "",
-									Url:  "test1.domain1.example.com",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain1.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+								}),
+								constructRoute(routeParams{
+									name:     "route-guid-2",
+									host:     "test1",
+									path:     "",
+									domain:   "domain1.example.com",
+									internal: false,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-1-destination-guid-1",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-1",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port:   intPtr(9000),
-											Weight: intPtr(100),
+											destGUID: "route-2-destination-guid-0",
+											port:     9000,
+											weight:   intPtr(100),
+											appGUID:  "app-guid-1",
 										},
 									},
-								},
+								}),
 							},
-						},
 						}
 
 						builder := VirtualServiceBuilder{
@@ -1014,32 +754,17 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 				Context("when a route has no destinations", func() {
 					It("does not create a VirtualService", func() {
-						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-0-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path0",
-									Url:  "test0.domain0.example.com/path0",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{},
-								},
+						routes = networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:         "route-guid-0",
+									host:         "test0",
+									path:         "/path0",
+									domain:       "domain0.example.com",
+									internal:     false,
+									destinations: []routeDestParams{},
+								}),
 							},
-						},
 						}
 
 						builder := VirtualServiceBuilder{
@@ -1054,41 +779,23 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 				Context("when a destination has no weight", func() {
 					It("sets the weight to 100", func() {
-						routes = networkingv1alpha1.RouteList{Items: []networkingv1alpha1.Route{
-							{
-								ObjectMeta: metav1.ObjectMeta{
-									Name:      "route-guid-0",
-									Namespace: "workload-namespace",
-									Labels: map[string]string{
-										"cloudfoundry.org/space_guid": "space-guid-0",
-										"cloudfoundry.org/org_guid":   "org-guid-0",
-									},
-									UID: "route-guid-0-k8s-uid",
-								},
-								TypeMeta: metav1.TypeMeta{
-									Kind: "Route",
-								},
-								Spec: networkingv1alpha1.RouteSpec{
-									Host: "test0",
-									Path: "/path0",
-									Url:  "test0.domain0.example.com/path0",
-									Domain: networkingv1alpha1.RouteDomain{
-										Name:     "domain0.example.com",
-										Internal: false,
-									},
-									Destinations: []networkingv1alpha1.RouteDestination{
+						routes = networkingv1alpha1.RouteList{
+							Items: []networkingv1alpha1.Route{
+								constructRoute(routeParams{
+									name:     "route-guid-0",
+									host:     "test0",
+									path:     "/path0",
+									domain:   "domain0.example.com",
+									internal: false,
+									destinations: []routeDestParams{
 										{
-											Guid: "route-0-destination-guid-0",
-											App: networkingv1alpha1.DestinationApp{
-												Guid:    "app-guid-0",
-												Process: networkingv1alpha1.AppProcess{Type: "process-type-1"},
-											},
-											Port: intPtr(9000),
+											destGUID: "route-0-destination-guid-0",
+											port:     9000,
+											appGUID:  "app-guid-1",
 										},
 									},
-								},
+								}),
 							},
-						},
 						}
 
 						builder := VirtualServiceBuilder{
@@ -1103,7 +810,6 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						Expect(virtualservices.Spec.Http[0].Route[0].Weight).To(Equal(int32(100)))
 					})
 				})
-
 			})
 		})
 	})
@@ -1117,66 +823,35 @@ var _ = Describe("VirtualServiceBuilder", func() {
 					UID:       "some-uid",
 				},
 			}
-			desiredVirtualService := &istionetworkingv1alpha3.VirtualService{
-				ObjectMeta: metav1.ObjectMeta{
-					Name:      VirtualServiceName("test0.domain0.example.com"),
-					Namespace: "workload-namespace",
-					Labels: map[string]string{
-						"some-label": "some-value",
-					},
-					Annotations: map[string]string{
-						"cloudfoundry.org/fqdn": "test0.domain0.example.com",
-					},
-					OwnerReferences: []metav1.OwnerReference{
-						metav1.OwnerReference{
-							APIVersion: "networking.cloudfoundry.org/v1alpha1",
-							Kind:       "Route",
-							Name:       "banana",
-							UID:        "ham-ding-er",
-						},
+
+			desiredVirtualService := constructVirtualService(virtualServiceParams{
+				fqdn: "test0.domain0.example.com",
+				owners: []ownerParams{
+					{
+						routeName: "banana",
+						routeUID:  "ham-ding-er",
 					},
 				},
-				Spec: istionetworkingv1alpha3.VirtualServiceSpec{
-					VirtualService: istiov1alpha3.VirtualService{
-						Hosts:    []string{"test0.domain0.example.com"},
-						Gateways: []string{"some-gateway0", "some-gateway1"},
-						Http: []*istiov1alpha3.HTTPRoute{
+				https: []httpParams{
+					{
+						matchPrefix: "/path0",
+						destinations: []destParams{
 							{
-								Match: []*istiov1alpha3.HTTPMatchRequest{
-									{
-										Uri: &istiov1alpha3.StringMatch{
-											MatchType: &istiov1alpha3.StringMatch_Prefix{
-												Prefix: "/path0",
-											},
-										},
-									},
-								},
-								Route: []*istiov1alpha3.HTTPRouteDestination{
-									{
-										Destination: &istiov1alpha3.Destination{Host: "s-route-0-destination-guid-0"},
-										Headers: &istiov1alpha3.Headers{
-											Request: &istiov1alpha3.Headers_HeaderOperations{
-												Set: map[string]string{
-													"CF-App-Id":           "app-guid-0",
-													"CF-App-Process-Type": "process-type-1",
-													"CF-Space-Id":         "space-guid-0",
-													"CF-Organization-Id":  "org-guid-0",
-												},
-											},
-										},
-										Weight: 100,
-									},
-								},
+								host:      "s-route-0-destination-guid-0",
+								appGUID:   "app-guid-0",
+								spaceGUID: "space-guid-0",
+								orgGUID:   "org-guid-0",
+								weight:    100,
 							},
 						},
 					},
 				},
-			}
+			})
 
 			Expect(len(actualVirtualService.ObjectMeta.OwnerReferences)).To(BeZero())
 
 			builder := VirtualServiceBuilder{}
-			mutateFn := builder.BuildMutateFunction(actualVirtualService, desiredVirtualService)
+			mutateFn := builder.BuildMutateFunction(actualVirtualService, &desiredVirtualService)
 			err := mutateFn()
 			Expect(err).NotTo(HaveOccurred())
 
