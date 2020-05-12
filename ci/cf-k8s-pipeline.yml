@@ -298,4 +298,4 @@ jobs:
         tag: release-text/name
         body: release-text/body.md
     - put: version
-      params: {bump: patch}
+      params: {bump: minor}
