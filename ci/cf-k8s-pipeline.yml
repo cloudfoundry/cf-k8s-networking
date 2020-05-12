@@ -278,6 +278,7 @@ jobs:
     - in_parallel:
         - get: cf-k8s-networking-rc
           passed: [bump-rc]
+        - get: cf-k8s-networking-ci
         - get: version
     - put: cf-k8s-networking-rc
       params:
@@ -288,7 +289,7 @@ jobs:
     - task: create-release
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
       input_mapping:
-      - cf-k8s-networking: cf-k8s-networking-rc
+        cf-k8s-networking: cf-k8s-networking-rc
     - put: cf-k8s-networking-release
       params:
         name: release-text/name
