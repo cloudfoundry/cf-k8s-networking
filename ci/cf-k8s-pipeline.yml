@@ -94,6 +94,7 @@ resources:
 
 - name: version
   type: semver
+  icon: counter
   source:
     driver: git
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
@@ -104,6 +105,7 @@ resources:
 
 - name: cf-k8s-networking-release
   type: github-release
+  icon: github-box
   source:
     user: cloudfoundry
     repository: cf-k8s-networking
