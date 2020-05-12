@@ -102,6 +102,14 @@ resources:
     file: version
     git_user: cf-networking@pivotal.io
 
+- name: cf-k8s-networking-release
+  type: github-release
+  source:
+    user: cloudfoundry
+    repository: cf-k8s-networking
+    drafts: true
+    access_token: ((github_access_token))
+
 groups:
   - name: build
     jobs:
@@ -277,5 +285,14 @@ jobs:
         tag: version/version
         only_tag: true
         tag_prefix: v
+    - task: create-release
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
+      input_mapping:
+      - cf-k8s-networking: cf-k8s-networking-rc
+    - put: cf-k8s-networking-release
+      params:
+        name: release-text/name
+        tag: release-text/name
+        body: release-text/body.md
     - put: version
       params: {bump: patch}
