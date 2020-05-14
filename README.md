@@ -6,6 +6,10 @@ Routing and networking for Cloud Foundry running on Kubernetes.
 ​
 ![Architecture Diagram of CF-K8s-Networking](doc/assets/architecture.png)
 ​
+
+## Contributing
+Check out our [Contributing guidelines](CONTRIBUTING.md).
+
 ## Installation
 
 ### Prerequisites
