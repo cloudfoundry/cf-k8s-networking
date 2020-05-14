@@ -13,10 +13,12 @@ set -euo pipefail
 
 
 function install_cf() {
-    echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
-    pushd cf-for-k8s-master
-        vendir sync --directory config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=../cf-k8s-networking
-    popd
+    if [[ -d "./cf-k8s-networking" ]]; then
+        echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
+        pushd cf-for-k8s-master
+            vendir sync --directory config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=../cf-k8s-networking
+        popd
+    fi
 
     export KUBECONFIG=kube-config.yml
 
