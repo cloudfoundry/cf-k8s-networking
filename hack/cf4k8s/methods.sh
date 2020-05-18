@@ -22,7 +22,7 @@ function create_and_target_cluster() {
         echo "${CLUSTER_NAME} already exists! Continuing..."
     else
         echo "Creating cluster: ${CLUSTER_NAME} ..."
-        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --enable-network-policy --labels team=cf-k8s-networking
+        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --num-nodes 5 --enable-network-policy --labels team=cf-k8s-networking
     fi
     gcloud container clusters get-credentials --project ${GCP_PROJECT} ${CLUSTER_NAME} --zone us-west1-a
 }
