@@ -9,9 +9,12 @@ inputs:
   - name: cf-k8s-networking
     optional: true
   - name: cf-for-k8s-master
+  - name: cf-install-values
+    optional: true
 
 outputs:
   - name: env-metadata
+  - name: cf-install-values-out
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.sh

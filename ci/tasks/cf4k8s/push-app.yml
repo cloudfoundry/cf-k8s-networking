@@ -1,0 +1,14 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-for-k8s-ci
+
+inputs:
+  - name: cf-k8s-networking-ci
+
+run:
+  path: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-app-and-route.sh
+
+params:
+  APP_NAME:

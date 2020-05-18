@@ -1,0 +1,93 @@
+---
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+resources:
+- name: cf-for-k8s-master
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    ignore_paths:
+      - ci/**
+
+- name: cf-k8s-networking
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    ignore_paths:
+      - ci
+
+- name: cf-k8s-networking-ci
+  type: git
+  icon: github-box
+  source:
+    branch: master
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - ci
+      - config
+
+- name: cf-install-values
+  type: gcs-resource
+  source:
+    bucket: cf-k8s-networking
+    json_key: ((shared_gcp_account_creds))
+    regexp: ci-upgrade-cf/cf-install-values.yml
+
+jobs:
+- name: deploy-cf
+  plan:
+  - in_parallel:
+    - get: cf-for-k8s-master
+    - get: cf-k8s-networking-ci
+  - task: create-gke-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+    params:
+      CLUSTER_NAME: ci-upgrade-cf
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+  - task: install-cf
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+    params:
+      CF_DOMAIN: "ci-upgrade-cf.routing.lol"
+      CLUSTER_NAME: ci-upgrade-cf
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+      KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+  - put: cf-install-values
+    params:
+      file: cf-install-values-out/cf-install-values.yml
+
+- name: upgrade-cf
+  plan:
+  - in_parallel:
+    - get: cf-for-k8s-master
+    - get: cf-k8s-networking
+    - get: cf-k8s-networking-ci
+    - get: cf-install-values
+  - task: install-cf
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+    params:
+      CF_DOMAIN: "ci-upgrade-cf.routing.lol"
+      CLUSTER_NAME: ci-upgrade-cf
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+      KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+
+- name: destroy-cluster
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking-ci
+  - task: destroy-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+    params:
+      CF_DOMAIN: "ci-upgrade-cf.routing.lol"
+      CLUSTER_NAME: ci-upgrade-cf
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
