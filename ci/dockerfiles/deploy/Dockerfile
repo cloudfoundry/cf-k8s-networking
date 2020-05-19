@@ -8,7 +8,6 @@ ENV YTT_VERSION "v0.26.0"
 ENV YTT_CHECKSUM "ea740f72a1825c00eabf83bfd6cb366adf4b2486992603d6850fac8487e92d8f"
 ENV ISTIOCTL_VERSION 1.4.3
 
-
 RUN \
       apt update && \
       apt -y install --fix-missing \
@@ -46,6 +45,11 @@ RUN \
 
 # Temp fix to get around apt-key issues with canonical
 RUN chmod 1777 /tmp
+
+# cf cli
+RUN wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add - && \
+    echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list && \
+    apt-get update -y && apt-get install cf-cli -y
 
 # gcloud SDK
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \

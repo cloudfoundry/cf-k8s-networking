@@ -2,13 +2,16 @@ platform: linux
 image_resource:
   type: docker-image
   source:
-    repository: relintdockerhubpushbot/cf-for-k8s-ci
+    repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
 
 inputs:
   - name: cf-k8s-networking-ci
+  - name: cf-install-values
 
 run:
-  path: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-app-and-route.sh
+  path: cf-k8s-networking-ci/ci/tasks/cf4k8s/push-app.sh
 
 params:
   APP_NAME:
+  ORG_NAME:
+  SPACE_NAME:

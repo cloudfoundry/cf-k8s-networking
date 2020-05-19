@@ -13,6 +13,8 @@ set -euo pipefail
 
 
 function install_cf() {
+    sleep 5
+
     if [[ -d "./cf-k8s-networking" ]]; then
         echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
         pushd cf-for-k8s-master

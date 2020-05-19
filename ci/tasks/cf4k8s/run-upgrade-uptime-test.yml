@@ -1,0 +1,38 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
+
+inputs:
+  - name: cf-for-k8s-master
+  - name: cf-k8s-networking-ci
+  - name: cf-k8s-networking
+  - name: cf-install-values
+
+run:
+  path: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-upgrade-uptime-test.sh
+
+params:
+  # Required for performing the test
+  CF_APP_DOMAIN:
+  DATA_PLANE_APP_NAME:
+  CONTROL_PLANE_APP_NAME:
+
+  UPGRADE_DISCOVERY_TIMEOUT: 1m
+  DATA_PLANE_SLO_PERCENTAGE: 0.99
+  DATA_PLANE_SLO_MAX_REQUEST_LATENCY: 100ms
+  CONTROL_PLANE_SLO_PERCENTAGE: 0.95
+  CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME: 10s
+  CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE: 0.99
+  CONTROL_PLANE_SLO_DATA_PLANE_MAX_REQUEST_LATENCY: 100ms
+  CONTROL_PLANE_SLO_SAMPLE_CAPTURE_TIME: 10s
+
+  # required for targeting the test cluster and CF
+  GCP_SERVICE_ACCOUNT_KEY:
+  CLUSTER_NAME:
+  GCP_PROJECT:
+  GCP_REGION:
+
+  TARGET_ORG:
+  TARGET_SPACE:
