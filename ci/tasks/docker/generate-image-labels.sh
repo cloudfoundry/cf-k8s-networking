@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -euo pipefail
+
 deplab
   --image-tar initial-image/rootfs.tar \
   --git cf-k8s-networking \
