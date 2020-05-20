@@ -2,7 +2,7 @@
 
 set -euo pipefail
 
-deplab
+deplab \
   --image-tar initial-image/rootfs.tar \
   --git cf-k8s-networking \
   --metadata metadata.json
