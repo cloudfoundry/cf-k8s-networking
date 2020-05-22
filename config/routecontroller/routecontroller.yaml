@@ -15,7 +15,7 @@ spec:
       app: routecontroller
   template:
     metadata:
-      namespace: cf-system
+      namespace: #@ data.values.systemNamespace
       labels:
         app: routecontroller
     spec:
