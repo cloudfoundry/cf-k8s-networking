@@ -14,9 +14,8 @@ kubectl create secret tls wildcard-apps-example-com-cert \
 _Note: This can be either a wildcard cert or a cert for a single domain._
 
 2. Add a new entry under `spec.servers` to the [Istio
-   `Gateway`](https://istio.io/docs/reference/config/networking/gateway/) object
-   in the. This is `cf-workloads` by default. So, to add configuration for
-   `'*.apps.example.com'` you would need to add this entry to the `spec.servers`
+   `Gateway`](https://github.com/cloudfoundry/cf-for-k8s/blob/21209bbfcadf626a81bc19a8320050b98076f25e/config/gateway.lib.yml). This is in `cf-system` namespace by default. So, to add configuration for
+   `'*.apps.example.com'`, you would need to add this entry to the `spec.servers`
    array. Here is an example [`ytt`](https://get-ytt.io/) overlay that adds it:
 
 ```yaml
