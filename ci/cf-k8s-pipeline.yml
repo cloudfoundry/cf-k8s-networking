@@ -118,6 +118,7 @@ groups:
       - run-cfroutesync-units
       - run-routecontroller-units
       - run-routecontroller-integration-tests
+      - run-routecontroller-stress-tests
       - publish-cfroutesync-image
       - publish-routecontroller-image
   - name: dont-smoke
@@ -164,6 +165,38 @@ jobs:
       privileged: true
       tags: [overlay-storage-driver]
       file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-integration-tests.yml
+
+- name: run-routecontroller-stress-tests
+  serial: true
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+          tags: [dedi-k8s-stress-vm]
+        - get: routecontroller
+          passed: [run-routecontroller-units]
+          tags: [dedi-k8s-stress-vm]
+          trigger: true
+        - get: cf-k8s-networking-ci
+          tags: [dedi-k8s-stress-vm]
+        - get: concourse-dcind
+          tags: [dedi-k8s-stress-vm]
+    - task: stress-tests
+      privileged: true
+      tags: [dedi-k8s-stress-vm]
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
+        inputs:
+          - name: cf-k8s-networking
+          - name: concourse-dcind
+        run:
+          path: concourse-dcind/entrypoint.sh
+          args:
+          - ginkgo -v cf-k8s-networking/routecontroller/stress/
+      # file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-stress-tests.yml
 
 - name: publish-cfroutesync-image
   serial: true
@@ -214,7 +247,7 @@ jobs:
     - in_parallel:
         - get: cf-k8s-networking
         - get: routecontroller
-          passed: [run-routecontroller-integration-tests]
+          passed: [run-routecontroller-integration-tests, run-routecontroller-stress-tests]
           trigger: true
         - get: cf-k8s-networking-ci
     - in_parallel:
