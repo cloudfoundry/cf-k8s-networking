@@ -125,6 +125,9 @@ jobs:
   plan:
   - in_parallel:
     - get: cf-k8s-networking-ci
+    - get: cf-install-values
+      trigger: true
+      passed: [upgrade-cf]
   - task: destroy-cluster
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
     params:
