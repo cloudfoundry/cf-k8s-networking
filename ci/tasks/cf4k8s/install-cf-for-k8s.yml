@@ -28,3 +28,4 @@ params:
   CLOUDSDK_COMPUTE_ZONE: "us-west1-a"
   GCP_PROJECT: "cf-routing"
   SHARED_DNS_ZONE_NAME: "routing-lol"
+  KAPP_TIMEOUT: "10m"

@@ -10,6 +10,7 @@ set -euo pipefail
 : "${GCP_SERVICE_ACCOUNT_KEY:?}"
 : "${GCP_PROJECT:?}"
 : "${SHARED_DNS_ZONE_NAME:?}"
+: "${KAPP_TIMEOUT:?}"
 
 
 function install_cf() {
@@ -37,7 +38,8 @@ function install_cf() {
     cp cf-install-values/cf-install-values.yml cf-install-values-out/cf-install-values.yml
 
     echo "Installing CF..."
-    kapp deploy -a cf -f <(ytt -f cf-for-k8s-master/config -f cf-install-values/cf-install-values.yml) -y
+    kapp deploy -a cf -f <(ytt -f cf-for-k8s-master/config -f cf-install-values-out/cf-install-values.yml) \
+        -y --wait-timeout ${KAPP_TIMEOUT}
 
     bosh interpolate --path /cf_admin_password cf-install-values/cf-install-values.yml > env-metadata/cf-admin-password.txt
     echo "${CF_DOMAIN}" > env-metadata/dns-domain.txt

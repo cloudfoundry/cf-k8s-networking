@@ -1,0 +1,79 @@
+---
+resource_types: []
+resources:
+- name: cf-for-k8s-master
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    ignore_paths:
+      - ci/**
+
+- name: cf-k8s-networking
+  type: git
+  icon: github-box
+  source:
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    ignore_paths:
+      - config/values.yaml # Do not want resource to trigger on image digest updates
+
+- name: cf-k8s-networking-ci
+  type: git
+  icon: github-box
+  source:
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - ci
+      - config
+groups:
+  - name: scale-testing
+    jobs:
+      - scale-test
+      - manually-delete-gke-cluster
+
+# Weekly Scale Tests
+jobs:
+- name: scale-test
+  serial: true
+  serial_groups: [scale-test]
+  plan:
+    - in_parallel:
+        - get: cf-for-k8s-master
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        ENABLE_IP_ALIAS: true
+        MACHINE_TYPE: "n1-standard-8"
+        NUM_NODES: 100
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        CF_DOMAIN: &scale-testing-domain "ci-scale-testing.routing.lol"
+        CLUSTER_NAME: *scale-testing-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+        KAPP_TIMEOUT: "45m"
+    - task: pave-cf-for-scale-tests
+      file: cf-k8s-networking-ci/ci/tasks/scale/pave-cf-for-scale-tests.yml
+    - task: run-scale-tests
+      file: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.yml
+
+- name: manually-delete-gke-cluster
+  serial_groups: [scale-test]
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking-ci
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN: *scale-testing-domain
+        CLUSTER_NAME: *scale-testing-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))

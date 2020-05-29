@@ -4,11 +4,14 @@ set -euo pipefail
 
 # ENV
 : "${CLUSTER_NAME:?}"
+: "${GCP_SERVICE_ACCOUNT_KEY:?}"
+
 : "${CLOUDSDK_COMPUTE_REGION:?}"
 : "${CLOUDSDK_COMPUTE_ZONE:?}"
-: "${MACHINE_TYPE:?}"
-: "${GCP_SERVICE_ACCOUNT_KEY:?}"
+: "${ENABLE_IP_ALIAS:?}"
 : "${GCP_PROJECT:?}"
+: "${MACHINE_TYPE:?}"
+: "${NUM_NODES:?}"
 
 
 function create_cluster() {
@@ -19,8 +22,19 @@ function create_cluster() {
         gcloud container clusters delete ${CLUSTER_NAME} --quiet
     fi
 
+
+    additional_args=()
+    if [ "${ENABLE_IP_ALIAS}" = true ]; then
+        additional_args+=("--enable-ip-alias")
+    fi
+
     echo "Creating cluster: ${CLUSTER_NAME} ..."
-    gcloud container clusters create ${CLUSTER_NAME} --machine-type=${MACHINE_TYPE} --labels team=cf-k8s-networking-ci --enable-network-policy
+    gcloud container clusters create ${CLUSTER_NAME} \
+        --machine-type=${MACHINE_TYPE} \
+        --labels team=cf-k8s-networking-ci \
+        --enable-network-policy \
+        --num-nodes "${NUM_NODES}" \
+        "${additional_args[@]}"
 }
 
 function main() {
