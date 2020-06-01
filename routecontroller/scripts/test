@@ -22,6 +22,6 @@ go vet ./...
 go fmt ./...
 go build -o /dev/null -v .
 
-ginkgo -keepGoing -trace -progress -r -failOnPending -randomizeAllSpecs -p -race -skipPackage integration
+ginkgo -keepGoing -trace -progress -r -failOnPending -randomizeAllSpecs -p -race -skipPackage integration,stress
 
 # TODO run integration tests
