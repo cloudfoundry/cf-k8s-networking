@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 #
 # An example hook script to verify what is about to be committed.
 # Called by "git commit" with no arguments.  The hook should
@@ -11,12 +11,11 @@ set -e
 
 echo "Regenerating sweet sweet istio config 🎩🎩🎩"
 
-pushd "$(git rev-parse --show-toplevel)" > /dev/null
-  ./config/istio/build.sh
-  if [[ -n "$(git diff -- ./config/istio-generated/xxx-generated-istio.yaml)" ]]; then
-    echo "Generated istio config has been changed. Validate and add before committing.";
-    exit 1
-  fi
-popd > /dev/null
+cd "$(git rev-parse --show-toplevel)"
+./config/istio/build.sh
+if [[ -n "$(git diff -- ./config/istio-generated/xxx-generated-istio.yaml)" ]]; then
+  echo "Generated istio config has been changed. Validate and add before committing.";
+  exit 1
+fi
 
 echo "No changes to istio config! ✨✨✨"
