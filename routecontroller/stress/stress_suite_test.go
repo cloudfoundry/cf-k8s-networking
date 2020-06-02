@@ -1,6 +1,8 @@
 package stress_test
 
 import (
+	"bufio"
+	"bytes"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -94,16 +96,20 @@ func (k kubectlRunner) DestroyCluster() {
 
 func (k kubectlRunner) Run(kubectlCommandArgs ...string) (*gexec.Session, error) {
 	cmd := k.generateCommand(nil, kubectlCommandArgs...)
-	return gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	var b bytes.Buffer
+	foo := bufio.NewWriter(&b)
+	return gexec.Start(cmd, foo, foo)
 }
 
 func (k kubectlRunner) RunWithStdin(stdin io.Reader, kubectlCommandArgs ...string) (*gexec.Session, error) {
 	cmd := k.generateCommand(stdin, kubectlCommandArgs...)
-	return gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
+	var b bytes.Buffer
+	foo := bufio.NewWriter(&b)
+	return gexec.Start(cmd, foo, foo)
 }
 
 func (k kubectlRunner) generateCommand(stdin io.Reader, kubectlCommandArgs ...string) *exec.Cmd {
-	fmt.Fprintf(GinkgoWriter, "+ kubectl %s\n", strings.Join(kubectlCommandArgs, " "))
+	// fmt.Fprintf(GinkgoWriter, "+ kubectl %s\n", strings.Join(kubectlCommandArgs, " "))
 	cmd := exec.Command("kubectl", kubectlCommandArgs...)
 	cmd.Env = append(cmd.Env, "KUBECONFIG="+k.kubeconfigFilePath)
 	if stdin != nil {
@@ -132,7 +138,7 @@ type yttRunner struct {
 }
 
 func (y yttRunner) Run(yttCommandArgs ...string) (*gexec.Session, error) {
-	fmt.Fprintf(GinkgoWriter, "+ ytt %s\n", strings.Join(yttCommandArgs, " "))
+	// fmt.Fprintf(GinkgoWriter, "+ ytt %s\n", strings.Join(yttCommandArgs, " "))
 	cmd := exec.Command("ytt", yttCommandArgs...)
 	return gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 }
