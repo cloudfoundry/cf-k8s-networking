@@ -23,8 +23,8 @@ type Results struct {
 
 var _ = Describe("Stress Tests", func() {
 	var (
-		numberOfRoutes        = 100
-		numSamples            = 1
+		numberOfRoutes        = 1000
+		numSamples            = 5
 		allowableDeltaPercent = 10
 
 		results = Results{
