@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-set -euo pipefail
+set -euox pipefail
 
 concourse-dcind/entrypoint.sh cf-k8s-networking/routecontroller/scripts/stress
 
