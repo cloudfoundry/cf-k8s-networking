@@ -13,3 +13,5 @@ tags
 *.coverprofile
 cfroutesync/integration/.kube
 .kube
+
+routecontroller/stress/results.json

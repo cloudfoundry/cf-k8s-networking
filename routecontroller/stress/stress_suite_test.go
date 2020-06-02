@@ -5,6 +5,7 @@ import (
 	"io"
 	"io/ioutil"
 	"math/rand"
+	"os"
 	"os/exec"
 	"strings"
 	"testing"
@@ -23,8 +24,9 @@ func TestStress(t *testing.T) {
 }
 
 var (
-	kubectl kubectlRunner
-	ytt     yttRunner
+	kubectl     kubectlRunner
+	ytt         yttRunner
+	resultsPath string
 )
 
 var _ = BeforeSuite(func() {
@@ -41,6 +43,13 @@ var _ = BeforeSuite(func() {
 	session, err = kubectl.Run("apply", "-f", "../integration/fixtures/istio-virtual-service.yaml")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
+
+	var found bool
+	resultsPath, found = os.LookupEnv("RESULTS_PATH")
+	if !found {
+		resultsPath = "results.json"
+	}
+
 })
 
 var _ = AfterSuite(func() {
