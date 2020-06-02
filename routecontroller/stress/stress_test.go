@@ -35,9 +35,9 @@ var _ = Describe("Stress Tests", func() {
 	)
 
 	It(fmt.Sprintf("does not get more than %d%% worse", allowableDeltaPercent), func() {
-		fmt.Fprintf(GinkgoWriter, "Stress test starting...\n")
+		fmt.Printf("Stress test starting...\n")
 		for i := 0; i < numSamples; i++ {
-			fmt.Fprintf(GinkgoWriter, "Performing stress test %d of %d\n", i, numSamples)
+			fmt.Printf("Performing stress test %d of %d\n", i, numSamples)
 			results = stressRouteController(numberOfRoutes, results)
 		}
 
@@ -81,7 +81,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	yttContents := yttSession.Out.Contents()
 	yttReader := bytes.NewReader(yttContents)
 
-	fmt.Fprintf(GinkgoWriter, "Adding %d routes\n", numberOfRoutes)
+	fmt.Printf("Adding %d routes\n", numberOfRoutes)
 	session, err := kubectl.RunWithStdin(yttReader, "apply", "-f", "-")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
@@ -99,7 +99,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 
 	results.AddTimes = append(results.AddTimes, addTime.Seconds())
 
-	fmt.Fprintf(GinkgoWriter, "Deleting %d routes\n", numberOfRoutes)
+	fmt.Printf("Deleting %d routes\n", numberOfRoutes)
 	deleteTime := timer(func() {
 		session, err := kubectl.Run("delete", "routes", "--all", "--wait=false")
 		Expect(err).NotTo(HaveOccurred())
@@ -117,7 +117,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	Expect(deleteTime.Seconds()).Should(BeNumerically("<", 90), "Should handle 1000 removed routes in under 90 seconds")
 	results.DeleteTimes = append(results.DeleteTimes, addTime.Seconds())
 
-	fmt.Fprintf(GinkgoWriter, "Stress test complete, cleaning up...\n")
+	fmt.Println("Stress test complete, cleaning up...")
 	deleteRoutecontroller()
 	return results
 }
@@ -159,7 +159,7 @@ func compareAverages(previous, current []float64, allowableDeltaPercent int, log
 	curmean, err := stats.Mean(current)
 	Expect(err).NotTo(HaveOccurred())
 
-	fmt.Fprintf(GinkgoWriter, "It took %f seconds on average to %s.\n", curmean, logStr)
+	fmt.Printf("It took %f seconds on average to %s.\n", curmean, logStr)
 
 	change := percentageChange(prevmean, curmean)
 	Expect(change).To(BeNumerically("<", allowableDeltaPercent))
