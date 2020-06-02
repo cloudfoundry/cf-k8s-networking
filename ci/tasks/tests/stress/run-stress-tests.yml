@@ -11,6 +11,6 @@ inputs:
 outputs:
   - name: routecontroller-stress-results-modified
 params:
-  RESULTS_PATH: stress-results/results.json
+  RESULTS_PATH: routecontroller-stress-results/results.json
 run:
   path: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.sh
