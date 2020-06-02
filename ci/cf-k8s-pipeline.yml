@@ -196,7 +196,8 @@ jobs:
           - name: concourse-dcind
         run:
           path: concourse-dcind/entrypoint.sh
-          args: ["ginkgo", "-v", "cf-k8s-networking/routecontroller/stress/"]
+          args:
+          - cf-k8s-networking/routecontroller/scripts/integration
       # file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-stress-tests.yml
 
 - name: publish-cfroutesync-image
