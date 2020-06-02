@@ -80,9 +80,9 @@ RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-li
 RUN  wget -O- https://github.com/k14s/ytt/releases/download/${YTT_VERSION}/ytt-linux-amd64 > /tmp/ytt && \
     echo "${YTT_CHECKSUM}  /tmp/ytt" | shasum -c - && \
     mv /tmp/ytt /usr/local/bin/ytt && \
-    chmod +x /usr/local/bin/ytt && \
+    chmod +x /usr/local/bin/ytt
 
-    wget -O- https://github.com/k14s/kapp/releases/download/${KAPP_VERSION}/kapp-linux-amd64 > /tmp/kapp && \
+RUN wget -O- https://github.com/k14s/kapp/releases/download/${KAPP_VERSION}/kapp-linux-amd64 > /tmp/kapp && \
     echo "${KAPP_CHECKSUM}  /tmp/kapp" | shasum -c - && \
     mv /tmp/kapp /usr/local/bin/kapp && \
     chmod +x /usr/local/bin/kapp
