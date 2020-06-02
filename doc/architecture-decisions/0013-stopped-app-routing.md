@@ -17,8 +17,13 @@ are started and healthy. If **ALL** destinations are stopped or crashed then a
 
 In CF-for-k8s _currently_, we balance traffic equally between the started and
 stopped apps. This results in 503 errors for the user, and is not feature
-parity. [TBD if traffic is equally balanced between crashed app instances and
-healthy app instances]
+parity. Intermittent 503 responses similarly occur for crashed apps if there are
+multiple apps mapped to a single route. However, in the case of multiple
+instances of a single app, routing is handled correctly when some instances
+crash and some are healthy i.e it will not 503. This is because multiple apps
+mapped to a single route result in multiple destinations in a Virtual Service,
+but a single app with multiple instances results in a single destination and can
+take advantage of a Kubernetes Service watching the Readiness Probe of a pod.
 
 This is because the components that create the Istio configuration do not
 currently know about the status of apps. They assume all destinations on a Route
