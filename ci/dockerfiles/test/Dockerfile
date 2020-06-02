@@ -64,3 +64,6 @@ RUN	mkdir -p /tmp/controller-gen && \
 
 # Install docker
 RUN sudo curl -sSL https://get.docker.com/ | sh
+
+# Install k14s
+RUN curl -L https://k14s.io/install.sh | bash
