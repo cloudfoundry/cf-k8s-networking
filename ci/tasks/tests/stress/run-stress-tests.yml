@@ -5,6 +5,7 @@ image_resource:
     repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
 inputs:
   - name: cf-k8s-networking
+  - name: cf-k8s-networking-ci
   - name: concourse-dcind
   - name: routecontroller-stress-results
 outputs:

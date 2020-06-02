@@ -2,6 +2,8 @@
 
 set -euox pipefail
 
+echo "Starting stress tests..."
+
 concourse-dcind/entrypoint.sh cf-k8s-networking/routecontroller/scripts/stress
 
 shopt -s dotglob
