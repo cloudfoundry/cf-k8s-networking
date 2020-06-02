@@ -5,6 +5,7 @@
 apiVersion: install.istio.io/v1alpha2
 kind: IstioControlPlane
 spec:
+  hub: gcr.io/cf-routing
   profile: default
   telemetry:
     components:

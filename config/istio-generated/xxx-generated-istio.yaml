@@ -5147,8 +5147,8 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/citadel:1.4.5
-        URL: index.docker.io/istio/citadel@sha256:420a331a528886aca47bed5b8c549c78d594e52d771f876f3137d3557207712f
+          URL: gcr.io/cf-routing/citadel:1.4.5
+        URL: gcr.io/cf-routing/citadel@sha256:b8e5503716365ce3919508d72c4555e6581731c2cd56a5d3e123547c276bf541
   labels:
     app: security
     istio: citadel
@@ -5217,7 +5217,7 @@ spec:
         env:
         - name: CITADEL_ENABLE_NAMESPACES_BY_DEFAULT
           value: "true"
-        image: index.docker.io/istio/citadel@sha256:420a331a528886aca47bed5b8c549c78d594e52d771f876f3137d3557207712f
+        image: gcr.io/cf-routing/citadel@sha256:b8e5503716365ce3919508d72c4555e6581731c2cd56a5d3e123547c276bf541
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -5621,13 +5621,13 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/galley:1.4.5
-        URL: index.docker.io/istio/galley@sha256:26e744bdfd3db289d4cfc9be63e38e7c7a424a9f76d1224cbdbbe58374229b68
+          URL: gcr.io/cf-routing/galley:1.4.5
+        URL: gcr.io/cf-routing/galley@sha256:bd723793a3ae89f1b04c639a2a60717355e509a5a4734b9fcecc75b6ede558be
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/proxyv2:1.4.5
-        URL: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+          URL: gcr.io/cf-routing/proxyv2:1.4.5
+        URL: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
   labels:
     app: galley
     istio: galley
@@ -5706,7 +5706,7 @@ spec:
         - --monitoringPort=15014
         - --validation-port=9443
         - --log_output_level=default:info
-        image: index.docker.io/istio/galley@sha256:26e744bdfd3db289d4cfc9be63e38e7c7a424a9f76d1224cbdbbe58374229b68
+        image: gcr.io/cf-routing/galley@sha256:bd723793a3ae89f1b04c639a2a60717355e509a5a4734b9fcecc75b6ede558be
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -5772,7 +5772,7 @@ spec:
               fieldPath: status.podIP
         - name: SDS_ENABLED
           value: "false"
-        image: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+        image: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
         imagePullPolicy: IfNotPresent
         name: istio-proxy
         ports:
@@ -5864,13 +5864,13 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/node-agent-k8s:1.4.5
-        URL: index.docker.io/istio/node-agent-k8s@sha256:7e17ab509777a54f3c0dfb4518692a9ca179d1e8c41df87dc81a734339b37152
+          URL: gcr.io/cf-routing/node-agent-k8s:1.4.5
+        URL: gcr.io/cf-routing/node-agent-k8s@sha256:6519f82af6e85210d0ab81c6b88ae7632073fd98d203e1e073eb0db675fcc45a
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/proxyv2:1.4.5
-        URL: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+          URL: gcr.io/cf-routing/proxyv2:1.4.5
+        URL: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
   labels:
     app: istio-ingressgateway
     istio: ingressgateway
@@ -5937,7 +5937,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: index.docker.io/istio/node-agent-k8s@sha256:7e17ab509777a54f3c0dfb4518692a9ca179d1e8c41df87dc81a734339b37152
+        image: gcr.io/cf-routing/node-agent-k8s@sha256:6519f82af6e85210d0ab81c6b88ae7632073fd98d203e1e073eb0db675fcc45a
         imagePullPolicy: IfNotPresent
         name: ingress-sds
         resources:
@@ -6033,7 +6033,7 @@ spec:
           value: Kubernetes
         - name: SDS_ENABLED
           value: "false"
-        image: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+        image: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
         imagePullPolicy: IfNotPresent
         name: istio-proxy
         ports:
@@ -6340,8 +6340,8 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/sidecar_injector:1.4.5
-        URL: index.docker.io/istio/sidecar_injector@sha256:ba446f8cf98bafdad4514fd492432dd180243cbc55a0b9c6bebfe31cb169033d
+          URL: gcr.io/cf-routing/sidecar_injector:1.4.5
+        URL: gcr.io/cf-routing/sidecar_injector@sha256:81e94732e7301ea9bc568adc391b68c0a1efbdd6f4ac28540d023daa2140d0e5
   labels:
     app: sidecarInjectorWebhook
     istio: sidecar-injector
@@ -6414,7 +6414,7 @@ spec:
         - --reconcileWebhookConfig=true
         - --webhookConfigName=istio-sidecar-injector
         - --log_output_level=debug
-        image: index.docker.io/istio/sidecar_injector@sha256:ba446f8cf98bafdad4514fd492432dd180243cbc55a0b9c6bebfe31cb169033d
+        image: gcr.io/cf-routing/sidecar_injector@sha256:81e94732e7301ea9bc568adc391b68c0a1efbdd6f4ac28540d023daa2140d0e5
         imagePullPolicy: IfNotPresent
         livenessProbe:
           exec:
@@ -6987,7 +6987,7 @@ data:
           {{- end }}
       {{- end }}
     injectedAnnotations:
-  values: '{"certmanager":{"enabled":false,"hub":"quay.io/jetstack","image":"cert-manager-controller","namespace":"istio-system","tag":"v0.6.2"},"clusterResources":true,"cni":{"namespace":"istio-system"},"galley":{"enableAnalysis":false,"enabled":true,"image":"galley","namespace":"istio-system"},"gateways":{"istio-egressgateway":{"autoscaleEnabled":true,"enabled":false,"env":{"ISTIO_META_ROUTER_MODE":"sni-dnat"},"namespace":"istio-system","ports":[{"name":"http2","port":80},{"name":"https","port":443},{"name":"tls","port":15443,"targetPort":15443}],"secretVolumes":[{"mountPath":"/etc/istio/egressgateway-certs","name":"egressgateway-certs","secretName":"istio-egressgateway-certs"},{"mountPath":"/etc/istio/egressgateway-ca-certs","name":"egressgateway-ca-certs","secretName":"istio-egressgateway-ca-certs"}],"type":"ClusterIP","zvpn":{"enabled":true,"suffix":"global"}},"istio-ingressgateway":{"applicationPorts":"","autoscaleEnabled":false,"debug":"info","domain":"","enabled":true,"env":{"ISTIO_META_ROUTER_MODE":"sni-dnat"},"externalTrafficPolicy":"Local","meshExpansionPorts":[{"name":"tcp-pilot-grpc-tls","port":15011,"targetPort":15011},{"name":"tcp-citadel-grpc-tls","port":8060,"targetPort":8060},{"name":"tcp-dns-tls","port":853,"targetPort":853}],"namespace":"istio-system","ports":[{"name":"status-port","port":15020,"targetPort":15020},{"name":"http2","port":80,"targetPort":80},{"name":"https","port":443},{"name":"kiali","port":15029,"targetPort":15029},{"name":"prometheus","port":15030,"targetPort":15030},{"name":"grafana","port":15031,"targetPort":15031},{"name":"tracing","port":15032,"targetPort":15032},{"name":"tls","port":15443,"targetPort":15443}],"sds":{"enabled":true,"image":"node-agent-k8s","resources":{"limits":{"cpu":"2000m","memory":"1024Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}},"secretVolumes":[{"mountPath":"/etc/istio/ingressgateway-certs","name":"ingressgateway-certs","secretName":"istio-ingressgateway-certs"},{"mountPath":"/etc/istio/ingressgateway-ca-certs","name":"ingressgateway-ca-certs","secretName":"istio-ingressgateway-ca-certs"}],"type":"LoadBalancer","zvpn":{"enabled":true,"suffix":"global"}}},"global":{"arch":{"amd64":2,"ppc64le":2,"s390x":2},"certificates":[],"configNamespace":"istio-system","configValidation":true,"controlPlaneSecurityEnabled":true,"defaultNodeSelector":{},"defaultPodDisruptionBudget":{"enabled":true},"defaultResources":{"requests":{"cpu":"10m"}},"disablePolicyChecks":true,"enableHelmTest":false,"enableTracing":true,"enabled":true,"hub":"docker.io/istio","imagePullPolicy":"IfNotPresent","imagePullSecrets":[],"istioNamespace":"istio-system","k8sIngress":{"enableHttps":false,"enabled":false,"gatewayName":"ingressgateway"},"localityLbSetting":{"enabled":true},"logAsJson":false,"logging":{"level":"default:info"},"meshExpansion":{"enabled":false,"useILB":false},"meshNetworks":{},"mtls":{"auto":true,"enabled":false},"multiCluster":{"clusterName":"","enabled":false},"namespace":"istio-system","network":"","omitSidecarInjectorConfigMap":false,"oneNamespace":false,"operatorManageWebhooks":false,"outboundTrafficPolicy":{"mode":"ALLOW_ANY"},"policyCheckFailOpen":false,"policyNamespace":"istio-system","priorityClassName":"","prometheusNamespace":"istio-system","proxy":{"accessLogEncoding":"JSON","accessLogFile":"/dev/stdout","accessLogFormat":"{\n  \"app_id\":
+  values: '{"certmanager":{"enabled":false,"hub":"quay.io/jetstack","image":"cert-manager-controller","namespace":"istio-system","tag":"v0.6.2"},"clusterResources":true,"cni":{"namespace":"istio-system"},"galley":{"enableAnalysis":false,"enabled":true,"image":"galley","namespace":"istio-system"},"gateways":{"istio-egressgateway":{"autoscaleEnabled":true,"enabled":false,"env":{"ISTIO_META_ROUTER_MODE":"sni-dnat"},"namespace":"istio-system","ports":[{"name":"http2","port":80},{"name":"https","port":443},{"name":"tls","port":15443,"targetPort":15443}],"secretVolumes":[{"mountPath":"/etc/istio/egressgateway-certs","name":"egressgateway-certs","secretName":"istio-egressgateway-certs"},{"mountPath":"/etc/istio/egressgateway-ca-certs","name":"egressgateway-ca-certs","secretName":"istio-egressgateway-ca-certs"}],"type":"ClusterIP","zvpn":{"enabled":true,"suffix":"global"}},"istio-ingressgateway":{"applicationPorts":"","autoscaleEnabled":false,"debug":"info","domain":"","enabled":true,"env":{"ISTIO_META_ROUTER_MODE":"sni-dnat"},"externalTrafficPolicy":"Local","meshExpansionPorts":[{"name":"tcp-pilot-grpc-tls","port":15011,"targetPort":15011},{"name":"tcp-citadel-grpc-tls","port":8060,"targetPort":8060},{"name":"tcp-dns-tls","port":853,"targetPort":853}],"namespace":"istio-system","ports":[{"name":"status-port","port":15020,"targetPort":15020},{"name":"http2","port":80,"targetPort":80},{"name":"https","port":443},{"name":"kiali","port":15029,"targetPort":15029},{"name":"prometheus","port":15030,"targetPort":15030},{"name":"grafana","port":15031,"targetPort":15031},{"name":"tracing","port":15032,"targetPort":15032},{"name":"tls","port":15443,"targetPort":15443}],"sds":{"enabled":true,"image":"node-agent-k8s","resources":{"limits":{"cpu":"2000m","memory":"1024Mi"},"requests":{"cpu":"100m","memory":"128Mi"}}},"secretVolumes":[{"mountPath":"/etc/istio/ingressgateway-certs","name":"ingressgateway-certs","secretName":"istio-ingressgateway-certs"},{"mountPath":"/etc/istio/ingressgateway-ca-certs","name":"ingressgateway-ca-certs","secretName":"istio-ingressgateway-ca-certs"}],"type":"LoadBalancer","zvpn":{"enabled":true,"suffix":"global"}}},"global":{"arch":{"amd64":2,"ppc64le":2,"s390x":2},"certificates":[],"configNamespace":"istio-system","configValidation":true,"controlPlaneSecurityEnabled":true,"defaultNodeSelector":{},"defaultPodDisruptionBudget":{"enabled":true},"defaultResources":{"requests":{"cpu":"10m"}},"disablePolicyChecks":true,"enableHelmTest":false,"enableTracing":true,"enabled":true,"hub":"gcr.io/cf-routing","imagePullPolicy":"IfNotPresent","imagePullSecrets":[],"istioNamespace":"istio-system","k8sIngress":{"enableHttps":false,"enabled":false,"gatewayName":"ingressgateway"},"localityLbSetting":{"enabled":true},"logAsJson":false,"logging":{"level":"default:info"},"meshExpansion":{"enabled":false,"useILB":false},"meshNetworks":{},"mtls":{"auto":true,"enabled":false},"multiCluster":{"clusterName":"","enabled":false},"namespace":"istio-system","network":"","omitSidecarInjectorConfigMap":false,"oneNamespace":false,"operatorManageWebhooks":false,"outboundTrafficPolicy":{"mode":"ALLOW_ANY"},"policyCheckFailOpen":false,"policyNamespace":"istio-system","priorityClassName":"","prometheusNamespace":"istio-system","proxy":{"accessLogEncoding":"JSON","accessLogFile":"/dev/stdout","accessLogFormat":"{\n  \"app_id\":
     \"%REQ(CF-APP-ID)%\",\n  \"authority\": \"%REQ(:AUTHORITY)%\",\n  \"bytes_received\":
     \"%BYTES_RECEIVED%\",\n  \"bytes_sent\": \"%BYTES_SENT%\",\n  \"downstream_local_address\":
     \"%DOWNSTREAM_LOCAL_ADDRESS%\",\n  \"downstream_remote_address\": \"%DOWNSTREAM_REMOTE_ADDRESS%\",\n  \"duration\":
@@ -7499,13 +7499,13 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/pilot:1.4.5
-        URL: index.docker.io/istio/pilot@sha256:2bca5900d6bf20d5f0bf2b6673bc4d2885bab8cca2a9060336a0024930665b59
+          URL: gcr.io/cf-routing/pilot:1.4.5
+        URL: gcr.io/cf-routing/pilot@sha256:5fc0e678e471be946719f9a866ac99252d3c7a7d1561020ed34adfba4c457e58
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/proxyv2:1.4.5
-        URL: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+          URL: gcr.io/cf-routing/proxyv2:1.4.5
+        URL: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
   labels:
     app: pilot
     istio: pilot
@@ -7595,7 +7595,7 @@ spec:
           value: "true"
         - name: PILOT_ENABLE_PROTOCOL_SNIFFING_FOR_INBOUND
           value: "false"
-        image: index.docker.io/istio/pilot@sha256:2bca5900d6bf20d5f0bf2b6673bc4d2885bab8cca2a9060336a0024930665b59
+        image: gcr.io/cf-routing/pilot@sha256:5fc0e678e471be946719f9a866ac99252d3c7a7d1561020ed34adfba4c457e58
         imagePullPolicy: IfNotPresent
         name: discovery
         ports:
@@ -7644,7 +7644,7 @@ spec:
               fieldPath: status.podIP
         - name: SDS_ENABLED
           value: "false"
-        image: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+        image: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
         imagePullPolicy: IfNotPresent
         name: istio-proxy
         ports:
@@ -8186,13 +8186,13 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/mixer:1.4.5
-        URL: index.docker.io/istio/mixer@sha256:ff6f39732c31999911790b00b484a471b6fe87192223d3266b0b6e752a374287
+          URL: gcr.io/cf-routing/mixer:1.4.5
+        URL: gcr.io/cf-routing/mixer@sha256:b9472ceaa66dcc34e3ca49813c994ddde6af49ab86bc07ca981ba1f3763d2e00
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/proxyv2:1.4.5
-        URL: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+          URL: gcr.io/cf-routing/proxyv2:1.4.5
+        URL: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
   labels:
     app: istio-policy
     istio: mixer
@@ -8267,7 +8267,7 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: metadata.namespace
-        image: index.docker.io/istio/mixer@sha256:ff6f39732c31999911790b00b484a471b6fe87192223d3266b0b6e752a374287
+        image: gcr.io/cf-routing/mixer@sha256:b9472ceaa66dcc34e3ca49813c994ddde6af49ab86bc07ca981ba1f3763d2e00
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -8321,7 +8321,7 @@ spec:
               fieldPath: status.podIP
         - name: SDS_ENABLED
           value: "false"
-        image: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+        image: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
         imagePullPolicy: IfNotPresent
         name: istio-proxy
         ports:
@@ -9677,13 +9677,13 @@ metadata:
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/mixer:1.4.5
-        URL: index.docker.io/istio/mixer@sha256:ff6f39732c31999911790b00b484a471b6fe87192223d3266b0b6e752a374287
+          URL: gcr.io/cf-routing/mixer:1.4.5
+        URL: gcr.io/cf-routing/mixer@sha256:b9472ceaa66dcc34e3ca49813c994ddde6af49ab86bc07ca981ba1f3763d2e00
       - Metas:
         - Tag: 1.4.5
           Type: resolved
-          URL: docker.io/istio/proxyv2:1.4.5
-        URL: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+          URL: gcr.io/cf-routing/proxyv2:1.4.5
+        URL: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
   labels:
     app: istio-mixer
     istio: mixer
@@ -9761,7 +9761,7 @@ spec:
               fieldPath: metadata.namespace
         - name: GOMAXPROCS
           value: "6"
-        image: index.docker.io/istio/mixer@sha256:ff6f39732c31999911790b00b484a471b6fe87192223d3266b0b6e752a374287
+        image: gcr.io/cf-routing/mixer@sha256:b9472ceaa66dcc34e3ca49813c994ddde6af49ab86bc07ca981ba1f3763d2e00
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -9819,7 +9819,7 @@ spec:
               fieldPath: status.podIP
         - name: SDS_ENABLED
           value: "false"
-        image: index.docker.io/istio/proxyv2@sha256:fc09ea0f969147a4843a564c5b677fbf3a6f94b56627d00b313b4c30d5fef094
+        image: gcr.io/cf-routing/proxyv2@sha256:d7792fed2b3e7ffc84bfc50f693a9dd8960883ea9685b12ae1f1ef7ee2133ea3
         imagePullPolicy: IfNotPresent
         name: istio-proxy
         ports:
