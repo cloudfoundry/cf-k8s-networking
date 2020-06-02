@@ -12,6 +12,14 @@ resources:
     ignore_paths:
       - ci/**
 
+- name: routecontroller-stress-results
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:xanderstrike/stress-results
+    private_key: ((github_private_key.private_key))
+    branch: master
+
 - name: cf-k8s-networking
   type: git
   icon: github-box
@@ -182,23 +190,17 @@ jobs:
           tags: [dedi-k8s-stress-vm]
         - get: concourse-dcind
           tags: [dedi-k8s-stress-vm]
+        - get: routecontroller-stress-results
+          tags: [dedi-k8s-stress-vm]
     - task: stress-tests
       privileged: true
       tags: [dedi-k8s-stress-vm]
       config:
-        platform: linux
-        image_resource:
-          type: docker-image
-          source:
-            repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
-        inputs:
-          - name: cf-k8s-networking
-          - name: concourse-dcind
-        run:
-          path: concourse-dcind/entrypoint.sh
-          args:
-          - cf-k8s-networking/routecontroller/scripts/integration
-      # file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-stress-tests.yml
+    - put: routecontroller-stress-results
+      params:
+        repository: routecontroller-stress-results-modified
+        rebase: true
+      file: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.yml
 
 - name: publish-cfroutesync-image
   serial: true

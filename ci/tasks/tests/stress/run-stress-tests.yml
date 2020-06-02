@@ -1,0 +1,15 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
+inputs:
+  - name: cf-k8s-networking
+  - name: concourse-dcind
+  - name: routecontroller-stress-results
+outputs:
+  - name: routecontroller-stress-results-modified
+params:
+  RESULTS_PATH: stress-results/results.json
+run:
+  path: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.sh
