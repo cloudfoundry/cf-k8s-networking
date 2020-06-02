@@ -10,5 +10,8 @@ inputs:
   - name: routecontroller-stress-results
 outputs:
   - name: routecontroller-stress-results-modified
+params:
+  GIT_COMMIT_USERNAME: "CF Networking Team CI Bot"
+  GIT_COMMIT_EMAIL: "CF-Networking@pivotal.io"
 run:
   path: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.sh
