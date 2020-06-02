@@ -125,7 +125,9 @@ groups:
     jobs:
       - dont-smoke-for-k8s-deploy-and-test
       - bump-rc
+      - deploy-good-acceptance
       - ship-it
+
 jobs:
 # Build
 - name: run-cfroutesync-units
@@ -332,6 +334,37 @@ jobs:
     - put: cf-k8s-networking-rc
       params:
         repository: cf-k8s-networking-config
+
+- name: deploy-good-acceptance
+  plan:
+    - in_parallel:
+      - get: cf-for-k8s-master
+      - get: cf-k8s-networking-ci
+      - get: cf-k8s-networking-rc
+        passed: [bump-rc]
+        trigger: true
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN:  &acceptance-cluster-domain "good-acceptance.routing.lol"
+        CLUSTER_NAME: &acceptance-cluster-name "good-acceptance"
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: *acceptance-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        CF_DOMAIN: *acceptance-cluster-domain
+        CLUSTER_NAME: *acceptance-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    - task: run-smoke-test
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+      params:
+        SMOKE_TEST_SKIP_SSL: true
 
 - name: ship-it
   plan:
