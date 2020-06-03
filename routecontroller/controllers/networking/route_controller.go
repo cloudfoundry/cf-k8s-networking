@@ -179,14 +179,13 @@ func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *netw
 			if apierrors.IsNotFound(err) {
 				log.Info("VirtualService no longer exists")
 			}
-			return client.IgnoreNotFound(err)
+		} else {
+			err := r.Delete(ctx, vs)
+			if err != nil {
+				return err
+			}
+			log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
 		}
-
-		err := r.Delete(ctx, vs)
-		if err != nil {
-			return err
-		}
-		log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
 	} else {
 		if err := r.reconcileVirtualServices(req, routes, log, ctx); err != nil {
 			return err
