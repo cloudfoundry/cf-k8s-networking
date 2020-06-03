@@ -16,9 +16,9 @@ resources:
   type: git
   icon: github-box
   source:
-    uri: git@github.com:xanderstrike/stress-results
+    uri: git@github.com:cloudfoundry/cf-k8s-networking
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: routecontroller-stress-results
 
 - name: cf-k8s-networking
   type: git
