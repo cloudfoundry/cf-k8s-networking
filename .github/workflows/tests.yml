@@ -31,6 +31,8 @@ jobs:
         env:
           GCR_SERVICE_ACCOUNT_JSON: ${{ secrets.GCR_SERVICE_ACCOUNT_JSON }}
           IMAGE_REPO: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
+          DOCKERFILE_PATH: cfroutesync/deploy/Dockerfile
+          WORKING_DIR: cfroutesync
 
   routecontroller_tests:
     name: Route Controller Tests
@@ -61,3 +63,5 @@ jobs:
         env:
           GCR_SERVICE_ACCOUNT_JSON: ${{ secrets.GCR_SERVICE_ACCOUNT_JSON }}
           IMAGE_REPO: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller
+          DOCKERFILE_PATH: routecontroller/Dockerfile
+          WORKING_DIR: routecontroller
