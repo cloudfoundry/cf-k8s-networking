@@ -50,7 +50,7 @@ resources:
   type: git
   icon: github-box
   source:
-    branch: master
+    branch: wip-ship-what
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
@@ -134,6 +134,7 @@ groups:
       - dont-smoke-for-k8s-deploy-and-test
       - bump-rc
       - deploy-good-acceptance
+      - ship-what
       - ship-it
 
 jobs:
@@ -368,11 +369,24 @@ jobs:
       params:
         SMOKE_TEST_SKIP_SSL: true
 
-- name: ship-it
+- name: ship-what
   plan:
     - in_parallel:
         - get: cf-k8s-networking-rc
           passed: [bump-rc]
+          trigger: true
+        - get: cf-k8s-networking-ci
+        - get: version
+    - task: print-release-notes
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
+      input_mapping:
+        cf-k8s-networking: cf-k8s-networking-rc
+
+- name: ship-it
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking-rc
+          passed: [ship-what]
         - get: cf-k8s-networking-ci
         - get: version
     - put: cf-k8s-networking-rc
