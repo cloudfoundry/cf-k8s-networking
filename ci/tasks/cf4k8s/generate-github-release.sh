@@ -14,10 +14,18 @@ function write_release_body() {
 
    # Generate git diff
    pushd cf-k8s-networking > /dev/null
-     old_version=$(git tag --sort=version:refname | egrep "^v[0-9]+\.[0-9]+\.[0-9]+$" | tail -2 | head -1)
-     new_version=$(git tag --sort=version:refname | egrep "^v[0-9]+\.[0-9]+\.[0-9]+$" | tail -1)
+     from_ref=$(git tag --sort=version:refname | egrep "^v[0-9]+\.[0-9]+\.[0-9]+$" | tail -2 | head -1)
+     to_ref=$(git tag --sort=version:refname | egrep "^v[0-9]+\.[0-9]+\.[0-9]+$" | tail -1)
 
-     diff_string="${old_version}...${new_version}"
+     # During ship-what job we want to compare version since last tag. Since
+     # the new version tag hasn't been committed we can key off that to
+     # understand if we are in ship-what
+     if [[ "${to_ref}" != "v${version}" ]]; then
+        from_ref=$(git tag --sort=version:refname | egrep "^v[0-9]+\.[0-9]+\.[0-9]+$" | tail -1)
+        to_ref="HEAD"
+     fi
+
+     diff_string="${from_ref}...${to_ref}"
      echo "comparing ${diff_string}:"
      git log "${diff_string}" | { egrep -o '\[\#([0-9]+)' || true; } | cut -d# -f2 | sort | uniq > "${tmp_dir}/stories.raw"
    popd > /dev/null
@@ -36,6 +44,8 @@ function write_release_body() {
 function main() {
    write_release_name
    write_release_body
+
+   cat release-text/body.md
 }
 
 main
