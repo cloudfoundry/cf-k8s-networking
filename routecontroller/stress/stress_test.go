@@ -115,7 +115,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	})
 
 	Expect(deleteTime.Seconds()).Should(BeNumerically("<", 90), "Should handle 1000 removed routes in under 90 seconds")
-	results.DeleteTimes = append(results.DeleteTimes, addTime.Seconds())
+	results.DeleteTimes = append(results.DeleteTimes, deleteTime.Seconds())
 
 	fmt.Println("Stress test complete, cleaning up...")
 	deleteRoutecontroller()
