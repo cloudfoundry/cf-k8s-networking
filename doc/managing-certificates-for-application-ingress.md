@@ -3,7 +3,9 @@
 For each domain in CF:
 
 1. Create a secret with the certificate and the key in `istio-system` namespace:
-_Note: The secret name should not start with `istio` or `prometheus` for dynamic reloading of the secret._
+   _Note: The secret name should not start with `istio` or `prometheus` for
+   dynamic reloading of the secret._
+
 ```
 kubectl create secret tls wildcard-apps-example-com-cert \
     -n istio-system \
@@ -14,9 +16,11 @@ kubectl create secret tls wildcard-apps-example-com-cert \
 _Note: This can be either a wildcard cert or a cert for a single domain._
 
 2. Add a new entry under `spec.servers` to the [Istio
-   `Gateway`](https://github.com/cloudfoundry/cf-for-k8s/blob/21209bbfcadf626a81bc19a8320050b98076f25e/config/gateway.lib.yml). This is in `cf-system` namespace by default. So, to add configuration for
-   `'*.apps.example.com'`, you would need to add this entry to the `spec.servers`
-   array. Here is an example [`ytt`](https://get-ytt.io/) overlay that adds it:
+   `Gateway`](https://github.com/cloudfoundry/cf-for-k8s/blob/21209bbfcadf626a81bc19a8320050b98076f25e/config/gateway.lib.yml).
+   This is in `cf-system` namespace by default. So, to add configuration for
+   `'*.apps.example.com'`, you would need to add this entry to the
+   `spec.servers` array. Here is an example [`ytt`](https://get-ytt.io/) overlay
+   that adds it:
 
 ```yaml
 #@ load("@ytt:overlay", "overlay")
@@ -42,4 +46,8 @@ This overlay can be applied during installation of
 
 ### Rotation:
 
-- Istio uses [SDS](https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/) for the Ingress Gateway. SDS allows the Ingress Gateway to reload certificates without restarting Envoy. When the secret is updated, Istio will reload the certificate automatically.
+- Istio uses
+  [SDS](https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/)
+  for the Ingress Gateway. SDS allows the Ingress Gateway to reload certificates
+  without restarting Envoy. When the secret is updated, Istio will reload the
+  certificate automatically.
