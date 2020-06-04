@@ -70,17 +70,17 @@ var _ = Describe("mTLS setup on a CF-k8s env", func() {
 					})
 				})
 
-				Describe("over HTTPS with client credentials", func() {
-					It("successfully establishes connection with the system component over mTLS", func() {
-						By("checking that the request headers on receiving side contains the SVID for the application")
-						output, exitCode, _, err := tryCurlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("https://%s/headers", sysComponentAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
-						Expect(err).NotTo(HaveOccurred())
-						Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
+				// Describe("over HTTPS with client credentials", func() {
+				// 	It("successfully establishes connection with the system component over mTLS", func() {
+				// 		By("checking that the request headers on receiving side contains the SVID for the application")
+				// 		output, exitCode, _, err := tryCurlInPod(workloadsNamespace, appPodName, proxyContainerName, fmt.Sprintf("https://%s/headers", sysComponentAddr), "-k", "--cacert", "/etc/certs/root-cert.pem", "--key", "/etc/certs/key.pem", "--cert", "/etc/certs/cert-chain.pem")
+				// 		Expect(err).NotTo(HaveOccurred())
+				// 		Expect(exitCode).To(Equal(CurlSuccessfulExitCode))
 
-						svid := parseSVID(output)
-						Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + workloadsNamespace + "/sa/eirini"))
-					})
-				})
+				// 		svid := parseSVID(output)
+				// 		Expect(svid).To(Equal("URI=spiffe://cluster.local/ns/" + workloadsNamespace + "/sa/eirini"))
+				// 	})
+				// })
 			})
 		})
 	})
@@ -163,6 +163,7 @@ func getSvcHTTPAddrBySelector(namespace string, selector string) (string, error)
 		namespace,
 		"{.items[0].spec.ports[?(@.name==\"http\")].port}", // http port path
 	))
+
 	if err != nil {
 		return "", err
 	}
