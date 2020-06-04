@@ -46,12 +46,6 @@ This overlay can be applied during installation of
 
 ### Rotation:
 
-_NOTE: There is a known issue where the System Domain certificates won't
-automatically reload in the gateway because the secrets are prefixed with
-`istio`. Istio doesn't hot reload certificates from secrets prefixed with
-`istio`. The gateway can be updated to use a differently named secret for the
-system domain._
-
 To update the application domain or system domain certificates for Cloud Foundry
 the Kubernetes Secret storing the certificate can be updated to reflect the new
 certificate. Istio uses
