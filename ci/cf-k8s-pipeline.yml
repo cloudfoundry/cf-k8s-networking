@@ -1,7 +1,25 @@
 ---
 
-resources:
+groups:
+- name: integrate
+  jobs:
+  - gke-deploy-and-test
+  - bump-rc
+  - deploy-good-acceptance
+  - ship-what
+  - ship-it
+- name: cfroutesync
+  jobs:
+  - run-cfroutesync-units
+  - publish-cfroutesync-image
+- name: routecontroller
+  jobs:
+  - run-routecontroller-units
+  - run-routecontroller-integration-tests
+  - run-routecontroller-stress-tests
+  - publish-routecontroller-image
 
+resources:
 - name: cf-for-k8s-master
   type: git
   icon: github-box
@@ -119,23 +137,6 @@ resources:
     repository: cf-k8s-networking
     drafts: true
     access_token: ((github_access_token))
-
-groups:
-  - name: build
-    jobs:
-      - run-cfroutesync-units
-      - run-routecontroller-units
-      - run-routecontroller-integration-tests
-      - run-routecontroller-stress-tests
-      - publish-cfroutesync-image
-      - publish-routecontroller-image
-  - name: dont-smoke
-    jobs:
-      - dont-smoke-for-k8s-deploy-and-test
-      - bump-rc
-      - deploy-good-acceptance
-      - ship-what
-      - ship-it
 
 jobs:
 # Build
@@ -287,9 +288,8 @@ jobs:
         rebase: true
 
 # Environment to run tests
-- name: dont-smoke-for-k8s-deploy-and-test
+- name: gke-deploy-and-test
   serial: true
-  serial_groups: [dont-smoke-for-k8s]
   plan:
     - in_parallel:
         - get: cf-for-k8s-master
@@ -300,13 +300,13 @@ jobs:
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
       params:
-        CLUSTER_NAME: &dont-smoke-for-k8s-cluster-name dont-smoke-for-k8s
+        CLUSTER_NAME: &ci-test-for-k8s-cluster-name ci-test
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
-        CF_DOMAIN: &dont-smoke-for-k8s-domain "dont-smoke-for-k8s.routing.lol"
-        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        CF_DOMAIN: &ci-test-for-k8s-domain "ci-test.routing.lol"
+        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
     - task: run-smoke-test
@@ -319,20 +319,20 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
       params:
         INTEGRATION_CONFIG_FILE: "config.json"
-        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
-        CF_DOMAIN: *dont-smoke-for-k8s-domain
-        CLUSTER_NAME: *dont-smoke-for-k8s-cluster-name
+        CF_DOMAIN: *ci-test-for-k8s-domain
+        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: bump-rc
   plan:
     - in_parallel:
         - get: cf-k8s-networking-config
-          passed: [dont-smoke-for-k8s-deploy-and-test]
+          passed: [gke-deploy-and-test]
           trigger: true
     - put: cf-k8s-networking-rc
       params:
