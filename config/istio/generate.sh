@@ -12,9 +12,7 @@ if [[ ${istioctl_version} != "${DESIRED_ISTIO_VERSION}" ]]; then
 fi
 
 echo "generating Istio resource definitions..." >&2
-mkdir -p "${SCRIPT_DIR}/../../istio"
 istioctl manifest generate -f "${SCRIPT_DIR}/istio-values.yaml" "$@" | \
   ytt --ignore-unknown-comments \
-    -f "${SCRIPT_DIR}/ytt-data-values.yaml" \
     -f - \
     -f "${SCRIPT_DIR}/overlays"
