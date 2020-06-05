@@ -16,7 +16,7 @@ function run_scale_test() {
     export DOMAIN="apps.ci-scale-testing.routing.lol"
     export CLEANUP="true" #Remove when we run these tests regularly after they start to pass
 
-    pushd cf-k8s-networking/scale-tests
+    pushd cf-k8s-networking/test/scale
         ginkgo .
     popd
 }

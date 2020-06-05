@@ -19,7 +19,7 @@ function main() {
     local kubeconfig_path="${PWD}/${KUBECONFIG}"
     local config="${PWD}/integration-config/${INTEGRATION_CONFIG_FILE}"
 
-    pushd cf-k8s-networking/networking-acceptance-tests > /dev/null
+    pushd cf-k8s-networking/test/acceptance > /dev/null
         ./bin/test_local "${config}" "${kubeconfig_path}"
     popd
 }

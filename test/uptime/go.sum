@@ -1,3 +1,6 @@
+code.cloudfoundry.org/cf-k8s-networking v0.1.0 h1:bcMv7LsdPCsa86ScRsMUC/9X2YgWofEvFn9vvS57Uyk=
+code.cloudfoundry.org/cf-k8s-networking/uptime-tests v0.0.0-20200605171322-192317052474 h1:Ym5Qt/wmschEFfpkbbFz39edoRR6feP7ygXX91Gatig=
+code.cloudfoundry.org/cf-k8s-networking/uptime-tests v0.0.0-20200605171322-192317052474/go.mod h1:r4Epr7xDud5XUlsLXgdlarVAWa2Kt0EOUMfovC/O6jo=
 github.com/cloudfoundry-incubator/cf-test-helpers v1.0.0 h1:vk4gthT4ime81HI16e8MLctmjZE4U5EMuM90vs1dO4E=
 github.com/cloudfoundry-incubator/cf-test-helpers v1.0.0/go.mod h1:I21tkmFwW9F06eYcQm5GTUzNV+pc1Q5NVZ1qhWOGGx0=
 github.com/fsnotify/fsnotify v1.4.7 h1:IXs+QLmnXW2CcXuY+8Mzv/fWEsPGWxqefPtCP5CnV9I=

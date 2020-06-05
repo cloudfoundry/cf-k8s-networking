@@ -5,7 +5,7 @@ set -euo pipefail
 source cf-k8s-networking-ci/ci/tasks/helpers.sh
 
 function run_upgrade_uptime_tests() {
-    pushd "cf-k8s-networking/uptime-tests"
+    pushd "cf-k8s-networking/test/uptime"
         ginkgo -v -r -p .
     popd
 }

@@ -1,8 +1,9 @@
-module code.cloudfoundry.org/cf-k8s-networking/uptime-tests
+module code.cloudfoundry.org/cf-k8s-networking/test/uptime
 
 go 1.14
 
 require (
+	code.cloudfoundry.org/cf-k8s-networking/uptime-tests v0.0.0-20200605171322-192317052474
 	github.com/cloudfoundry-incubator/cf-test-helpers v1.0.0
 	github.com/fsnotify/fsnotify v1.4.9 // indirect
 	github.com/onsi/ginkgo v1.12.1

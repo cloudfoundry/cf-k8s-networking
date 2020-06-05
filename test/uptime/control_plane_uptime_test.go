@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"time"
 
-	"code.cloudfoundry.org/cf-k8s-networking/uptime-tests/internal/checker"
-	"code.cloudfoundry.org/cf-k8s-networking/uptime-tests/internal/collector"
+	"code.cloudfoundry.org/cf-k8s-networking/test/uptime/internal/checker"
+	"code.cloudfoundry.org/cf-k8s-networking/test/uptime/internal/collector"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"

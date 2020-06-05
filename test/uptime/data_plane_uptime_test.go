@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"time"
 
-	"code.cloudfoundry.org/cf-k8s-networking/uptime-tests/internal/checker"
-	"code.cloudfoundry.org/cf-k8s-networking/uptime-tests/internal/uptime"
+	"code.cloudfoundry.org/cf-k8s-networking/test/uptime/internal/checker"
+	"code.cloudfoundry.org/cf-k8s-networking/test/uptime/internal/uptime"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )

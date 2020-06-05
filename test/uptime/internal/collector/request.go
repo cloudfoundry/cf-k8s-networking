@@ -5,7 +5,7 @@ import (
 	"sync"
 	"time"
 
-	"code.cloudfoundry.org/cf-k8s-networking/uptime-tests/internal/uptime"
+	"code.cloudfoundry.org/cf-k8s-networking/test/uptime/internal/uptime"
 )
 
 type Request struct {
