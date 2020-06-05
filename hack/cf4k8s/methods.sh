@@ -1,5 +1,12 @@
 #!/usr/bin/env bash
 
+function credhub_get_gcp_service_account_key() {
+  source ~/workspace/networking-oss-deployments/scripts/script_helpers.sh
+  concourse_credhub_login
+  credhub get -n /concourse/cf-k8s/gcp_gcr_service_account_key -j | jq -r .value > /tmp/cf-k8s-networking-service-account-key.json
+  export GCP_SERVICE_ACCOUNT_KEY=/tmp/cf-k8s-networking-service-account-key.json
+}
+
 function create_and_target_huge_cluster() {
     if gcloud container clusters describe ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a > /dev/null; then
         echo "${CLUSTER_NAME} already exists! Continuing..."
@@ -32,7 +39,7 @@ function deploy_cf_for_k8s() {
     pushd "${HOME}/workspace/cf-for-k8s" > /dev/null
         mkdir -p "/tmp/${CLUSTER_NAME}"
         if [ ! -f "/tmp/${CLUSTER_NAME}/cf-values.yml" ]; then
-          ./hack/generate-values.sh -d ${CF_DOMAIN} > "/tmp/${CLUSTER_NAME}/cf-values.yml"
+          ./hack/generate-values.sh -d ${CF_DOMAIN} -g "${GCP_SERVICE_ACCOUNT_KEY}" > "/tmp/${CLUSTER_NAME}/cf-values.yml"
         fi
         kapp deploy -a cf -f <(ytt -f config -f "/tmp/${CLUSTER_NAME}/cf-values.yml") -y
     popd
