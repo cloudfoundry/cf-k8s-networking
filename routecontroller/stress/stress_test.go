@@ -18,13 +18,15 @@ import (
 type Results struct {
 	Time        int32     `json:"time"`
 	AddTimes    []float64 `json:"add_times"`
+	Add100Means []float64 `json:"add_100_means"`
+	Add100P95s  []float64 `json:"add_100_p95s"`
 	DeleteTimes []float64 `json:"delete_times"`
 }
 
 var _ = Describe("Stress Tests", func() {
 	var (
-		numberOfRoutes        = 1000
-		numSamples            = 5
+		numberOfRoutes        = 100
+		numSamples            = 1
 		allowableDeltaPercent = 10
 
 		results = Results{
@@ -56,18 +58,28 @@ var _ = Describe("Stress Tests", func() {
 			previousResults.AddTimes,
 			results.AddTimes,
 			allowableDeltaPercent,
-			fmt.Sprintf("add %d routes", numberOfRoutes))
+			fmt.Sprintf("add %d routes in bulk", numberOfRoutes))
+		// compareAverages(
+		// 	previousResults.Add100Means,
+		// 	results.Add100Means,
+		// 	allowableDeltaPercent,
+		// 	"add 100 routes one at a time (mean of attempts)")
+		// compareAverages(
+		// 	previousResults.Add100P95s,
+		// 	results.Add100P95s,
+		// 	allowableDeltaPercent,
+		// 	"add 100 routes one at a time (95th percentile of attempts)")
 		compareAverages(previousResults.DeleteTimes,
 			results.DeleteTimes,
 			allowableDeltaPercent,
-			fmt.Sprintf("delete %d routes", numberOfRoutes))
+			fmt.Sprintf("delete %d routes in bulk", numberOfRoutes))
 
 		writeResults(results)
 	})
 })
 
 func stressRouteController(numberOfRoutes int, results Results) Results {
-	setupRoutes(numberOfRoutes)
+	setupRoutes(numberOfRoutes, "initial")
 
 	Expect(kubectl.GetNumberOf("virtualservices")).To(Equal(0))
 
@@ -81,7 +93,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	yttContents := yttSession.Out.Contents()
 	yttReader := bytes.NewReader(yttContents)
 
-	fmt.Printf("Adding %d routes\n", numberOfRoutes)
+	fmt.Printf("Adding %d routes all at once\n", numberOfRoutes)
 	session, err := kubectl.RunWithStdin(yttReader, "apply", "-f", "-")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
@@ -96,12 +108,41 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	})
 
 	Expect(addTime.Seconds()).Should(BeNumerically("<", 90), "Should handle 1000 added routes in under 90 second")
-
 	results.AddTimes = append(results.AddTimes, addTime.Seconds())
 
-	fmt.Printf("Deleting %d routes\n", numberOfRoutes)
+	fmt.Println("Adding 100 routes one at a time")
+	times := []float64{}
+	for i := 0; i < 100; i++ {
+		route := buildSingleRoute(i, "the100")
+		t := timer(func() {
+			session, err := kubectl.RunWithStdin(route, "apply", "-f", "-")
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session).Should(gexec.Exit(0))
+
+			expectedNum := numberOfRoutes + i + 1
+			Expect(kubectl.GetNumberOf("routes")).To(Equal(expectedNum))
+			Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(expectedNum))
+		})
+
+		times = append(times, t.Seconds())
+	}
+	mean, err := stats.Mean(times)
+	Expect(err).NotTo(HaveOccurred())
+	p95, err := stats.Percentile(times, 95)
+	Expect(err).NotTo(HaveOccurred())
+	results.Add100Means = append(results.Add100Means, mean)
+	results.Add100P95s = append(results.Add100P95s, p95)
+
+	// this is where i would measure deleting 100 routes if i was working on that story ;)
+	session, err = kubectl.Run("delete", "routes", "-l", "tag=the100", "--wait=false")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
+	Eventually(func() int { return kubectl.GetNumberOf("routes") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
+	Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
+
+	fmt.Printf("Deleting %d routes all at once\n", numberOfRoutes)
 	deleteTime := timer(func() {
-		session, err := kubectl.Run("delete", "routes", "--all", "--wait=false")
+		session, err := kubectl.Run("delete", "routes", "-l", "tag=initial", "--wait=false")
 		Expect(err).NotTo(HaveOccurred())
 		Eventually(session).Should(gexec.Exit(0))
 
@@ -122,8 +163,8 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	return results
 }
 
-func setupRoutes(numberOfRoutes int) {
-	routes := buildRoutes(numberOfRoutes)
+func setupRoutes(numberOfRoutes int, tag string) {
+	routes := buildRoutes(numberOfRoutes, tag)
 	session, err := kubectl.RunWithStdin(routes, "apply", "-f", "-")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
@@ -162,7 +203,7 @@ func compareAverages(previous, current []float64, allowableDeltaPercent int, log
 	fmt.Printf("It took %f seconds on average to %s.\n", curmean, logStr)
 
 	change := percentageChange(prevmean, curmean)
-	Expect(change).To(BeNumerically("<", allowableDeltaPercent))
+	Expect(change).To(BeNumerically("<", allowableDeltaPercent), fmt.Sprintf("Took too long to %s", logStr))
 }
 
 func percentageChange(old, new float64) (delta float64) {

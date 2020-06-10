@@ -13,6 +13,7 @@ metadata:
    cloudfoundry.org/space_guid: cc-space-guid
    cloudfoundry.org/domain_guid: cc-domain-guid
    cloudfoundry.org/route_guid: cc-route-guid
+   tag: {{.Tag}}
 spec:
   host: {{.Host}}
   path: {{.Path}}

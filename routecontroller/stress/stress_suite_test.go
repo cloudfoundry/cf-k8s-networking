@@ -138,36 +138,28 @@ type yttRunner struct {
 }
 
 func (y yttRunner) Run(yttCommandArgs ...string) (*gexec.Session, error) {
-	// fmt.Fprintf(GinkgoWriter, "+ ytt %s\n", strings.Join(yttCommandArgs, " "))
 	cmd := exec.Command("ytt", yttCommandArgs...)
 	return gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 }
 
-func buildRoutes(numberOfRoutes int) io.Reader {
+type TestRouteTemplate struct {
+	Name            string
+	Host            string
+	Path            string
+	Domain          string
+	DestinationGUID string
+	AppGUID         string
+	Tag             string
+}
+
+func buildRoutes(numberOfRoutes int, tag string) io.Reader {
 	routeTmpl, err := template.ParseFiles("fixtures/route_template.yml")
 	Expect(err).NotTo(HaveOccurred())
-
-	type Route struct {
-		Name            string
-		Host            string
-		Path            string
-		Domain          string
-		DestinationGUID string
-		AppGUID         string
-	}
 
 	var routesBuilder strings.Builder
 
 	for i := 0; i < numberOfRoutes; i++ {
-		route := Route{
-			Name:            fmt.Sprintf("route-%d", i),
-			Host:            fmt.Sprintf("hostname-%d", i),
-			Path:            fmt.Sprintf("/%d", i),
-			Domain:          "apps.example.com",
-			DestinationGUID: fmt.Sprintf("destination-guid-%d", i),
-			AppGUID:         fmt.Sprintf("app-guid-%d", i),
-		}
-
+		route := buildRoute(i, tag)
 		// Create a new YAML document for each Route definition
 		_, err := routesBuilder.WriteString("---\n")
 		Expect(err).NotTo(HaveOccurred())
@@ -178,4 +170,29 @@ func buildRoutes(numberOfRoutes int) io.Reader {
 	}
 
 	return strings.NewReader(routesBuilder.String())
+}
+
+func buildSingleRoute(index int, tag string) io.Reader {
+	routeTmpl, err := template.ParseFiles("fixtures/route_template.yml")
+	Expect(err).NotTo(HaveOccurred())
+
+	var routesBuilder strings.Builder
+
+	route := buildRoute(index, tag)
+	err = routeTmpl.Execute(&routesBuilder, route)
+	Expect(err).NotTo(HaveOccurred())
+
+	return strings.NewReader(routesBuilder.String())
+}
+
+func buildRoute(index int, tag string) TestRouteTemplate {
+	return TestRouteTemplate{
+		Name:            fmt.Sprintf("route-%s-%d", tag, index),
+		Host:            fmt.Sprintf("hostname-%s-%d", tag, index),
+		Path:            fmt.Sprintf("/%s-%d", tag, index),
+		Domain:          "apps.example.com",
+		DestinationGUID: fmt.Sprintf("destination-guid-%s-%d", tag, index),
+		AppGUID:         fmt.Sprintf("app-guid-%s-%d", tag, index),
+		Tag:             tag,
+	}
 }
