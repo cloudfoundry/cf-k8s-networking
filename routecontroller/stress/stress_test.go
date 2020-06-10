@@ -59,16 +59,16 @@ var _ = Describe("Stress Tests", func() {
 			results.AddTimes,
 			allowableDeltaPercent,
 			fmt.Sprintf("add %d routes in bulk", numberOfRoutes))
-		// compareAverages(
-		// 	previousResults.Add100Means,
-		// 	results.Add100Means,
-		// 	allowableDeltaPercent,
-		// 	"add 100 routes one at a time (mean of attempts)")
-		// compareAverages(
-		// 	previousResults.Add100P95s,
-		// 	results.Add100P95s,
-		// 	allowableDeltaPercent,
-		// 	"add 100 routes one at a time (95th percentile of attempts)")
+		compareAverages(
+			previousResults.Add100Means,
+			results.Add100Means,
+			allowableDeltaPercent,
+			"add 100 routes one at a time (mean of attempts)")
+		compareAverages(
+			previousResults.Add100P95s,
+			results.Add100P95s,
+			allowableDeltaPercent,
+			"add 100 routes one at a time (95th percentile of attempts)")
 		compareAverages(previousResults.DeleteTimes,
 			results.DeleteTimes,
 			allowableDeltaPercent,
