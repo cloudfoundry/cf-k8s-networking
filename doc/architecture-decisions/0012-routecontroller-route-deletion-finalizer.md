@@ -27,3 +27,5 @@ Using finalizers allows us to implement all of the cases in our route deletion l
 ## Consequences
 
 * We can meet our SLO of having 95% of route changes being reflected within 10 seconds when routes are deleted
+* Routes will fail to be deleted if there is no routecontroller available to resolve the finalizer
+  * As a result, cf-for-k8s will now delete the workload namespaces first when deleting a CF deeployment
