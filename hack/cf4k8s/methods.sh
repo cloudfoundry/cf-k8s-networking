@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
 
+function latest_cluster_version() {
+  gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
+}
+
 function credhub_get_gcp_service_account_key() {
   source ~/workspace/networking-oss-deployments/scripts/script_helpers.sh
   concourse_credhub_login
@@ -14,6 +18,7 @@ function create_and_target_huge_cluster() {
         echo "Creating cluster: ${CLUSTER_NAME} ..."
         gcloud container clusters create ${CLUSTER_NAME} \
           --project ${GCP_PROJECT} \
+          --cluster-version=$(latest_cluster_version) \
           --zone us-west1-a \
           --machine-type=n1-standard-8 \
           --enable-network-policy \
@@ -29,7 +34,14 @@ function create_and_target_cluster() {
         echo "${CLUSTER_NAME} already exists! Continuing..."
     else
         echo "Creating cluster: ${CLUSTER_NAME} ..."
-        gcloud container clusters create ${CLUSTER_NAME} --project ${GCP_PROJECT} --zone us-west1-a --machine-type=n1-standard-4 --num-nodes 5 --enable-network-policy --labels team=cf-k8s-networking
+        gcloud container clusters create ${CLUSTER_NAME} \
+          --project ${GCP_PROJECT} \
+          --zone us-west1-a \
+          --machine-type=n1-standard-4 \
+          --num-nodes 5 \
+          --enable-network-policy \
+          --labels team=cf-k8s-networking \
+          --cluster-version=$(latest_cluster_version)
     fi
     gcloud container clusters get-credentials --project ${GCP_PROJECT} ${CLUSTER_NAME} --zone us-west1-a
 }
