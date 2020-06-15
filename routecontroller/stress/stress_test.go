@@ -16,11 +16,13 @@ import (
 )
 
 type Results struct {
-	Time        int32     `json:"time"`
-	AddTimes    []float64 `json:"add_times"`
-	Add100Means []float64 `json:"add_100_means"`
-	Add100P95s  []float64 `json:"add_100_p95s"`
-	DeleteTimes []float64 `json:"delete_times"`
+	Time           int32     `json:"time"`
+	AddTimes       []float64 `json:"add_times"`
+	Add100Means    []float64 `json:"add_100_means"`
+	Add100P95s     []float64 `json:"add_100_p95s"`
+	Delete100Means []float64 `json:"delete_100_means"`
+	Delete100P95s  []float64 `json:"delete_100_p95s"`
+	DeleteTimes    []float64 `json:"delete_times"`
 }
 
 var _ = Describe("Stress Tests", func() {
@@ -69,6 +71,16 @@ var _ = Describe("Stress Tests", func() {
 			results.Add100P95s,
 			allowableDeltaPercent,
 			"add 100 routes one at a time (95th percentile of attempts)")
+		compareAverages(
+			previousResults.Delete100Means,
+			results.Delete100Means,
+			allowableDeltaPercent,
+			"delete 100 routes one at a time (mean of attempts)")
+		compareAverages(
+			previousResults.Delete100P95s,
+			results.Delete100P95s,
+			allowableDeltaPercent,
+			"delete 100 routes one at a time (95th percentile of attempts)")
 		compareAverages(previousResults.DeleteTimes,
 			results.DeleteTimes,
 			allowableDeltaPercent,
@@ -132,13 +144,30 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	Expect(err).NotTo(HaveOccurred())
 	results.Add100Means = append(results.Add100Means, mean)
 	results.Add100P95s = append(results.Add100P95s, p95)
+	currentNumberOfRoutes := kubectl.GetNumberOf("routes")
 
-	// this is where i would measure deleting 100 routes if i was working on that story ;)
-	session, err = kubectl.Run("delete", "routes", "-l", "tag=the100", "--wait=false")
+	fmt.Printf("Deleting 100 routes one at a time from the current %d routes\n", currentNumberOfRoutes)
+	times = []float64{}
+	for i := 0; i < 100; i++ {
+		route := buildSingleRoute(i, "the100")
+		t := timer(func() {
+			session, err := kubectl.RunWithStdin(route, "delete", "-f", "-")
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(session).Should(gexec.Exit(0))
+
+			expectedNum := currentNumberOfRoutes - i - 1
+			Expect(kubectl.GetNumberOf("routes")).To(Equal(expectedNum))
+			Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(expectedNum))
+		})
+
+		times = append(times, t.Seconds())
+	}
+	mean, err = stats.Mean(times)
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
-	Eventually(func() int { return kubectl.GetNumberOf("routes") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
-	Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
+	p95, err = stats.Percentile(times, 95)
+	Expect(err).NotTo(HaveOccurred())
+	results.Delete100Means = append(results.Delete100Means, mean)
+	results.Delete100P95s = append(results.Delete100P95s, p95)
 
 	fmt.Printf("Deleting %d routes all at once\n", numberOfRoutes)
 	deleteTime := timer(func() {
