@@ -13,6 +13,9 @@ set -euo pipefail
 : "${MACHINE_TYPE:?}"
 : "${NUM_NODES:?}"
 
+function latest_cluster_version() {
+  gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
+}
 
 function create_cluster() {
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
@@ -30,6 +33,7 @@ function create_cluster() {
 
     echo "Creating cluster: ${CLUSTER_NAME} ..."
     gcloud container clusters create ${CLUSTER_NAME} \
+        --cluster-version=$(latest_cluster_version) \
         --machine-type=${MACHINE_TYPE} \
         --labels team=cf-k8s-networking-ci \
         --enable-network-policy \
