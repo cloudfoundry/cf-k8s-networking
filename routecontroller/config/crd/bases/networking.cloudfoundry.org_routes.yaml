@@ -8,6 +8,13 @@ metadata:
   creationTimestamp: null
   name: routes.networking.cloudfoundry.org
 spec:
+  additionalPrinterColumns:
+  - JSONPath: .spec.url
+    name: URL
+    type: string
+  - JSONPath: .metadata.creationTimestamp
+    name: Age
+    type: date
   group: networking.cloudfoundry.org
   names:
     kind: Route

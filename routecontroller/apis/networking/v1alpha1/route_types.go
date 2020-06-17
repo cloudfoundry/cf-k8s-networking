@@ -76,6 +76,8 @@ type Condition struct {
 // +kubebuilder:subresource:status
 
 // Route is the Schema for the routes API
+// +kubebuilder:printcolumn:name="URL",type=string,JSONPath=`.spec.url`
+// +kubebuilder:printcolumn:name="Age",type=date,JSONPath=`.metadata.creationTimestamp`
 type Route struct {
 	metav1.TypeMeta   `json:",inline"`
 	metav1.ObjectMeta `json:"metadata,omitempty"`

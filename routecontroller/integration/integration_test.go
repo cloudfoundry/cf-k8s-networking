@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"time"
 
@@ -1051,6 +1052,67 @@ var _ = Describe("Integration", func() {
 					},
 				},
 			))
+		})
+	})
+
+	Describe("kubectl", func() {
+		type routeView struct {
+			name string
+			url  string
+			age  string
+		}
+
+		When("viewing routes with -owide view mode", func() {
+			BeforeEach(func() {
+				yamlToApply = filepath.Join("fixtures", "multiple-routes-with-different-fqdn.yaml")
+			})
+
+			It("outputs the associated name and URL", func() {
+				Eventually(func() ([]routeView, error) {
+					output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "get", "routes", "-o", "wide")
+					if err != nil {
+						return nil, err
+					}
+
+					// the first line is a header with column names
+					lines := strings.Split(strings.TrimSpace(string(output)), "\n")[1:]
+					Expect(lines).Should(HaveLen(2))
+					routes := make([]routeView, 0, len(lines))
+
+					const (
+						nameColumn = 0
+						urlColumn  = 1
+						ageColumn  = 2
+					)
+
+					spaceRe := regexp.MustCompile(`\s+`)
+					for _, line := range lines {
+						columns := spaceRe.Split(line, -1)
+						Expect(columns).Should(HaveLen(3))
+
+						Expect(columns[nameColumn]).ShouldNot(BeEmpty())
+						Expect(columns[urlColumn]).ShouldNot(BeEmpty())
+						Expect(columns[ageColumn]).ShouldNot(BeEmpty())
+
+						routes = append(routes, routeView{
+							name: columns[nameColumn],
+							url:  columns[urlColumn],
+							// no assertion for age column to prevent flakes
+						})
+					}
+
+					return routes, nil
+				}).Should(ConsistOf(
+					routeView{
+						name: "cc-route-guid-1",
+						url:  "hostname-1.apps.example.com/some/path",
+					},
+					routeView{
+						name: "cc-route-guid-2",
+						url:  "hostname-2.apps.example.com/some/different/path",
+					},
+				))
+			})
 		})
 	})
 })
