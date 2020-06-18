@@ -10,9 +10,15 @@ spec:
       - name: istio-ingressgateway
         enabled: true
         k8s:
+          overlays:
+          - kind: Deployment
+            name: istio-ingressgateway
+            patches:
+              - path: spec.replicas
+                value: 20
           hpaSpec:
             minReplicas: 1
-            maxReplicas: 1
+            maxReplicas: 20
           service:
             externalTrafficPolicy: Local
             ports: # TODO: remove when https://github.com/istio/istio/issues/24432 fixed
@@ -30,9 +36,15 @@ spec:
               targetPort: 15443
     pilot:
       k8s:
+        overlays:
+          - kind: Deployment
+            name: istiod
+            patches:
+              - path: spec.replicas
+                value: 20
         hpaSpec:
           minReplicas: 1
-          maxReplicas: 1
+          maxReplicas: 20
   values:
     prometheus:
       enabled: false
