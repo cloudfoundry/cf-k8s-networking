@@ -7,7 +7,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: networkers-scaling-efforts
     ignore_paths:
       - ci/**
 
@@ -17,7 +17,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     private_key: ((github_private_key.private_key))
-    branch: develop
+    branch: scale-pilot-and-ingressgateway
     ignore_paths:
       - config/values.yaml # Do not want resource to trigger on image digest updates
 
@@ -27,7 +27,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     private_key: ((github_private_key.private_key))
-    branch: develop
+    branch: scale-pilot-and-ingressgateway
     paths:
       - ci
       - config
