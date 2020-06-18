@@ -1,4 +1,9 @@
 ---
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
 
 groups:
 - name: integrate
@@ -137,6 +142,13 @@ resources:
     repository: cf-k8s-networking
     drafts: true
     access_token: ((github_access_token))
+
+- name: acceptance-install-values
+  type: gcs-resource
+  source:
+    bucket: cf-k8s-networking
+    json_key: ((shared_gcp_account_creds))
+    versioned_file: good-acceptance/cf-install-values.yml
 
 jobs:
 # Build
@@ -368,6 +380,9 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
       params:
         SMOKE_TEST_SKIP_SSL: true
+    - put: acceptance-install-values
+      params:
+        file: cf-install-values-out/cf-install-values.yml
 
 - name: ship-what
   plan:
