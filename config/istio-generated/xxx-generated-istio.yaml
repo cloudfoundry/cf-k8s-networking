@@ -5331,7 +5331,7 @@ metadata:
   name: istio-ingressgateway
   namespace: istio-system
 spec:
-  maxReplicas: 1
+  maxReplicas: 20
   metrics:
   - resource:
       name: cpu
@@ -5344,7 +5344,7 @@ spec:
     name: istio-ingressgateway
 ---
 apiVersion: apps/v1
-kind: DaemonSet
+kind: Deployment
 metadata:
   annotations:
     kbld.k14s.io/images: |
@@ -5361,10 +5361,15 @@ metadata:
   name: istio-ingressgateway
   namespace: istio-system
 spec:
+  replicas: 20
   selector:
     matchLabels:
       app: istio-ingressgateway
       istio: ingressgateway
+  strategy:
+    rollingUpdate:
+      maxSurge: 100%
+      maxUnavailable: 25%
   template:
     metadata:
       annotations:
@@ -5483,9 +5488,7 @@ spec:
         ports:
         - containerPort: 15021
         - containerPort: 8080
-          hostPort: 80
         - containerPort: 8443
-          hostPort: 443
         - containerPort: 15443
         - containerPort: 15011
         - containerPort: 15012
@@ -5568,9 +5571,6 @@ spec:
         secret:
           optional: true
           secretName: istio-ingressgateway-ca-certs
-  updateStrategy:
-    rollingUpdate:
-      maxUnavailable: 1
 ---
 apiVersion: policy/v1beta1
 kind: PodDisruptionBudget
@@ -5679,7 +5679,7 @@ metadata:
   name: istiod
   namespace: istio-system
 spec:
-  maxReplicas: 1
+  maxReplicas: 20
   metrics:
   - resource:
       name: cpu
@@ -5788,6 +5788,7 @@ metadata:
   name: istiod
   namespace: istio-system
 spec:
+  replicas: 20
   selector:
     matchLabels:
       istio: pilot
