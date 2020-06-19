@@ -7,9 +7,9 @@ import (
 	"time"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	"github.com/onsi/gomega/gexec"
 	. "github.com/onsi/gomega/gexec"
 )
 
@@ -28,10 +28,10 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		defer r.waitGroup.Done()
 		defer GinkgoRecover()
 
-		session := cf.Cf("delete-route", domain, "--hostname", routeToDelete, "-f")
+		session := cfWithRetry("delete-route", domain, "--hostname", routeToDelete, "-f")
 		Eventually(session, "30s").Should(Exit(0))
 
-		session = cf.Cf("map-route", appName, domain, "--hostname", routeToMap)
+		session = cfWithRetry("map-route", appName, domain, "--hostname", routeToMap)
 		Eventually(session, "30s").Should(Exit(0))
 
 		startTime := time.Now().Unix()
@@ -52,6 +52,17 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 
 		r.addResult(float64(lastFailure - startTime))
 	}()
+}
+
+func cfWithRetry(args ...string) *gexec.Session {
+	for i := 0; i < 3; i++ {
+		session := cf.Cf(args...)
+		if session.Wait().ExitCode() == 0 {
+			return session
+		}
+	}
+	Fail("Never successfully ran cf command")
+	panic("How did you get here?")
 }
 
 func (r *RouteMapper) Wait() {
