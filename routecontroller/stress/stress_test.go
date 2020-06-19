@@ -29,7 +29,7 @@ var _ = Describe("Stress Tests", func() {
 	var (
 		numberOfRoutes        = 1000
 		numSamples            = 3
-		allowableDeltaPercent = 10
+		allowableDeltaPercent = 200
 
 		results = Results{
 			Time:        int32(time.Now().Unix()),
@@ -119,7 +119,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
 	})
 
-	Expect(addTime.Seconds()).Should(BeNumerically("<", 90), "Should handle 1000 added routes in under 90 second")
+	Expect(addTime.Seconds()).Should(BeNumerically("<", 120), "Should handle 1000 added routes in under 120 second")
 	results.AddTimes = append(results.AddTimes, addTime.Seconds())
 
 	fmt.Println("Adding 100 routes one at a time")
@@ -184,7 +184,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		}, 30*time.Minute, 500*time.Millisecond).Should(Equal(0))
 	})
 
-	Expect(deleteTime.Seconds()).Should(BeNumerically("<", 90), "Should handle 1000 removed routes in under 90 seconds")
+	Expect(deleteTime.Seconds()).Should(BeNumerically("<", 120), "Should handle 1000 removed routes in under 120 seconds")
 	results.DeleteTimes = append(results.DeleteTimes, deleteTime.Seconds())
 
 	fmt.Println("Stress test complete, cleaning up...")
