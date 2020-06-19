@@ -1,10 +1,9 @@
 #@ load("@ytt:overlay", "overlay")
 
-apiVersion: "security.istio.io/v1beta1"
-kind: "PeerAuthentication"
-metadata:
-  name: "default"
-  namespace: istio-system
+#@overlay/match by=overlay.subset({"kind": "MeshPolicy", "metadata":{"name": "default"}}),expects=1
+---
 spec:
-  mtls:
-    mode: STRICT
+  #@overlay/replace
+  peers:
+    - mtls:
+        mode: "STRICT"
