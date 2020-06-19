@@ -1,4 +1,3 @@
-# TODO: Figure out new name: gcr.io/cf-networking-images/cfroutesync-integration-test-env
 FROM cloudfoundry/cflinuxfs3
 
 ENV GO_VERSION 1.13.1

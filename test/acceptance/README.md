@@ -27,20 +27,12 @@ Other requirements:
 
 ## Run
 
-### Without bbl-state
-
 ```bash
 # make sure you targeted your cluster before executing this
 cd test/acceptance
 ./bin/test_local <path to config.json> [path to kube config]
 ```
 
-## With bbl-state
-
-```bash
-cd test/acceptance
-./bin/test_with_bbl_state <path to config.json> <path to bbl state> [path to kube config] 
-```
 
 ## Configuration
 

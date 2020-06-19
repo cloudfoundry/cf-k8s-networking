@@ -29,9 +29,6 @@ For each route the test maps, the test measures the latency from when the route
 is mapped until when that route is reachable. The test asserts that this latency
 is under 10 seconds for 95% of the `map-route` requests.
 
-_Note_: This test currently does not pass using the cfroutesync component of
-cf-k8s-networking.
-
 ### CI
 Currently we run scale tests as defined in the [scaling
 pipeline](../scaling.yml).

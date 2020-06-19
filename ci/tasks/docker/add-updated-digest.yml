@@ -17,6 +17,6 @@ run:
   path: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.sh
 
 params:
-  COMPONENT_NAME: # e.g. cfroutesync, routecontroller
+  COMPONENT_NAME: # e.g. routecontroller
   GIT_COMMIT_USERNAME: "CF Networking Team CI Bot"
   GIT_COMMIT_EMAIL: "CF-Networking@pivotal.io"

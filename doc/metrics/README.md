@@ -1,11 +1,11 @@
 # Metrics
 
-Istio and `cfroutesync` produce metrics that help an operator understand how the routing system is functioning.
+Istio produces metrics that help an operator understand how the routing system is functioning.
 
 These metrics are emitted with prometheus by default when you install Istio and CF-K8s-Networking.  See [indicators.yml](indicators.yml) for recommended `promql` queries to watch.
 
 ## Viewing metrics
-You can view and explore Istio and `cfroutesync` metrics and queries via a Grafana or Prometheus dashboard. Prometheus comes installed by default with Istio, but for Grafana you will have to enable `--set values.grafana.enabled=true` on your Istio installation.
+You can view and explore Istio metrics and queries via a Grafana or Prometheus dashboard. Prometheus comes installed by default with Istio, but for Grafana you will have to enable `--set values.grafana.enabled=true` on your Istio installation.
 
 ### Grafana
 We use grafana to see these metrics.  To get a dashboard:
@@ -17,9 +17,9 @@ We use grafana to see these metrics.  To get a dashboard:
    ```bash
    istioctl dashboard grafana
    ```
-   
+
    (this is a `kubectl port-forward` but simpler).
-   
+
 1. Click the `+` button on the sidebar menu, and import [dashboard.json](./dashboard.json)
 
 1. Go to "Indicator" dashboard.

@@ -13,10 +13,6 @@ groups:
   - deploy-good-acceptance
   - ship-what
   - ship-it
-- name: cfroutesync
-  jobs:
-  - run-cfroutesync-units
-  - publish-cfroutesync-image
 - name: routecontroller
   jobs:
   - run-routecontroller-units
@@ -80,16 +76,6 @@ resources:
       - ci
       - config
 
-- name: cfroutesync
-  type: git
-  icon: github-box
-  source:
-    branch: master
-    private_key: ((github_private_key.private_key))
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    paths:
-      - cfroutesync
-
 - name: routecontroller
   type: git
   icon: github-box
@@ -99,14 +85,6 @@ resources:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
       - routecontroller
-
-- name: cfroutesync-image
-  type: docker-image
-  icon: docker
-  source:
-    repository: gcr.io/cf-networking-images/cf-k8s-networking/cfroutesync
-    username: _json_key
-    password: ((gcp_gcr_service_account_key))
 
 - name: routecontroller-image
   type: docker-image
@@ -152,16 +130,6 @@ resources:
 
 jobs:
 # Build
-- name: run-cfroutesync-units
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking
-        - get: cfroutesync
-          trigger: true
-        - get: cf-k8s-networking-ci
-    - task: unit-tests
-      file: cf-k8s-networking-ci/ci/tasks/tests/run-cfroutesync-units.yml
-
 - name: run-routecontroller-units
   plan:
     - in_parallel:
@@ -213,48 +181,6 @@ jobs:
     - put: routecontroller-stress-results
       params:
         repository: routecontroller-stress-results-modified
-        rebase: true
-
-- name: publish-cfroutesync-image
-  serial: true
-  serial_groups: [image-publishing]
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking
-        - get: cfroutesync
-          passed: [run-cfroutesync-units]
-          trigger: true
-        - get: cf-k8s-networking-ci
-    - in_parallel:
-        # Note: 'initial-image' is not the image we publish. Just needed as intermediate
-        # step to inspect so we can label the final image.
-        - put: initial-image
-          resource: cfroutesync-image
-          params:
-            build: cf-k8s-networking/cfroutesync
-            dockerfile: cf-k8s-networking/cfroutesync/deploy/Dockerfile
-          get_params:
-            save: true
-        - task: build-tag-file
-          file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
-    - task: build-image-labels
-      file: cf-k8s-networking-ci/ci/tasks/docker/build-image-labels.yml
-    - put: cfroutesync-image
-      params:
-        build: cf-k8s-networking/cfroutesync
-        dockerfile: cf-k8s-networking/cfroutesync/deploy/Dockerfile
-        additional_tags: docker-info/tags
-        tag_as_latest: true
-        labels_file: labels/labels.json
-    - task: add-updated-digest
-      file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
-      input_mapping:
-        image-resource: cfroutesync-image
-      params:
-        COMPONENT_NAME: cfroutesync
-    - put: cf-k8s-networking
-      params:
-        repository: cf-k8s-networking-modified
         rebase: true
 
 - name: publish-routecontroller-image
