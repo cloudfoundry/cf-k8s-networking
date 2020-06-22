@@ -44,7 +44,7 @@ Most of our templating and deploy scripts rely on the [k14s Kubernetes Tools](ht
 * `kapp`
 * `vendir`
 
-#### Integration Tests
+#### Integration Test Dependencies
 Our integration tests spin up temporary
 [Kind](https://kubernetes.io/docs/setup/learning-environment/kind/) clusters
 using Docker.
@@ -55,8 +55,30 @@ using Docker.
 
 
 ### Running Tests
+
+#### RouteController Unit and Integration Tests
 1. `cd cf-k8s-networking/routecontroller`
 2. `ginkgo .`
+
+#### Networking Acceptance Tests
+1. `cd cf-k8s-networking/test/acceptance/bin`
+2. Create a file called `config.json` and fill with the following information:
+```json
+{
+ "kubeconfig_path": "<kubeconfig_path>",
+  "api": "api.<cluster_name>.routing.lol",
+  "admin_user": "admin",
+  "apps_domain": "apps.<cluster_name>.routing.lol",
+  "admin_password": "<admin_password>"
+}
+```
+3. `./test_local config.json`
+
+#### CF-K8s-Networking Upgradeability Uptime Tests
+1. For more information, check this [README](test/uptime/README.md)
+
+#### CF-K8s-Networking Scale Tests
+1. For more information, check this [README](test/scale/README.md)
 
 ### Deploying your changes
 CF-K8s-Networking is a set of components meant to be integrated into a

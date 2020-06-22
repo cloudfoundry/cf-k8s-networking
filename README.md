@@ -20,25 +20,22 @@ CF-K8s-Networking](doc/assets/routecontroller-design.png)
 * **RouteController:** Watches the Kubernetes API for Route CRs and translates
   the Route CRs into Istio Virtual Service CRs and Kubernetes Services
   accordingly to enable routing to applications deployed by Cloud Foundry.
-  * TODO: Explain the relationships between what happens in CAPI to Route CR and
-    Route CR to Virtual Service and K8s Service
-  * TODO: Add explanation of how Eirini creates stateful sets and how we
-    reference the pods of those stateful sets in routecontroller
 
-* **Istio:** TODO: Explain that Istio is a dependency of the cf-k8s-networking
-  subsystem
-  * Explain that Sidecars are used and required by the cf-k8s-networking
-    subsystem
-    * Explain that it is required because of mTLS
-
-* TODO: Explain other default networking configuration (namespace network
-  policy?)
-
-* TODO: Explain that prometheus thing (?)
-
-## Testing
-
-* TODO: Add references to readmes on all our various tests and how to run them
+* **Istio:** CF-K8s-Networking currently depends on [Istio](https://istio.io/).
+  * Istio serves as both our gateway router for ingress networking, replacing
+    the role of the Gorouters in CF for VMs, and service mesh for (eventually)
+    container-to-container networking policy enforcement.
+  * We provide a manifest for installing our custom configuration for Istio,
+    [here](config/istio/generated/xxx-generated-istio.yaml).
+  * Istio provides us with security features out of the box, such as:
+    * Automatic Envoy sidecar injection for system components and application workloads
+    * `Sidecar` Kubernetes resources that can limit egress traffic from workload `Pod`s
+    * Transparent mutal TLS (mTLS) everywhere
+    * (Eventually) app identity certificates using [SPIFFE](https://spiffe.io/) issued by Istio Citadel
+  * Istio should be treated as an "implementation detail" of the platform and
+    our reliance on it is subject to change
 
 ## Contributing
-Check out our [Contributing guidelines](CONTRIBUTING.md).
+For information about how to contribute, develop against our codebase, and run
+our various test suites, check out our [Contributing guidelines](CONTRIBUTING.md).
+
