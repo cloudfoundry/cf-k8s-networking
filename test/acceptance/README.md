@@ -12,7 +12,6 @@ To run tests you need to have the following installed:
 
 * [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
-
 Other requirements:
 
 * You should have `kubectl` config with the access to system and workload namespaces to GET/POST/PUT/PATCH pods, services, service accounts and execute commands in pods.

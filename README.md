@@ -15,7 +15,7 @@ the following documentation:
 ## Architecture
 
 ![Architecture Diagram of
-CF-K8s-Networking](doc/assets/routecontroller-design.png)
+CF-K8s-Networking](doc/assets/routecontroller-data-flow-diagram.png)
 
 * **RouteController:** Watches the Kubernetes API for Route CRs and translates
   the Route CRs into Istio Virtual Service CRs and Kubernetes Services

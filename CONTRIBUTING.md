@@ -55,14 +55,20 @@ using Docker.
 
 
 ### Running Tests
+When contributing to this project you should, at a minimum, be running the
+`routecontroller` unit and integration tests. If you've made changes to the
+Istio installation or other Kubernetes networking config, we also recommend
+running the Networking Acceptance Tests.
 
 #### RouteController Unit and Integration Tests
 1. `cd cf-k8s-networking/routecontroller`
 2. `ginkgo .`
 
 #### Networking Acceptance Tests
+To run the acceptance tests, you must have a kubernetes cluster provisioned.
 1. `cd cf-k8s-networking/test/acceptance/bin`
-2. Create a file called `config.json` and fill with the following information:
+2. Create a file called `config.json` and fill in the information below with
+   your cluster's configuration:
 ```json
 {
  "kubeconfig_path": "<kubeconfig_path>",
@@ -72,12 +78,19 @@ using Docker.
   "admin_password": "<admin_password>"
 }
 ```
-3. `./test_local config.json`
+3. Run `./test_local config.json`
+
+### Other Tests
+We have a few additional test suites that run in our CI.
+* [Scaling Tests in
+  CI](https://networking.ci.cf-app.com/teams/cf-k8s/pipelines/scaling).
+* [Uptime Tests in
+  CI](https://networking.ci.cf-app.com/teams/cf-k8s/pipelines/cf-k8s-upgrade)
 
 #### CF-K8s-Networking Upgradeability Uptime Tests
 1. For more information, check this [README](test/uptime/README.md)
 
-#### CF-K8s-Networking Scale Tests
+#### CF-K8s-Networking Scaling Tests
 1. For more information, check this [README](test/scale/README.md)
 
 ### Deploying your changes
