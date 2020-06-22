@@ -12,7 +12,6 @@ function login_and_target() {
 }
 
 function run_scale_test() {
-    export NUMBER_OF_APPS=1000
     export DOMAIN="apps.ci-scale-testing.routing.lol"
     export CLEANUP="true" #Remove when we run these tests regularly after they start to pass
 
