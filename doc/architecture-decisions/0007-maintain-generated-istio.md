@@ -17,7 +17,7 @@ The build scripts and `ytt` overlays for Istio live in [config/istio](../../conf
 
 [cf-for-k8s](https://github.com/cloudfoundry/cf-for-k8s/) pulls in this generated Istio configuration using [`vendir`](https://github.com/k14s/vendir) as seen in [vendir.yml](https://github.com/cloudfoundry/cf-for-k8s/blob/master/vendir.yml).
 
-See [updating Istio docs](https://github.com/cloudfoundry/cf-k8s-networking/blob/master/doc/update-istio.md) for instructions.
+See [updating Istio docs](https://github.com/cloudfoundry/cf-k8s-networking/blob/develop/doc/update-istio.md) for instructions.
 
 ## Consequences
 When making changes to anything related to the Istio installation (build scripts, `ytt` overlays, Istio configuration), developers need to also generate the new corresponding Istio yaml following the doc [doc/update-istio.md](../update-istio.md)

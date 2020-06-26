@@ -32,7 +32,7 @@ We will remove `cfroutesync` and dependencies on Metacontroller.
 
 
 ## Consequences
-This reverses the [previous decision (ADR 2)](https://github.com/cloudfoundry/cf-k8s-networking/blob/master/doc/architecture-decisions/0002-directly-create-istio-resources.md) to use Metacontroller and directly create Kubernetes and Istio resources.
+This reverses the [previous decision (ADR 2)](https://github.com/cloudfoundry/cf-k8s-networking/blob/develop/doc/architecture-decisions/0002-directly-create-istio-resources.md) to use Metacontroller and directly create Kubernetes and Istio resources.
 
 #### Route CRD
 * Decouples cf-k8s-networking from Cloud Controller. Additional routing control planes could be added in the future or developers could use `kubectl` directly.
@@ -46,7 +46,7 @@ This reverses the [previous decision (ADR 2)](https://github.com/cloudfoundry/cf
 
 #### Removal of Metacontroller
 Removal of Metacontroller alleviates some future problems:
-* As discussed in [ADR 2](https://github.com/cloudfoundry/cf-k8s-networking/blob/master/doc/architecture-decisions/0002-directly-create-istio-resources.md), Metacontroller did not support the many Route to one VirtualService object relationship which required us to aggregate Routes from Cloud Controller ourselves. With Kubebuilder we can support this relationship and keep the data representations consistent across both the Cloud Controller and Kubernetes APIs.
+* As discussed in [ADR 2](https://github.com/cloudfoundry/cf-k8s-networking/blob/develop/doc/architecture-decisions/0002-directly-create-istio-resources.md), Metacontroller did not support the many Route to one VirtualService object relationship which required us to aggregate Routes from Cloud Controller ourselves. With Kubebuilder we can support this relationship and keep the data representations consistent across both the Cloud Controller and Kubernetes APIs.
 * The Metacontroller design, most likely, does not provide necessary metrics for GA
 * Metacontroller itself is [no longer supported](https://github.com/GoogleCloudPlatform/metacontroller/issues/184) and currently presents issues with Kubernetes `v1.16+`
 

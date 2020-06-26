@@ -43,7 +43,7 @@ resources:
   type: git
   icon: github-box
   source:
-    branch: master
+    branch: develop
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
@@ -59,7 +59,7 @@ resources:
   type: git
   icon: github-box
   source:
-    branch: master
+    branch: develop
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
@@ -69,7 +69,7 @@ resources:
   type: git
   icon: github-box
   source:
-    branch: master
+    branch: develop
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
@@ -80,7 +80,7 @@ resources:
   type: git
   icon: github-box
   source:
-    branch: master
+    branch: develop
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:

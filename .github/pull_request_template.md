@@ -4,7 +4,7 @@
 >
 > We've designed this PR template to speed up the PR review and merge process - please use it.
 
-Checkout the [contributing guidelines](https://github.com/cloudfoundry/cf-k8s-networking/blob/master/CONTRIBUTING.md)
+Checkout the [contributing guidelines](https://github.com/cloudfoundry/cf-k8s-networking/blob/develop/CONTRIBUTING.md)
 
 ### Summary of changes
 _Please describe the change here._

@@ -16,7 +16,7 @@ _A clear and concise description of what you want to happen._
 ### Describe alternatives you've considered
 _A clear and concise description of any alternative solutions or features you've considered._
 
-### Additional context 
+### Additional context
 _Add any other context or documents about the feature request here. For larger feature requests, we found using Google docs to collaborate is effective._
 
 ### Contributions

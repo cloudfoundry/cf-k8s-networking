@@ -22,7 +22,7 @@ _In your own words, describe the issue._
 ### Reproduction Steps
 _What steps/actions led to the issue?_
 
-### Logs 
+### Logs
 _It's helpful to include snippets of the error response or logs output_
 
 ### Expected behavior

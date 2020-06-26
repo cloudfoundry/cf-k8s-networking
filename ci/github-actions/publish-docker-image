@@ -14,8 +14,8 @@ set -euo pipefail
 # https://stackoverflow.com/a/58034787
 branch_name=${GITHUB_REF##*/}
 
-if [ ${branch_name} == "master" ]; then
-  echo "Pushes to master are handled by Concourse"
+if [ ${branch_name} == "develop" ]; then
+  echo "Pushes to develop are handled by Concourse"
   exit 0
 fi
 
