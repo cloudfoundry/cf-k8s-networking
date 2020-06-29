@@ -25,7 +25,7 @@ function deploy_apps() {
       do
         name="bin-$((n * 10 + i))"
         echo $name
-        cf push $name -o cfrouting/httpbin8080 -m 256M -k 256M -i 2 &
+        cf push $name -o cfrouting/httpbin -m 256M -k 256M -i 2 &
       done
       wait
     done

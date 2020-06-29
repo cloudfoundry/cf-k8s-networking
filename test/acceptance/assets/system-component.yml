@@ -12,7 +12,7 @@ metadata:
 spec:
   serviceAccountName: system-component-sa
   containers:
-    - image: cfrouting/httpbin8080:latest
+    - image: cfrouting/httpbin:latest
       name: system-component
       ports:
         - containerPort: 8080

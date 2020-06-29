@@ -26,7 +26,7 @@ function create_org_and_space() {
 
 function deploy_app() {
     local name="${1}"
-    cf push "${name}" -o "cfrouting/httpbin8080"
+    cf push "${name}" -o "cfrouting/httpbin"
 }
 
 function main() {

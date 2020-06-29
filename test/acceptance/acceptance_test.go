@@ -155,5 +155,15 @@ func pushProxy(name string) string {
 }
 
 func pushApp(name string) string {
-	return pushDockerApp(name, "cfrouting/httpbin8080")
+	session := cf.Cf("push",
+		name,
+		"-o", "cfrouting/httpbin",
+		"-u", "http",
+	)
+	// cf push does not exit 0 on cf-for-k8s yet because logcache is unreliable (stats server error)
+	Expect(session.Wait(120 * time.Second)).To(gexec.Exit())
+
+	guid := strings.TrimSpace(string(cf.Cf("app", name, "--guid").Wait().Out.Contents()))
+
+	return guid
 }
