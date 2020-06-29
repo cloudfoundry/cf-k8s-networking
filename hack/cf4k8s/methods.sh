@@ -49,11 +49,14 @@ function create_and_target_cluster() {
 function deploy_cf_for_k8s() {
     clone_if_not_exist https://github.com/cloudfoundry/cf-for-k8s.git "${HOME}/workspace/cf-for-k8s"
     pushd "${HOME}/workspace/cf-for-k8s" > /dev/null
-        mkdir -p "/tmp/${CLUSTER_NAME}"
-        if [ ! -f "/tmp/${CLUSTER_NAME}/cf-values.yml" ]; then
-          ./hack/generate-values.sh -d ${CF_DOMAIN} -g "${GCP_SERVICE_ACCOUNT_KEY}" > "/tmp/${CLUSTER_NAME}/cf-values.yml"
+        CLUSTER_CONFIG_PATH="/tmp/${CLUSTER_NAME}"
+        mkdir -p "${CLUSTER_CONFIG_PATH}"
+        if [ ! -f "${CLUSTER_CONFIG_PATH}/cf-values.yml" ]; then
+          ./hack/generate-values.sh -d ${CF_DOMAIN} -g "${GCP_SERVICE_ACCOUNT_KEY}" > "${CLUSTER_CONFIG_PATH}/cf-values.yml"
+
+          yq -r '.| {"kubeconfig_path": "/Users/user/.kube/config",  "api": ("api." + .system_domain), "admin_user":"admin", "admin_password": .cf_admin_password, "apps_domain": .app_domains[0]}' /tmp/alex/cf-values.yml > "${CLUSTER_CONFIG_PATH}/acceptance_config.json"
         fi
-        kapp deploy -a cf -f <(ytt -f config -f "/tmp/${CLUSTER_NAME}/cf-values.yml") -y
+        kapp deploy -a cf -f <(ytt -f config -f "${CLUSTER_CONFIG_PATH}/cf-values.yml") -y
     popd
 }
 
