@@ -42,6 +42,38 @@ resources:
       username: _json_key
       password: ((gcp_gcr_service_account_key))
 
+  - name: httpbin-repo
+    type: git
+    icon: github-box
+    source:
+      uri: git@github.com:cf-routing/httpbin.git
+      branch: develop
+      private_key: ((github_private_key.private_key))
+
+  - name: httpbin-image
+    type: docker-image
+    icon: docker
+    source:
+      repository: cfrouting/httpbin
+      username: ((dockerhub_public.username))
+      password: ((dockerhub_public.password))
+
+  - name: proxy-repo
+    type: git
+    icon: github-box
+    source:
+      uri: git@github.com:cf-routing/proxy.git
+      branch: develop
+      private_key: ((github_private_key.private_key))
+
+  - name: proxy-image
+    type: docker-image
+    icon: docker
+    source:
+      repository: cfrouting/proxy
+      username: ((dockerhub_public.username))
+      password: ((dockerhub_public.password))
+
 jobs:
   - name: build-k8s-deploy-image
     plan:
@@ -65,4 +97,22 @@ jobs:
       - put: kind-integration-test-image
         params:
           build: cf-k8s-networking-docker-images/ci/dockerfiles/test
+          tag_as_latest: true
+
+  - name: build-httpbin-image
+    plan:
+      - get: httpbin-repo
+        trigger: true
+      - put: httpbin-image
+        params:
+          build: httpbin-repo
+          tag_as_latest: true
+
+  - name: build-proxy-image
+    plan:
+      - get: proxy-repo
+        trigger: true
+      - put: proxy-image
+        params:
+          build: proxy-repo
           tag_as_latest: true
