@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 function latest_cluster_version() {
-  gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
+  gcloud container get-server-config --zone us-west1-a --project ${GCP_PROJECT} 2>/dev/null | yq .validMasterVersions[0] -r
 }
 
 function credhub_get_gcp_service_account_key() {
