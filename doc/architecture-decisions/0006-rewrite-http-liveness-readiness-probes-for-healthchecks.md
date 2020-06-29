@@ -4,7 +4,7 @@ Date: 2020-02-05
 
 ## Status
 
-Proposal
+Accepted
 
 ## Context
 With Istio auto mTLS enabled in `STRICT` mode, [http liveness and readiness

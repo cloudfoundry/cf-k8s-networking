@@ -5,7 +5,7 @@ Updated: 2020-06-05
 
 ## Status
 
-Proposal
+Accepted
 
 ## Context
 
