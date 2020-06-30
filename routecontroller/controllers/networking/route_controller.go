@@ -22,6 +22,7 @@ import (
 
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
+	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -42,6 +43,7 @@ type RouteReconciler struct {
 	Scheme         *runtime.Scheme
 	IstioGateway   string
 	ResyncInterval time.Duration
+	Collector      prometheus.Gauge
 }
 
 const fqdnFieldKey string = "spec.fqdn"
@@ -52,6 +54,7 @@ const finalizerName string = "routes.networking.cloudfoundry.org"
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
 
 func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
+	r.Collector.Set(123456)
 	ctx := context.Background()
 	log := r.Log.WithValues("route", req.NamespacedName)
 

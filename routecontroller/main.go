@@ -19,23 +19,30 @@ import (
 	"flag"
 	"os"
 
+	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
+	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/cfg"
+	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/controllers/networking"
+	"github.com/prometheus/client_golang/prometheus"
 	"k8s.io/apimachinery/pkg/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	_ "k8s.io/client-go/plugin/pkg/client/auth/gcp"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
-
-	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
-	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/cfg"
-	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/controllers/networking"
+	"sigs.k8s.io/controller-runtime/pkg/metrics"
 
 	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
 	// +kubebuilder:scaffold:imports
 )
 
 var (
-	scheme   = runtime.NewScheme()
-	setupLog = ctrl.Log.WithName("setup")
+	scheme        = runtime.NewScheme()
+	setupLog      = ctrl.Log.WithName("setup")
+	reconcileTime = prometheus.NewGauge(
+		prometheus.GaugeOpts{
+			Name: "reconcile_time",
+			Help: "Time to reconcile routes into virtual services and services",
+		},
+	)
 )
 
 func init() {
@@ -43,6 +50,7 @@ func init() {
 	_ = networkingv1alpha1.AddToScheme(scheme)
 	_ = istionetworkingv1alpha3.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
+	metrics.Registry.MustRegister(reconcileTime)
 }
 
 func main() {
@@ -80,6 +88,7 @@ func main() {
 		Scheme:         mgr.GetScheme(),
 		IstioGateway:   config.Istio.Gateway,
 		ResyncInterval: config.ResyncInterval,
+		Collector:      reconcileTime,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Route")
 		os.Exit(1)
