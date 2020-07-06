@@ -5,8 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"io/ioutil"
-	"math/rand"
 	"os"
 	"os/exec"
 	"strings"
@@ -17,7 +15,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gexec"
-	"sigs.k8s.io/kind/pkg/cluster"
 )
 
 func TestStress(t *testing.T) {
@@ -64,34 +61,34 @@ type kubectlRunner struct {
 }
 
 func CreateKindCluster() kubectlRunner {
-	name := fmt.Sprintf("stress-tests-%d", rand.Uint64())
-	provider := cluster.NewProvider()
-	err := provider.Create(name)
-	// retry once
-	if err != nil {
-		time.Sleep(5 * time.Second)
-		err = provider.Create(name)
-	}
+	// name := fmt.Sprintf("stress-tests-%d", rand.Uint64())
+	// provider := cluster.NewProvider()
+	// err := provider.Create(name)
+	// // retry once
+	// if err != nil {
+	// 	time.Sleep(5 * time.Second)
+	// 	err = provider.Create(name)
+	// }
 
-	Expect(err).NotTo(HaveOccurred())
+	// Expect(err).NotTo(HaveOccurred())
 
-	kubeConfig, err := provider.KubeConfig(name, false)
-	Expect(err).NotTo(HaveOccurred())
+	// kubeConfig, err := provider.KubeConfig(name, false)
+	// Expect(err).NotTo(HaveOccurred())
 
-	kubeConfigFile, err := ioutil.TempFile("", fmt.Sprintf("kubeconfig-%s", name))
-	Expect(err).NotTo(HaveOccurred())
-	defer kubeConfigFile.Close()
+	// kubeConfigFile, err := ioutil.TempFile("", fmt.Sprintf("kubeconfig-%s", name))
+	// Expect(err).NotTo(HaveOccurred())
+	// defer kubeConfigFile.Close()
 
-	_, err = kubeConfigFile.Write([]byte(kubeConfig))
-	Expect(err).NotTo(HaveOccurred())
+	// _, err = kubeConfigFile.Write([]byte(kubeConfig))
+	// Expect(err).NotTo(HaveOccurred())
 
-	return kubectlRunner{clusterName: name, kubeconfigFilePath: kubeConfigFile.Name()}
+	return kubectlRunner{clusterName: "jun-30", kubeconfigFilePath: "/home/pivotal/.kube/config"}
 }
 
 func (k kubectlRunner) DestroyCluster() {
-	provider := cluster.NewProvider()
-	err := provider.Delete(k.clusterName, k.kubeconfigFilePath)
-	Expect(err).NotTo(HaveOccurred())
+	// provider := cluster.NewProvider()
+	// err := provider.Delete(k.clusterName, k.kubeconfigFilePath)
+	// Expect(err).NotTo(HaveOccurred())
 }
 
 func (k kubectlRunner) Run(kubectlCommandArgs ...string) (*gexec.Session, error) {

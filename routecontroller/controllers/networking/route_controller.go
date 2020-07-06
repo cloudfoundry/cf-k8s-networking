@@ -54,7 +54,7 @@ const finalizerName string = "routes.networking.cloudfoundry.org"
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
 
 func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	r.Collector.Set(123456)
+	start := time.Now()
 	ctx := context.Background()
 	log := r.Log.WithValues("route", req.NamespacedName)
 
@@ -101,6 +101,8 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
+	timeToReconcile := time.Since(start)
+	r.Collector.Set(float64(timeToReconcile.Milliseconds()))
 	return ctrl.Result{RequeueAfter: r.ResyncInterval}, nil
 }
 
