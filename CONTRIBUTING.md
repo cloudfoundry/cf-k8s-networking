@@ -62,7 +62,8 @@ running the Networking Acceptance Tests.
 
 #### RouteController Unit and Integration Tests
 1. `cd cf-k8s-networking/routecontroller`
-2. `ginkgo .`
+1. `./scripts/test`
+1. `./scripts/integration`
 
 #### Networking Acceptance Tests
 To run the acceptance tests, you must have a kubernetes cluster provisioned.
