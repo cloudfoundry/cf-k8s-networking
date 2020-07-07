@@ -9,6 +9,8 @@ require (
 	github.com/onsi/ginkgo v1.12.0
 	github.com/onsi/gomega v1.9.0
 	github.com/prometheus/client_golang v1.0.0 // indirect
+	github.com/prometheus/client_model v0.1.0
+	github.com/prometheus/prom2json v1.3.0
 	github.com/sirupsen/logrus v1.4.2
 	google.golang.org/appengine v1.6.5 // indirect
 	istio.io/api v0.0.0-20200410141105-715a3039a0b5

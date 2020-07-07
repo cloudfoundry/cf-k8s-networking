@@ -9,6 +9,7 @@ import (
 	"math/rand"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 	"text/template"
@@ -46,6 +47,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
 
+	// Add service to reach routecontroller's metrics
+	session, err = kubectl.Run("apply", "-f", "fixtures/service.yml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
+
 	var found bool
 	resultsPath, found = os.LookupEnv("RESULTS_PATH")
 	if !found {
@@ -66,7 +72,7 @@ type kubectlRunner struct {
 func CreateKindCluster() kubectlRunner {
 	name := fmt.Sprintf("stress-tests-%d", rand.Uint64())
 	provider := cluster.NewProvider()
-	err := provider.Create(name)
+	err := provider.Create(name, cluster.CreateWithConfigFile(filepath.Join("fixtures", "cluster.yml")))
 	// retry once
 	if err != nil {
 		time.Sleep(5 * time.Second)
