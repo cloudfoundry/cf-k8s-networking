@@ -42,7 +42,7 @@ var _ = Describe("Stress Tests", func() {
 		}
 
 		for _, res := range results.Add1000P95 {
-			Expect(res).To(BeNumerically("<", 0.250))
+			Expect(res).To(BeNumerically("<", 0.5))
 		}
 
 		writeResults(results)
