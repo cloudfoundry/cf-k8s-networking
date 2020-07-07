@@ -139,17 +139,17 @@ var _ = Describe("ServiceBuilder", func() {
 		Context("when a route has no destinations", func() {
 			It("does not create a Service", func() {
 				route := networkingv1alpha1.RouteList{
-							Items: []networkingv1alpha1.Route{
-								constructRoute(routeParams{
-									name:         "route-guid-1",
-									host:         "test0",
-									path:         "/path0/deeper",
-									domain:       "domain0.example.com",
-									internal:     true,
-									destinations: []routeDestParams{},
-								}),
-							},
-						}
+					Items: []networkingv1alpha1.Route{
+						constructRoute(routeParams{
+							name:         "route-guid-1",
+							host:         "test0",
+							path:         "/path0/deeper",
+							domain:       "domain0.example.com",
+							internal:     true,
+							destinations: []routeDestParams{},
+						}),
+					},
+				}
 
 				builder := ServiceBuilder{}
 				Expect(builder.Build(&route.Items[0])).To(BeEmpty())
