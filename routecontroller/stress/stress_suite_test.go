@@ -57,7 +57,6 @@ var _ = BeforeSuite(func() {
 	if !found {
 		resultsPath = "results.json"
 	}
-
 })
 
 var _ = AfterSuite(func() {
@@ -165,7 +164,7 @@ func buildRoutes(numberOfRoutes int, tag string) io.Reader {
 	var routesBuilder strings.Builder
 
 	for i := 0; i < numberOfRoutes; i++ {
-		route := buildRoute(i, tag)
+		route := buildRoute(i, tag, "")
 		// Create a new YAML document for each Route definition
 		_, err := routesBuilder.WriteString("---\n")
 		Expect(err).NotTo(HaveOccurred())
@@ -184,18 +183,31 @@ func buildSingleRoute(index int, tag string) io.Reader {
 
 	var routesBuilder strings.Builder
 
-	route := buildRoute(index, tag)
+	route := buildRoute(index, tag, "")
 	err = routeTmpl.Execute(&routesBuilder, route)
 	Expect(err).NotTo(HaveOccurred())
 
 	return strings.NewReader(routesBuilder.String())
 }
 
-func buildRoute(index int, tag string) TestRouteTemplate {
+func updateSingleRoute(index int, tag string) io.Reader {
+	routeTmpl, err := template.ParseFiles("fixtures/route_template.yml")
+	Expect(err).NotTo(HaveOccurred())
+
+	var routesBuilder strings.Builder
+
+	route := buildRoute(index, tag, "stressfully-updated")
+	err = routeTmpl.Execute(&routesBuilder, route)
+	Expect(err).NotTo(HaveOccurred())
+
+	return strings.NewReader(routesBuilder.String())
+}
+
+func buildRoute(index int, tag, update string) TestRouteTemplate {
 	return TestRouteTemplate{
 		Name:            fmt.Sprintf("route-%s-%d", tag, index),
 		Host:            fmt.Sprintf("hostname-%s-%d", tag, index),
-		Path:            fmt.Sprintf("/%s-%d", tag, index),
+		Path:            fmt.Sprintf("/%s-%s-%d", tag, update, index),
 		Domain:          "apps.example.com",
 		DestinationGUID: fmt.Sprintf("destination-guid-%s-%d", tag, index),
 		AppGUID:         fmt.Sprintf("app-guid-%s-%d", tag, index),

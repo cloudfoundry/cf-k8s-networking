@@ -8,8 +8,10 @@ import (
 	"math"
 	"net/http"
 	"path/filepath"
+	"strings"
 	"time"
 
+	. "code.cloudfoundry.org/cf-k8s-networking/routecontroller/stress/matchers"
 	dto "github.com/prometheus/client_model/go"
 
 	. "github.com/onsi/ginkgo"
@@ -20,17 +22,18 @@ import (
 )
 
 type Results struct {
-	Time       int32     `json:"time"`
-	Add1000P95 []float64 `json:"bulk_add_1000_p95s"`
-	Add100P95  []float64 `json:"individually_add_100_p95s"`
-	Del100P95  []float64 `json:"individually_delete_100_p95s"`
-	Del1000P95 []float64 `json:"bulk_delete_1000_p95s"`
+	Time         int32     `json:"time"`
+	Add1000P95   []float64 `json:"bulk_add_1000_p95s"`
+	Add100P95    []float64 `json:"individually_add_100_p95s"`
+	Update100P95 []float64 `json:"individually_update_100_p95s"`
+	Del100P95    []float64 `json:"individually_delete_100_p95s"`
+	Del1000P95   []float64 `json:"bulk_delete_1000_p95s"`
 }
 
 var _ = Describe("Stress Tests", func() {
 	var (
 		numberOfRoutes = 1000
-		numSamples     = 3
+		numSamples     = 1
 
 		results = Results{
 			Time:       int32(time.Now().Unix()),
@@ -45,13 +48,17 @@ var _ = Describe("Stress Tests", func() {
 			results = stressRouteController(numberOfRoutes, results)
 		}
 
-		fmt.Printf("Results: %+v", results)
+		writeResultsToStdout(results)
 
 		for _, res := range results.Add1000P95 {
 			Expect(res).To(BeNumerically("<", 0.5))
 		}
 
 		for _, res := range results.Add100P95 {
+			Expect(res).To(BeNumerically("<", 0.5))
+		}
+
+		for _, res := range results.Update100P95 {
 			Expect(res).To(BeNumerically("<", 0.5))
 		}
 
@@ -63,7 +70,7 @@ var _ = Describe("Stress Tests", func() {
 			Expect(res).To(BeNumerically("<", 0.5))
 		}
 
-		writeResults(results)
+		writeResultsToFile(results)
 	})
 })
 
@@ -121,6 +128,25 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	results.Add100P95 = append(results.Add100P95, findBucket(add100hist, add1000hist))
 
 	currentNumberOfRoutes := kubectl.GetNumberOf("routes")
+	fmt.Printf("Updating 100 routes one at a time from the current %d routes\n", currentNumberOfRoutes)
+	for i := 0; i < 100; i++ {
+		route := updateSingleRoute(i, "the100")
+		session, err := kubectl.RunWithStdin(route, "apply", "-f", "-")
+		Expect(err).NotTo(HaveOccurred())
+		Eventually(session).Should(gexec.Exit(0))
+	}
+
+	Eventually(func() int {
+		session, err = kubectl.Run("get", "virtualservices", "-o", "custom-columns=PATH:.spec.http[0].match[0].uri.prefix", "--no-headers")
+		Eventually(session).Should(gexec.Exit(0))
+		Expect(err).NotTo(HaveOccurred())
+		return strings.Count(string(session.Out.Contents()), "stressfully-updated")
+	}, 30*time.Minute, 500*time.Millisecond).Should(Equal(100))
+
+	update100hist := getReconcileTime().Metric[0].Histogram
+	results.Update100P95 = append(results.Update100P95, findBucket(update100hist, add100hist))
+
+	currentNumberOfRoutes = kubectl.GetNumberOf("routes")
 	fmt.Printf("Deleting 100 routes one at a time from the current %d routes\n", currentNumberOfRoutes)
 	for i := 0; i < 100; i++ {
 		route := buildSingleRoute(i, "the100")
@@ -199,10 +225,16 @@ func deleteRoutecontroller() {
 	Eventually(func() int { return kubectl.GetNumberOf("pods") }).Should(Equal(0))
 }
 
-func writeResults(results Results) {
+func writeResultsToFile(results Results) {
 	file, err := json.MarshalIndent(results, "", " ")
 	Expect(err).NotTo(HaveOccurred())
 	err = ioutil.WriteFile(resultsPath, file, 0644)
 	Expect(err).NotTo(HaveOccurred())
 }
 
+func writeResultsToStdout(results Results) {
+	fmt.Println("Results:")
+	prettyPrintedResults, err := json.MarshalIndent(results, "", " ")
+	Expect(err).NotTo(HaveOccurred())
+	fmt.Println(string(prettyPrintedResults))
+}
