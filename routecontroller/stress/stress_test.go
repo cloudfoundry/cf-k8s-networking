@@ -17,7 +17,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"github.com/onsi/gomega/gbytes"
-	"github.com/onsi/gomega/gexec"
 	"github.com/prometheus/prom2json"
 )
 
@@ -85,19 +84,19 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		"-v", "systemNamespace=default",
 	)
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(yttSession).Should(gexec.Exit(0))
+	Eventually(yttSession).Should(ExitSuccessfully())
 	yttContents := yttSession.Out.Contents()
 	yttReader := bytes.NewReader(yttContents)
 
 	fmt.Printf("Adding %d routes all at once\n", numberOfRoutes)
 	session, err := kubectl.RunWithStdin(yttReader, "apply", "-f", "-")
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
+	Eventually(session).Should(ExitSuccessfully())
 
 	session, err = kubectl.Run("rollout", "status", "deployment", "routecontroller")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gbytes.Say("successfully rolled out"))
-	Eventually(session).Should(gexec.Exit(0))
+	Eventually(session).Should(ExitSuccessfully())
 
 	// Wait for all the virtualservices to be created
 	Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
@@ -117,7 +116,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		route := buildSingleRoute(i, "the100")
 		session, err := kubectl.RunWithStdin(route, "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred())
-		Eventually(session).Should(gexec.Exit(0))
+		Eventually(session).Should(ExitSuccessfully())
 
 		expectedNum := numberOfRoutes + i + 1
 		Expect(kubectl.GetNumberOf("routes")).To(Equal(expectedNum))
@@ -133,12 +132,12 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		route := updateSingleRoute(i, "the100")
 		session, err := kubectl.RunWithStdin(route, "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred())
-		Eventually(session).Should(gexec.Exit(0))
+		Eventually(session).Should(ExitSuccessfully())
 	}
 
 	Eventually(func() int {
 		session, err = kubectl.Run("get", "virtualservices", "-o", "custom-columns=PATH:.spec.http[0].match[0].uri.prefix", "--no-headers")
-		Eventually(session).Should(gexec.Exit(0))
+		Eventually(session).Should(ExitSuccessfully())
 		Expect(err).NotTo(HaveOccurred())
 		return strings.Count(string(session.Out.Contents()), "stressfully-updated")
 	}, 30*time.Minute, 500*time.Millisecond).Should(Equal(100))
@@ -152,7 +151,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		route := buildSingleRoute(i, "the100")
 		session, err := kubectl.RunWithStdin(route, "delete", "-f", "-")
 		Expect(err).NotTo(HaveOccurred())
-		Eventually(session).Should(gexec.Exit(0))
+		Eventually(session).Should(ExitSuccessfully())
 
 		expectedNum := currentNumberOfRoutes - i - 1
 		Expect(kubectl.GetNumberOf("routes")).To(Equal(expectedNum))
@@ -165,7 +164,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	fmt.Printf("Deleting %d routes all at once\n", numberOfRoutes)
 	session, err = kubectl.Run("delete", "routes", "-l", "tag=initial", "--wait=false")
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
+	Eventually(session).Should(ExitSuccessfully())
 
 	Eventually(func() int {
 		return kubectl.GetNumberOf("routes")
@@ -212,7 +211,7 @@ func setupRoutes(numberOfRoutes int, tag string) {
 	routes := buildRoutes(numberOfRoutes, tag)
 	session, err := kubectl.RunWithStdin(routes, "apply", "-f", "-")
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
+	Eventually(session).Should(ExitSuccessfully())
 
 	Expect(kubectl.GetNumberOf("routes")).To(Equal(numberOfRoutes))
 }
@@ -220,7 +219,7 @@ func setupRoutes(numberOfRoutes int, tag string) {
 func deleteRoutecontroller() {
 	session, err := kubectl.Run("delete", "deployment", "routecontroller")
 	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
+	Eventually(session).Should(ExitSuccessfully())
 
 	Eventually(func() int { return kubectl.GetNumberOf("pods") }).Should(Equal(0))
 }
