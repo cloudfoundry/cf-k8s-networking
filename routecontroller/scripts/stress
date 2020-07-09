@@ -17,5 +17,5 @@ script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${script_dir}/.."
 
 set -x
-ginkgo -trace -progress -slowSpecThreshold 600 stress
+ginkgo -v -trace -progress -slowSpecThreshold 600 stress
 set +x

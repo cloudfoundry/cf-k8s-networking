@@ -40,10 +40,9 @@ var _ = Describe("Stress Tests", func() {
 		}
 	)
 
-	It("does not get worse", func() {
-		fmt.Printf("Stress test starting...\n")
+	It("performs to the expected baseline for each measurement", func() {
 		for i := 0; i < numSamples; i++ {
-			fmt.Printf("Performing stress test %d of %d\n", i, numSamples)
+			fmt.Fprintf(GinkgoWriter, "Performing stress test %d of %d\n", i, numSamples)
 			results = stressRouteController(numberOfRoutes, results)
 		}
 
@@ -88,7 +87,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	yttContents := yttSession.Out.Contents()
 	yttReader := bytes.NewReader(yttContents)
 
-	fmt.Printf("Adding %d routes all at once\n", numberOfRoutes)
+	By(fmt.Sprintf("Adding %d routes all at once", numberOfRoutes))
 	session, err := kubectl.RunWithStdin(yttReader, "apply", "-f", "-")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(ExitSuccessfully())
@@ -111,7 +110,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		}
 	}
 
-	fmt.Println("Adding 100 routes one at a time")
+	By("Adding 100 routes one at a time")
 	for i := 0; i < 100; i++ {
 		route := buildSingleRoute(i, "the100")
 		session, err := kubectl.RunWithStdin(route, "apply", "-f", "-")
@@ -127,7 +126,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	results.Add100P95 = append(results.Add100P95, findBucket(add100hist, add1000hist))
 
 	currentNumberOfRoutes := kubectl.GetNumberOf("routes")
-	fmt.Printf("Updating 100 routes one at a time from the current %d routes\n", currentNumberOfRoutes)
+	By(fmt.Sprintf("Updating 100 routes one at a time from the current %d routes", currentNumberOfRoutes))
 	for i := 0; i < 100; i++ {
 		route := updateSingleRoute(i, "the100")
 		session, err := kubectl.RunWithStdin(route, "apply", "-f", "-")
@@ -146,7 +145,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	results.Update100P95 = append(results.Update100P95, findBucket(update100hist, add100hist))
 
 	currentNumberOfRoutes = kubectl.GetNumberOf("routes")
-	fmt.Printf("Deleting 100 routes one at a time from the current %d routes\n", currentNumberOfRoutes)
+	By(fmt.Sprintf("Deleting 100 routes one at a time from the current %d routes", currentNumberOfRoutes))
 	for i := 0; i < 100; i++ {
 		route := buildSingleRoute(i, "the100")
 		session, err := kubectl.RunWithStdin(route, "delete", "-f", "-")
@@ -161,7 +160,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	del100hist := getReconcileTime().Metric[0].Histogram
 	results.Del100P95 = append(results.Del100P95, findBucket(del100hist, add100hist))
 
-	fmt.Printf("Deleting %d routes all at once\n", numberOfRoutes)
+	By(fmt.Sprintf("Deleting %d routes all at once", numberOfRoutes))
 	session, err = kubectl.Run("delete", "routes", "-l", "tag=initial", "--wait=false")
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(ExitSuccessfully())
@@ -177,7 +176,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	del1000hist := getReconcileTime().Metric[0].Histogram
 	results.Del1000P95 = append(results.Del1000P95, findBucket(del1000hist, del100hist))
 
-	fmt.Println("Stress test complete, cleaning up...")
+	fmt.Fprintln(GinkgoWriter, "Stress test complete, cleaning up...")
 	deleteRoutecontroller()
 	return results
 }
