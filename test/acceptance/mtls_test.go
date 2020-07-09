@@ -151,6 +151,7 @@ func getSvcHTTPAddrBySelector(namespace string, selector string) (string, error)
 		namespace,
 		"{.items[0].spec.ports[?(@.name==\"http\")].port}", // http port path
 	))
+
 	if err != nil {
 		return "", err
 	}

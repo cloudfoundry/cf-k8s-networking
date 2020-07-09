@@ -54,7 +54,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	})
 	Context("to metrics / stats endpoints", func() {
 		It("succeeds", func() {
-			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istio-pilot.istio-system:15014/metrics"))
+			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:15014/metrics"))
 			fmt.Printf("Attempting to reach %s", route)
 			resp, err := http.Get(route)
 			Expect(err).NotTo(HaveOccurred())
@@ -72,7 +72,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	Context("from apps", func() {
 		Context("to istio control plane components", func() {
 			It("fails", func() {
-				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istio-pilot.istio-system:8080/debug/edsz"))
+				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:8080/debug/edsz"))
 				expectConnectError(route)
 			})
 		})

@@ -2,7 +2,7 @@
 set -eu
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-DESIRED_ISTIO_VERSION=${DESIRED_ISTIO_VERSION:-"1.4.5"}
+DESIRED_ISTIO_VERSION=${DESIRED_ISTIO_VERSION:-"1.6.4"}
 
 
 istioctl_version="$(istioctl version --remote=false)"
