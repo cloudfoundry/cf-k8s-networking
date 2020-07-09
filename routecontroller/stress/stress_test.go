@@ -53,15 +53,15 @@ var _ = Describe("Stress Tests", func() {
 		}
 
 		for _, res := range results.Add100P95 {
-			Expect(res).To(BeNumerically("<", 0.5))
+			Expect(res).To(BeNumerically("<", 0.250))
 		}
 
 		for _, res := range results.Update100P95 {
-			Expect(res).To(BeNumerically("<", 0.5))
+			Expect(res).To(BeNumerically("<", 0.250))
 		}
 
 		for _, res := range results.Del100P95 {
-			Expect(res).To(BeNumerically("<", 0.5))
+			Expect(res).To(BeNumerically("<", 0.250))
 		}
 
 		for _, res := range results.Del1000P95 {
