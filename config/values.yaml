@@ -7,7 +7,7 @@ systemNamespace: cf-system
 workloadsNamespace: cf-workloads
 
 routecontroller:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:e67434525b33e6ca6496cab3441f9c87fb3ccbadf2e78c19c73974e78c155fdd
+  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:edc7b9b45703e202c6d7c3cd1f90fcebcd36e3c9f3ac33c950ebd5cd578bad51
 
 service:
   externalPort: 80
