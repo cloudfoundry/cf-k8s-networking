@@ -77,7 +77,6 @@ spec:
           "x_forwarded_proto": "%REQ(X-FORWARDED-PROTO)%"
         }
     global:
-      jwtPolicy: first-party-jwt
       controlPlaneSecurityEnabled: true
       proxy:
         accessLogEncoding: 'JSON'
