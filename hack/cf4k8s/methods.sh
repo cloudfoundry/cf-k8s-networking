@@ -22,7 +22,7 @@ function create_and_target_huge_cluster() {
           --zone us-west1-a \
           --machine-type=n1-standard-8 \
           --enable-network-policy \
-          --labels team=cf-k8s-networking \
+          --labels team=cf-k8s-networking,ephemeral=true \
           --enable-ip-alias \
           --num-nodes 100
     fi
@@ -40,7 +40,7 @@ function create_and_target_cluster() {
           --machine-type=n1-standard-4 \
           --num-nodes 5 \
           --enable-network-policy \
-          --labels team=cf-k8s-networking \
+          --labels team=cf-k8s-networking,ephemeral=true \
           --cluster-version=$(latest_cluster_version)
     fi
     gcloud container clusters get-credentials --project ${GCP_PROJECT} ${CLUSTER_NAME} --zone us-west1-a

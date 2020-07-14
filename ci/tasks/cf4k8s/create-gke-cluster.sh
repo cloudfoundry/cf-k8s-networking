@@ -12,6 +12,7 @@ set -euo pipefail
 : "${GCP_PROJECT:?}"
 : "${MACHINE_TYPE:?}"
 : "${NUM_NODES:?}"
+: "${EPHEMERAL_CLUSTER:?}"
 
 function latest_cluster_version() {
   gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
@@ -35,7 +36,7 @@ function create_cluster() {
     gcloud container clusters create ${CLUSTER_NAME} \
         --cluster-version=$(latest_cluster_version) \
         --machine-type=${MACHINE_TYPE} \
-        --labels team=cf-k8s-networking-ci \
+        --labels team=cf-k8s-networking,ci=true,ephemeral="$EPHEMERAL_CLUSTER" \
         --enable-network-policy \
         --num-nodes "${NUM_NODES}" \
         "${additional_args[@]}"
