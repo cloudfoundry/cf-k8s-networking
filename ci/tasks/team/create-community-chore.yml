@@ -4,6 +4,9 @@ image_resource:
   source:
     repository: relintdockerhubpushbot/cf-for-k8s-ci
 
+inputs:
+  - name: cf-k8s-networking
+
 run:
   path: cf-k8s-networking/ci/tasks/team/create-community-chore.sh
 
