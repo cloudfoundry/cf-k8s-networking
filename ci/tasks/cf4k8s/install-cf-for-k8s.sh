@@ -18,7 +18,7 @@ function install_cf() {
 
     if [[ -d "./cf-k8s-networking" ]]; then
         echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
-        pushd cf-for-k8s-master
+        pushd cf-for-k8s
             vendir sync --directory config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=../cf-k8s-networking
         popd
     fi
@@ -32,13 +32,13 @@ function install_cf() {
         echo "Generating install values..."
         echo -n $KPACK_GCR_ACCOUNT_KEY > /tmp/service-account.json
         mkdir -p cf-install-values
-        cf-for-k8s-master/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values/cf-install-values.yml
+        cf-for-k8s/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values/cf-install-values.yml
     fi
 
     cp cf-install-values/cf-install-values.yml cf-install-values-out/cf-install-values.yml
 
     echo "Installing CF..."
-    kapp deploy -a cf -f <(ytt -f cf-for-k8s-master/config -f cf-install-values-out/cf-install-values.yml) \
+    kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
         -y --wait-timeout ${KAPP_TIMEOUT}
 
     bosh interpolate --path /cf_admin_password cf-install-values/cf-install-values.yml > env-metadata/cf-admin-password.txt

@@ -5,7 +5,7 @@ image_resource:
     repository: relintdockerhubpushbot/cf-test-runner
 
 inputs:
-  - name: cf-for-k8s-master
+  - name: cf-for-k8s
   - name: cf-k8s-networking-ci
   - name: env-metadata
 

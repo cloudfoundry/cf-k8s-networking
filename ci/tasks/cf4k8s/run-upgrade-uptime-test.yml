@@ -5,7 +5,7 @@ image_resource:
     repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
 
 inputs:
-  - name: cf-for-k8s-master
+  - name: cf-for-k8s
   - name: cf-k8s-networking-ci
   - name: cf-k8s-networking
   - name: cf-install-values
