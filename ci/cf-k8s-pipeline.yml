@@ -21,13 +21,13 @@ groups:
   - publish-routecontroller-image
 
 resources:
-- name: cf-for-k8s-master
+- name: cf-for-k8s
   type: git
   icon: github-box
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: networking-istio-1-6-4
     ignore_paths:
       - ci/**
 
@@ -230,7 +230,7 @@ jobs:
   serial: true
   plan:
     - in_parallel:
-        - get: cf-for-k8s-master
+        - get: cf-for-k8s
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
           resource: cf-k8s-networking-config
@@ -279,7 +279,7 @@ jobs:
 - name: deploy-good-acceptance
   plan:
     - in_parallel:
-      - get: cf-for-k8s-master
+      - get: cf-for-k8s
       - get: cf-k8s-networking-ci
       - get: cf-k8s-networking-rc
         passed: [bump-rc]
