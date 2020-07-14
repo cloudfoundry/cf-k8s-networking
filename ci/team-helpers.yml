@@ -1,0 +1,28 @@
+resources:
+- name: cf-k8s-networking
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-k8s-networking
+    private_key: ((github_private_key.private_key))
+    branch: develop
+- name: before-the-workday-starts
+  type: time
+  icon: clock
+  source:
+    start: 12:00 AM
+    stop: 8:00 AM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+    location: America/Los_Angeles
+
+jobs:
+  - name: create-community-chore
+    plan:
+      - in_parallel:
+        - get: before-the-workday-starts
+          trigger: true
+        - get: cf-k8s-networking
+      - task: do_it
+        file: cf-k8s-networking/ci/tasks/team/create-community-chore.yml
+        params:
+          TRACKER_TOKEN: ((tracker_api_token))
