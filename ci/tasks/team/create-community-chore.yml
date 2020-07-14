@@ -1,0 +1,11 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-for-k8s-ci
+
+run:
+  path: cf-k8s-networking-ci/ci/tasks/team/create-community-chore.sh
+
+params:
+  TRACKER_TOKEN:
