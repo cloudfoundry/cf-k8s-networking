@@ -1,4 +1,9 @@
+#!/usr/bin/env bash
+
 set -euo pipefail
+
+# ENV
+: "${TRACKER_TOKEN:?}"
 
 project_id=2407973
 
