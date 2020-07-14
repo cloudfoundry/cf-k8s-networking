@@ -5,7 +5,7 @@ image_resource:
     repository: relintdockerhubpushbot/cf-for-k8s-ci
 
 run:
-  path: cf-k8s-networking-ci/ci/tasks/team/create-community-chore.sh
+  path: cf-k8s-networking/ci/tasks/team/create-community-chore.sh
 
 params:
   TRACKER_TOKEN:
