@@ -295,7 +295,6 @@ jobs:
       params:
         CLUSTER_NAME: *acceptance-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        ENABLE_AUTOMATIC_TEARDOWN_AFTER_24_HOURS: false
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
