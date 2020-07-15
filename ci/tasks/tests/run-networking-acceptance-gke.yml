@@ -27,3 +27,4 @@ params:
   CLOUDSDK_COMPUTE_REGION: "us-west1"
   CLOUDSDK_COMPUTE_ZONE: "us-west1-a"
   GCP_PROJECT: "cf-routing"
+  FLAKE_ATTEMPTS:

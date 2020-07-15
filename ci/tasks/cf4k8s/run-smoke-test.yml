@@ -11,3 +11,6 @@ inputs:
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.sh
+
+params:
+  FLAKE_ATTEMPTS:
