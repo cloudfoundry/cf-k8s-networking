@@ -311,6 +311,8 @@ jobs:
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
       params:
         SMOKE_TEST_SKIP_SSL: true
+        # Can be removed after this issue is resolved: https://github.com/cloudfoundry/cf-for-k8s/issues/255
+        FLAKE_ATTEMPTS: 3
     - put: acceptance-install-values
       params:
         file: cf-install-values-out/cf-install-values.yml
