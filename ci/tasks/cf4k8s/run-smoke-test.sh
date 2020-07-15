@@ -13,7 +13,9 @@ function run_smoke_test() {
     export SMOKE_TEST_USERNAME=admin
     export SMOKE_TEST_PASSWORD=$(cat env-metadata/cf-admin-password.txt)
     cd "${ROOT}/cf-for-k8s/tests/smoke"
+    set -x
     ginkgo -v -flakeAttempts="${FLAKE_ATTEMPTS}" ./
+    set +x
 }
 
 function main() {
