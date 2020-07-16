@@ -38,7 +38,7 @@ function install_cf() {
     cp cf-install-values/cf-install-values.yml cf-install-values-out/cf-install-values.yml
 
     echo "Installing CF..."
-    kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
+    kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-loadbalancer.yml -f cf-install-values-out/cf-install-values.yml) \
         -y --wait-timeout ${KAPP_TIMEOUT}
 
     bosh interpolate --path /cf_admin_password cf-install-values/cf-install-values.yml > env-metadata/cf-admin-password.txt
