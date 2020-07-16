@@ -17,4 +17,5 @@ istioctl manifest generate -f "${SCRIPT_DIR}/istio-values.yaml" "$@" | \
     --data-value istio_version=$DESIRED_ISTIO_VERSION \
     -f "${SCRIPT_DIR}/values.yaml" \
     -f - \
-    -f "${SCRIPT_DIR}/overlays"
+    -f "${SCRIPT_DIR}/overlays" \
+    -f "${SCRIPT_DIR}/update-job" \

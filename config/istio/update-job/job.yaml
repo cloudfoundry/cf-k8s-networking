@@ -1,0 +1,92 @@
+#@ load("@ytt:overlay", "overlay")
+
+#@ load("@ytt:data", "data")
+
+---
+# Service account the client will use to reset the statefulset
+kind: ServiceAccount
+apiVersion: v1
+metadata:
+  name: restart-workloads
+  namespace: cf-workloads
+---
+# allow rolling only pods on the workloads namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: restart-workloads
+  namespace: cf-workloads
+rules:
+  - apiGroups: ["apps", "extensions"]
+    resources: ["statefulsets"]
+    verbs: ["get", "patch", "list"] # "list" and "watch" are only needed
+                                   # if you want to use `rollout status`
+  - apiGroups: ["batch"]
+    resources: ["jobs"]
+    verbs: ["delete", "list"]
+---
+# bind the cf-workloads role to the service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: restart-workloads
+  namespace: cf-workloads
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: restart-workloads
+subjects:
+  - kind: ServiceAccount
+    name: restart-workloads
+    namespace: cf-workloads
+---
+# allow getting istio-system resources
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: restart-workloads
+  namespace: istio-system
+rules:
+  - apiGroups: ["apps", "extensions", ""]
+    resources: ["daemonsets","pods","deployments","configmaps"]
+    verbs: ["get", "patch", "list"]
+---
+# bind the istio-system role to the cf-workloads service account
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: restart-workloads
+  namespace: istio-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: restart-workloads
+subjects:
+  - kind: ServiceAccount
+    name: restart-workloads
+    namespace: cf-workloads
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: #@ "restart-workloads-for-istio" + data.values.istio_version
+  namespace: cf-workloads
+  labels:
+    cloudfoundry.org/istio_version: #@ data.values.istio_version
+spec:
+  backoffLimit: 2 # this has very low chance of failing, as all this does
+                  # is prompt kubernetes to schedule new replica set for
+                  # the deployment
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false" # jobs never complete because the sidecar stays up forever
+    spec:
+      serviceAccountName: restart-workloads # name of the service account
+      restartPolicy: Never
+      containers:
+        - name: roll
+          image: cfrouting/roll-workloads
+          env:
+          - name: ISTIO_VERSION
+            value: #@ data.values.istio_version

@@ -7357,3 +7357,120 @@ metadata:
 spec:
   mtls:
     mode: STRICT
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  labels:
+    cloudfoundry.org/istio_version: 1.6.4
+  name: restart-workloads
+  namespace: cf-workloads
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    cloudfoundry.org/istio_version: 1.6.4
+  name: restart-workloads
+  namespace: cf-workloads
+rules:
+- apiGroups:
+  - apps
+  - extensions
+  resources:
+  - statefulsets
+  verbs:
+  - get
+  - patch
+  - list
+- apiGroups:
+  - batch
+  resources:
+  - jobs
+  verbs:
+  - delete
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    cloudfoundry.org/istio_version: 1.6.4
+  name: restart-workloads
+  namespace: cf-workloads
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: restart-workloads
+subjects:
+- kind: ServiceAccount
+  name: restart-workloads
+  namespace: cf-workloads
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  labels:
+    cloudfoundry.org/istio_version: 1.6.4
+  name: restart-workloads
+  namespace: istio-system
+rules:
+- apiGroups:
+  - apps
+  - extensions
+  - ""
+  resources:
+  - daemonsets
+  - pods
+  - deployments
+  - configmaps
+  verbs:
+  - get
+  - patch
+  - list
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  labels:
+    cloudfoundry.org/istio_version: 1.6.4
+  name: restart-workloads
+  namespace: istio-system
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: restart-workloads
+subjects:
+- kind: ServiceAccount
+  name: restart-workloads
+  namespace: cf-workloads
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    kbld.k14s.io/images: |
+      - Metas:
+        - Tag: latest
+          Type: resolved
+          URL: cfrouting/roll-workloads
+        URL: index.docker.io/cfrouting/roll-workloads@sha256:3b59248a079ce50c41b88f8a6cb96537dafa5ee16b40ba803993977998082f17
+  labels:
+    cloudfoundry.org/istio_version: 1.6.4
+  name: restart-workloads-for-istio1.6.4
+  namespace: cf-workloads
+spec:
+  backoffLimit: 2
+  template:
+    metadata:
+      annotations:
+        sidecar.istio.io/inject: "false"
+    spec:
+      containers:
+      - env:
+        - name: ISTIO_VERSION
+          value: 1.6.4
+        image: index.docker.io/cfrouting/roll-workloads@sha256:3b59248a079ce50c41b88f8a6cb96537dafa5ee16b40ba803993977998082f17
+        name: roll
+      restartPolicy: Never
+      serviceAccountName: restart-workloads
