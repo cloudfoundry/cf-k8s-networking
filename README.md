@@ -30,7 +30,7 @@ CF-K8s-Networking](doc/assets/routecontroller-data-flow-diagram.png)
   * Istio provides us with security features out of the box, such as:
     * Automatic Envoy sidecar injection for system components and application workloads
     * `Sidecar` Kubernetes resources that can limit egress traffic from workload `Pod`s
-    * Transparent mutal TLS (mTLS) everywhere
+    * Transparent mutual TLS (mTLS) everywhere
     * (Eventually) app identity certificates using [SPIFFE](https://spiffe.io/) issued by Istio Citadel
   * Istio should be treated as an "implementation detail" of the platform and
     our reliance on it is subject to change
