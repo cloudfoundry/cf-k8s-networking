@@ -8,7 +8,7 @@ metadata:
   #@overlay/match missing_ok=True
   labels:
     #@overlay/match missing_ok=True
-    cloudfoundry.org/istio_version: #@ data.values.istio_version
+    cloudfoundry.org/istio_version: #@ data.values.istioVersion
 
 #@overlay/match by=overlay.subset({"kind":"Deployment"}),expects="1+"
 ---
@@ -17,4 +17,4 @@ spec:
     metadata:
       labels:
         #@overlay/match missing_ok=True
-        cloudfoundry.org/istio_version: #@ data.values.istio_version
+        cloudfoundry.org/istio_version: #@ data.values.istioVersion

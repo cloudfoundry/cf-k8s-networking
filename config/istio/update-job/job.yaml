@@ -8,14 +8,14 @@ kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: restart-workloads
-  namespace: cf-workloads
+  namespace: #@ data.values.workloadsNamespace
 ---
 # allow rolling only pods on the workloads namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   name: restart-workloads
-  namespace: cf-workloads
+  namespace: #@ data.values.workloadsNamespace
 rules:
   - apiGroups: ["apps", "extensions"]
     resources: ["statefulsets"]
@@ -25,12 +25,12 @@ rules:
     resources: ["jobs"]
     verbs: ["delete", "list"]
 ---
-# bind the cf-workloads role to the service account
+# bind the workloadsNamespace role to the service account
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: restart-workloads
-  namespace: cf-workloads
+  namespace: #@ data.values.workloadsNamespace
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
@@ -38,7 +38,7 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: restart-workloads
-    namespace: cf-workloads
+    namespace: #@ data.values.workloadsNamespace
 ---
 # allow getting istio-system resources
 apiVersion: rbac.authorization.k8s.io/v1
@@ -51,7 +51,7 @@ rules:
     resources: ["daemonsets","pods","deployments","configmaps"]
     verbs: ["get", "patch", "list"]
 ---
-# bind the istio-system role to the cf-workloads service account
+# bind the istio-system role to the workloadsNamespace service account
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -64,15 +64,15 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: restart-workloads
-    namespace: cf-workloads
+    namespace: #@ data.values.workloadsNamespace
 ---
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: #@ "restart-workloads-for-istio" + data.values.istio_version
-  namespace: cf-workloads
+  name: #@ "restart-workloads-for-istio" + data.values.istioVersion
+  namespace: #@ data.values.workloadsNamespace
   labels:
-    cloudfoundry.org/istio_version: #@ data.values.istio_version
+    cloudfoundry.org/istio_version: #@ data.values.istioVersion
 spec:
   backoffLimit: 2 # this has very low chance of failing, as all this does
                   # is prompt kubernetes to schedule new replica set for
@@ -89,4 +89,4 @@ spec:
           image: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars
           env:
           - name: ISTIO_VERSION
-            value: #@ data.values.istio_version
+            value: #@ data.values.istioVersion
