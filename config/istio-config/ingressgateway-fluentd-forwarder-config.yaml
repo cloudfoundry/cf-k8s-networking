@@ -1,0 +1,56 @@
+#@ load("@ytt:data", "data")
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ingressgateway-fluentd-forwarder-config
+  namespace: cf-system
+data:
+  fluentd.conf: |
+    # Inputs
+    <source>
+      @type tail
+      @id in_tail_container_logs
+      path /var/log/containers/istio-ingressgateway*istio-proxy*.log
+      pos_file /var/log/fluentd-istio-ingressgateway.log.pos
+      tag istio-ingressgateway
+      refresh_interval 1
+      <parse>
+        @type json
+        format json
+        time_key time
+        time_format %Y-%m-%dT%H:%M:%S.%NZ
+      </parse>
+      read_from_head true
+    </source>
+
+    # Filters
+    <filter istio-ingressgateway>
+      @type parser
+      format json
+      key_name log
+    </filter>
+
+    <filter istio-ingressgateway>
+      @type record_transformer
+      enable_ruby
+      <record>
+        app_id ${record["app_id"]}
+        instance_id 0
+        log ${record.to_json}
+        source_type RTR
+      </record>
+    </filter>
+
+    <match istio-ingressgateway>
+      @type forward
+      <server>
+        name fluentd_dest
+        host fluentd-forwarder-ingress
+      </server>
+
+      <buffer>
+        @type memory
+        flush_mode immediate
+      </buffer>
+    </match>

@@ -58,8 +58,9 @@ func TestAcceptance(t *testing.T) {
 
 		g := &Globals{}
 		g.SysComponentSelector = createSystemComponent()
-		g.AppGuid = pushApp(generator.PrefixedRandomName("ACCEPTANCE", "app"))
+		g.AppName = generator.PrefixedRandomName("ACCEPTANCE", "app")
 		g.AppsDomain = config.AppsDomain
+		g.AppGuid = pushApp(g.AppName)
 
 		data, err := g.Serialize()
 		if err != nil {
@@ -93,6 +94,7 @@ func TestAcceptance(t *testing.T) {
 
 type Globals struct {
 	AppGuid              string `json:"app_guid"`
+	AppName              string `json:"app_name"`
 	AppsDomain           string `json:"apps_domain"`
 	SysComponentSelector string `json:"sys_component_selector"`
 }
