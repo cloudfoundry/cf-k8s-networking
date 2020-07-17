@@ -2,12 +2,10 @@ package acceptance_test
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
@@ -15,10 +13,6 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
-
-type Config struct {
-	AppsDomain string `json:"apps_domain"`
-}
 
 var _ = Describe("Policy and mesh connectivity", func() {
 	var (
@@ -35,23 +29,14 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		_ = pushProxy(app1name)
 		app2guid = pushProxy(app2name)
 
-		configFile, err := ioutil.ReadFile(os.Getenv("CONFIG"))
-		if err != nil {
-			panic(fmt.Errorf("error reading config %v", err))
-		}
-		config := &Config{}
-		err = json.Unmarshal([]byte(configFile), config)
-
-		if err != nil {
-			panic(fmt.Errorf("error parsing json %v", err))
-		}
-		domain = config.AppsDomain
+		domain = globals.AppsDomain
 	})
 
 	AfterEach(func() {
 		cf.Cf("delete", app1name)
 		cf.Cf("delete", app2name)
 	})
+
 	Context("to metrics / stats endpoints", func() {
 		It("succeeds", func() {
 			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:15014/metrics"))

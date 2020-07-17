@@ -13,7 +13,7 @@ import (
 //    "api": "api.example.com",
 //    "admin_user": "admin",
 //    "admin_password": "PASSWORD"
-//    "apps_domain": "example.com"
+//    "apps_domain": "apps.example.com"
 //  }
 type Config struct {
 	KubeConfigPath     string `json:"kubeconfig_path"`
@@ -23,6 +23,7 @@ type Config struct {
 	API           string `json:"api"`
 	AdminUser     string `json:"admin_user"`
 	AdminPassword string `json:"admin_password"`
+	AppsDomain    string `json:"apps_domain"`
 
 	ExistingUser         string `json:"existing_user"`
 	ExistingUserPassword string `json:"existing_user_password"`
