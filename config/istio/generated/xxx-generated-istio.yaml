@@ -7453,8 +7453,8 @@ metadata:
       - Metas:
         - Tag: latest
           Type: resolved
-          URL: cfrouting/roll-workloads
-        URL: index.docker.io/cfrouting/roll-workloads@sha256:3b59248a079ce50c41b88f8a6cb96537dafa5ee16b40ba803993977998082f17
+          URL: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars
+        URL: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars@sha256:6a20de2fc2bf7835dfcbadf8f9ffa78bb7626097d6a6e384f54e984e1297423c
   labels:
     cloudfoundry.org/istio_version: 1.6.4
   name: restart-workloads-for-istio1.6.4
@@ -7470,7 +7470,7 @@ spec:
       - env:
         - name: ISTIO_VERSION
           value: 1.6.4
-        image: index.docker.io/cfrouting/roll-workloads@sha256:3b59248a079ce50c41b88f8a6cb96537dafa5ee16b40ba803993977998082f17
+        image: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars@sha256:6a20de2fc2bf7835dfcbadf8f9ffa78bb7626097d6a6e384f54e984e1297423c
         name: roll
       restartPolicy: Never
       serviceAccountName: restart-workloads

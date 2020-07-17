@@ -34,11 +34,20 @@ resources:
       uri: git@github.com:cloudfoundry/cf-k8s-networking.git
       paths:
         - ci/dockerfiles
+
   - name: kind-integration-test-image
     type: docker-image
     icon: docker
     source:
       repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
+      username: _json_key
+      password: ((gcp_gcr_service_account_key))
+
+  - name: upgrade-sidecars-image
+    type: docker-image
+    icon: docker
+    source:
+      repository: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars
       username: _json_key
       password: ((gcp_gcr_service_account_key))
 
@@ -116,3 +125,43 @@ jobs:
         params:
           build: proxy-repo
           tag_as_latest: true
+
+  - name: build-upgrade-sidecars-job-image
+    plan:
+      - in_parallel:
+          - get: cf-k8s-networking
+          - get: cf-k8s-networking-ci
+          - get: cf-k8s-networking-docker-images
+            trigger: true
+      - in_parallel:
+          # Note: 'initial-image' is not the image we publish. Just needed as intermediate
+          # step to inspect so we can label the final image.
+          - put: initial-image
+            resource: upgrade-sidecars-image
+            params:
+              build: cf-k8s-networking-docker-images/ci/dockerfiles/upgrade
+              # dockerfile: cf-k8s-networking/routecontroller/Dockerfile
+            get_params:
+              save: true
+          - task: build-tag-file
+            file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
+      - task: build-image-labels
+        file: cf-k8s-networking-ci/ci/tasks/docker/build-image-labels.yml
+      - put: upgrade-sidecars-image
+        params:
+          build: cf-k8s-networking-docker-images/ci/dockerfiles/upgrade
+          # dockerfile: cf-k8s-networking/routecontroller/Dockerfile
+          additional_tags: docker-info/tags
+          tag_as_latest: true
+          labels_file: labels/labels.json
+      - task: add-updated-digest
+        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
+        input_mapping:
+          image-resource: upgrade-sidecars-image
+        params:
+          COMPONENT_NAME: upgrade-sidecars
+      - put: cf-k8s-networking
+        params:
+          repository: cf-k8s-networking-modified
+          rebase: true
+
