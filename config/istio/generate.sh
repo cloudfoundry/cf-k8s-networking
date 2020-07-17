@@ -14,8 +14,6 @@ fi
 echo "generating Istio resource definitions..." >&2
 istioctl manifest generate -f "${SCRIPT_DIR}/istio-values.yaml" "$@" | \
   ytt --ignore-unknown-comments \
-    --data-value istioVersion=$DESIRED_ISTIO_VERSION \
     -f "${SCRIPT_DIR}/../values.yaml" \
     -f - \
     -f "${SCRIPT_DIR}/overlays" \
-    -f "${SCRIPT_DIR}/update-job" \

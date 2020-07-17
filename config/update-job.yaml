@@ -3,14 +3,12 @@
 #@ load("@ytt:data", "data")
 
 ---
-# Service account the client will use to reset the statefulset
 kind: ServiceAccount
 apiVersion: v1
 metadata:
   name: restart-workloads
   namespace: #@ data.values.workloadsNamespace
 ---
-# allow rolling only pods on the workloads namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -19,13 +17,11 @@ metadata:
 rules:
   - apiGroups: ["apps", "extensions"]
     resources: ["statefulsets"]
-    verbs: ["get", "patch", "list"] # "list" and "watch" are only needed
-                                   # if you want to use `rollout status`
+    verbs: ["get", "patch", "list"]
   - apiGroups: ["batch"]
     resources: ["jobs"]
     verbs: ["delete", "list"]
 ---
-# bind the workloadsNamespace role to the service account
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -40,7 +36,6 @@ subjects:
     name: restart-workloads
     namespace: #@ data.values.workloadsNamespace
 ---
-# allow getting istio-system resources
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
@@ -51,7 +46,6 @@ rules:
     resources: ["daemonsets","pods","deployments","configmaps"]
     verbs: ["get", "patch", "list"]
 ---
-# bind the istio-system role to the workloadsNamespace service account
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
@@ -74,15 +68,13 @@ metadata:
   labels:
     cloudfoundry.org/istio_version: #@ data.values.istioVersion
 spec:
-  backoffLimit: 2 # this has very low chance of failing, as all this does
-                  # is prompt kubernetes to schedule new replica set for
-                  # the deployment
+  backoffLimit: 2
   template:
     metadata:
       annotations:
-        sidecar.istio.io/inject: "false" # jobs never complete because the sidecar stays up forever
+        sidecar.istio.io/inject: "false"
     spec:
-      serviceAccountName: restart-workloads # name of the service account
+      serviceAccountName: restart-workloads
       restartPolicy: Never
       containers:
         - name: roll
