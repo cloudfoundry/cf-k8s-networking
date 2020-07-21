@@ -38,8 +38,13 @@ function install_cf() {
     cp cf-install-values/cf-install-values.yml cf-install-values-out/cf-install-values.yml
 
     echo "Installing CF..."
-    kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-loadbalancer.yml -f cf-install-values-out/cf-install-values.yml) \
-        -y --wait-timeout ${KAPP_TIMEOUT}
+    if [[ "${USE_NODEPORT_SERVICE}" == "true" ]]; then
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
+            -y --wait-timeout ${KAPP_TIMEOUT}
+    else
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-loadbalancer.yml -f cf-install-values-out/cf-install-values.yml) \
+            -y --wait-timeout ${KAPP_TIMEOUT}
+    fi
 
     bosh interpolate --path /cf_admin_password cf-install-values/cf-install-values.yml > env-metadata/cf-admin-password.txt
     echo "${CF_DOMAIN}" > env-metadata/dns-domain.txt
