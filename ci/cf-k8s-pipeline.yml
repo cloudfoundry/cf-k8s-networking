@@ -302,6 +302,8 @@ jobs:
         EPHEMERAL_CLUSTER: false
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      input_mapping:
+        cf-k8s-networking: cf-k8s-networking-rc
       params:
         CF_DOMAIN: *acceptance-cluster-domain
         CLUSTER_NAME: *acceptance-cluster-name
