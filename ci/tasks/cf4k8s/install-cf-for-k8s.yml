@@ -29,4 +29,4 @@ params:
   GCP_PROJECT: "cf-routing"
   SHARED_DNS_ZONE_NAME: "routing-lol"
   KAPP_TIMEOUT: "10m"
-  USE_NODEPORT_SERVICE: "false" # we usually use GKE environments, so it is safe to use loadBalancer services
+  USE_NODEPORT_SERVICE: false # we usually use GKE environments, so it is safe to use loadBalancer services
