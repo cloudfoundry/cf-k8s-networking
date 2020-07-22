@@ -1,7 +1,7 @@
 ---
 resource_types: []
 resources:
-- name: cf-for-k8s-master
+- name: cf-for-k8s
   type: git
   icon: github-box
   source:
@@ -44,7 +44,7 @@ jobs:
   serial_groups: [scale-test]
   plan:
     - in_parallel:
-        - get: cf-for-k8s-master
+        - get: cf-for-k8s
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
     - task: create-gke-cluster
