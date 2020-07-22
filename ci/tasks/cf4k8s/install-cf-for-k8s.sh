@@ -19,7 +19,7 @@ function install_cf() {
     if [[ -d "./cf-k8s-networking" ]]; then
         echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
         pushd cf-for-k8s
-            vendir sync --directory config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=../cf-k8s-networking
+            vendir sync --directory config/networking/_ytt_lib/cf-k8s-networking=../cf-k8s-networking
         popd
     fi
 
