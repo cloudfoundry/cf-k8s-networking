@@ -47,10 +47,6 @@ spec:
           minReplicas: 20
           maxReplicas: 20
   values:
-    prometheus:
-      enabled: true
-    grafana:
-      enabled: true
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     meshConfig:
