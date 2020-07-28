@@ -9275,7 +9275,7 @@ spec:
       name: cpu
       targetAverageUtilization: 80
     type: Resource
-  minReplicas: 1
+  minReplicas: 20
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
@@ -9660,7 +9660,7 @@ spec:
       name: cpu
       targetAverageUtilization: 80
     type: Resource
-  minReplicas: 1
+  minReplicas: 20
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
