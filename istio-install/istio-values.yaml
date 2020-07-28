@@ -17,7 +17,7 @@ spec:
               - path: spec.replicas
                 value: 20
           hpaSpec:
-            minReplicas: 1
+            minReplicas: 20
             maxReplicas: 20
           service:
             externalTrafficPolicy: Local
@@ -36,6 +36,7 @@ spec:
               targetPort: 15443
     pilot:
       k8s:
+        replicaCount: 20
         overlays:
           - kind: Deployment
             name: istiod
@@ -43,7 +44,7 @@ spec:
               - path: spec.replicas
                 value: 20
         hpaSpec:
-          minReplicas: 1
+          minReplicas: 20
           maxReplicas: 20
   values:
     prometheus:
