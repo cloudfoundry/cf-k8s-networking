@@ -5479,6 +5479,19 @@ spec:
         - name: ISTIO_META_CLUSTER_ID
           value: Kubernetes
         image: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - sleep 20
+          preStop:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - sleep 20
         name: istio-proxy
         ports:
         - containerPort: 15021
@@ -5495,6 +5508,16 @@ spec:
           name: http-envoy-prom
           protocol: TCP
         readinessProbe:
+          failureThreshold: 30
+          httpGet:
+            path: /healthz/ready
+            port: 15021
+            scheme: HTTP
+          initialDelaySeconds: 1
+          periodSeconds: 2
+          successThreshold: 1
+          timeoutSeconds: 1
+        livenessProbe:
           failureThreshold: 30
           httpGet:
             path: /healthz/ready
