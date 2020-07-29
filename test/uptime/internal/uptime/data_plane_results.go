@@ -29,8 +29,8 @@ func (u *DataPlaneResults) PrintResults() {
 	fmt.Printf("\tAverage: %s\n", avg.String())
 	if len(u.Errors) > 0 {
 		fmt.Println("Errors:")
-		for _, err := range u.uniqErrors() {
-			fmt.Printf("\t%s\n", err)
+		for errString, count := range u.uniqErrors() {
+			fmt.Printf("\t%dx: %s\n", count, errString)
 		}
 	}
 }
@@ -41,6 +41,7 @@ func (u *DataPlaneResults) SuccessPercentage() float64 {
 
 func (u *DataPlaneResults) RecordError(err error) {
 	u.SliFailCount++
+	fmt.Printf("HAD AN ERROR: %+v\n", err)
 	u.Errors = append(u.Errors, err)
 }
 
@@ -62,15 +63,10 @@ func (u *DataPlaneResults) Record(hasPassedSLI, hasStatusOK, hasMetRequestLatenc
 	u.RequestLatencies = append(u.RequestLatencies, requestLatency)
 }
 
-func (u *DataPlaneResults) uniqErrors() []error {
-	errMap := map[string]error{}
+func (u *DataPlaneResults) uniqErrors() map[string]int {
+	uniqErrs := map[string]int{}
 	for _, err := range u.Errors {
-		errMap[err.Error()] = err
-	}
-
-	uniqErrs := []error{}
-	for _, v := range errMap {
-		uniqErrs = append(uniqErrs, v)
+		uniqErrs[err.Error()] = uniqErrs[err.Error()] + 1
 	}
 
 	return uniqErrs

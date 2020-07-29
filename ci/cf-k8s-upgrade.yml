@@ -6,7 +6,19 @@ resource_types:
     repository: frodenas/gcs-resource
 
 resources:
-- name: cf-for-k8s-master
+- name: cf-for-k8s-stable
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: networking-upgrade-source
+    ignore_paths:
+      - ci/**
+  # version:
+  #   ref: 2127adc45ccb46a39dd1970448e8248a0a5999fe #istio 1.6.4 merge, should change 0.6.0 of cf-for-k8s
+
+- name: cf-for-k8s-next
   type: git
   icon: github-box
   source:
@@ -48,9 +60,7 @@ jobs:
 - name: create-gke-cluster-and-deploy-cf
   plan:
   - in_parallel:
-    - get: cf-for-k8s-master
-    - get: cf-k8s-networking
-      trigger: true
+    - get: cf-for-k8s-stable
     - get: cf-k8s-networking-ci
   - task: create-gke-cluster
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
@@ -59,6 +69,8 @@ jobs:
       GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
   - task: install-cf
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+    input_mapping:
+      cf-for-k8s: cf-for-k8s-stable
     params:
       CF_DOMAIN: &domain "ci-upgrade-cf.routing.lol"
       CLUSTER_NAME: &upgrade-cluster-name ci-upgrade-cf
@@ -82,44 +94,52 @@ jobs:
         APP_NAME: &data-plane-app-name upgrade-data-plane-sli
         ORG_NAME: sli
         SPACE_NAME: sli
+        INSTANCES: 2
     - task: push-upgrade-control-plane-sli-app
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/push-app.yml
       params:
         APP_NAME: &control-plane-app-name upgrade-control-plane-sli
         ORG_NAME: sli
         SPACE_NAME: sli
+        INSTANCES: 2
 
 - name: upgrade-cf
   plan:
   - in_parallel:
-    - get: cf-for-k8s-master
+    - get: cf-for-k8s-next
     - get: cf-k8s-networking
     - get: cf-k8s-networking-ci
     - get: cf-install-values
       passed: [ push-apps ]
       trigger: true
   - in_parallel:
-    - task: install-cf
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
-      params:
-        CF_DOMAIN: *domain
-        CLUSTER_NAME: *upgrade-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
-    - task: run-tests
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-upgrade-uptime-test.yml
-      params:
-        CF_APP_DOMAIN: "apps.ci-upgrade-cf.routing.lol"
-        DATA_PLANE_APP_NAME: *data-plane-app-name
-        CONTROL_PLANE_APP_NAME: *control-plane-app-name
+      # fail_fast: true
+      steps:
+      - task: install-cf
+        file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+        input_mapping:
+          cf-for-k8s: cf-for-k8s-next
+        params:
+          CF_DOMAIN: *domain
+          CLUSTER_NAME: *upgrade-cluster-name
+          GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+          KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+      - task: run-tests
+        file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-upgrade-uptime-test.yml
+        input_mapping:
+          cf-for-k8s: cf-for-k8s-next
+        params:
+          CF_APP_DOMAIN: "apps.ci-upgrade-cf.routing.lol"
+          DATA_PLANE_APP_NAME: *data-plane-app-name
+          CONTROL_PLANE_APP_NAME: *control-plane-app-name
 
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        CLUSTER_NAME: *upgrade-cluster-name
-        GCP_PROJECT: "cf-routing"
-        GCP_REGION: "us-west1-a"
+          GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+          CLUSTER_NAME: *upgrade-cluster-name
+          GCP_PROJECT: "cf-routing"
+          GCP_REGION: "us-west1-a"
 
-        TARGET_ORG: sli
-        TARGET_SPACE: sli
+          TARGET_ORG: sli
+          TARGET_SPACE: sli
 
 - name: destroy-cluster
   plan:
