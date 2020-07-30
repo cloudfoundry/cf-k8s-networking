@@ -39,7 +39,7 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		for j := 0; j < 40; j++ {
 			time.Sleep(1 * time.Second)
 
-			url := fmt.Sprintf("http://%s.%s/status/200", routeToMap, domain)
+			url := fmt.Sprintf("http://%s.%s/", routeToMap, domain)
 			resp, err := r.Client.Get(url)
 			if err != nil {
 				continue
