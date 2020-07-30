@@ -16,14 +16,20 @@ func TestScale(t *testing.T) {
 }
 
 var (
-	domain  string
-	cleanup bool
-	numApps int
+	domain          string
+	cleanup         bool
+	numApps         int
+	numAppsPerSpace int
+	orgNamePrefix   string
+	spaceNamePrefix string
 )
 
 var _ = BeforeSuite(func() {
 	var found bool
 	var err error
+
+	orgNamePrefix = "scale-tests"
+	spaceNamePrefix = "scale-tests"
 
 	domain, found = os.LookupEnv("DOMAIN")
 	Expect(found).To(BeTrue(), "DOMAIN environment variable required but not set")
@@ -35,4 +41,6 @@ var _ = BeforeSuite(func() {
 	Expect(found).To(BeTrue(), "NUMBER_OF_APPS environment variable required but not set")
 	numApps, err = strconv.Atoi(numAppsStr)
 	Expect(err).NotTo(HaveOccurred(), "NUMBER_OF_APPS environment variable malformed")
+
+	numAppsPerSpace = 10
 })

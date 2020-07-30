@@ -57,7 +57,8 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 func cfWithRetry(args ...string) *gexec.Session {
 	for i := 0; i < 3; i++ {
 		session := cf.Cf(args...)
-		if session.Wait().ExitCode() == 0 {
+		session.Wait(5 * time.Second)
+		if session.ExitCode() == 0 {
 			return session
 		}
 	}
