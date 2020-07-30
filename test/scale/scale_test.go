@@ -1,6 +1,7 @@
 package scale_test
 
 import (
+	"math"
 	"net/http"
 	"time"
 
@@ -34,7 +35,7 @@ var _ = Describe("Scale", func() {
 		// For development purposes, to reset the routes back to the original hostnames
 		// so we can rerun the tests
 		if cleanup {
-			for i := 0; i < numApps; i++ {
+			forEachAppInSpace(numApps, numAppsPerSpace, func(i int) {
 				appName := fmt.Sprintf("bin-%d", i)
 				routeHost := fmt.Sprintf("bin-new-%d", i)
 
@@ -43,7 +44,7 @@ var _ = Describe("Scale", func() {
 
 				session = cf.Cf("map-route", appName, domain, "--hostname", appName)
 				Eventually(session, "30s").Should(Exit(0))
-			}
+			})
 
 			// Print out the statistics after the test
 			p95, _ := stats.Percentile(results, 95)
@@ -62,13 +63,13 @@ var _ = Describe("Scale", func() {
 
 	Context("On an environment with 1000 apps and 1000 routes", func() {
 		It("maps 95% of the routes within 10 seconds", func() {
-			for i := 0; i < numApps; i++ {
+			forEachAppInSpace(numApps, numAppsPerSpace, func(i int) {
 				appName := fmt.Sprintf("bin-%d", i)
 				routeToDelete := fmt.Sprintf("bin-%d", i)
 				routeToMap := fmt.Sprintf("bin-new-%d", i)
 				routeMapper.MapRoute(appName, domain, routeToDelete, routeToMap)
 				time.Sleep(10 * time.Second)
-			}
+			})
 
 			routeMapper.Wait()
 
@@ -80,3 +81,16 @@ var _ = Describe("Scale", func() {
 		})
 	})
 })
+
+func forEachAppInSpace(apps, appsPerSpace int, f func(int)) {
+	numOrgsSpaces := int(math.Ceil(float64(apps) / float64(appsPerSpace)))
+	for n := 0; n < numOrgsSpaces; n++ {
+		session := cf.Cf("target", "-o", fmt.Sprintf("%s-%d", orgNamePrefix, n), "-s", fmt.Sprintf("%s-%d", spaceNamePrefix, n))
+		Eventually(session, "30s").Should(Exit(0))
+
+		for i := 0; i < int(math.Min(float64(appsPerSpace), float64(apps))); i++ {
+			appNumber := (n * appsPerSpace) + i
+			f(appNumber)
+		}
+	}
+}
