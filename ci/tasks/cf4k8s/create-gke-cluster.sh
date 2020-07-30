@@ -16,7 +16,7 @@ set -euo pipefail
 : "${REGIONAL_CLUSTER:?}"
 
 function latest_cluster_version() {
-  gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
+  gcloud container get-server-config --region $CLOUDSDK_COMPUTE_REGION 2>/dev/null | yq .validMasterVersions[0] -r
 }
 
 function create_cluster() {
