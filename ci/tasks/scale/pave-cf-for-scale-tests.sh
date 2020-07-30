@@ -16,7 +16,7 @@ function deploy_apps() {
     org_name_prefix="scale-tests"
     space_name_prefix="scale-tests"
 
-    for n in {0..9}
+    for n in {0..99}
     do
       org_name="${org_name_prefix}-${n}"
       space_name="${space_name_prefix}-${n}"
