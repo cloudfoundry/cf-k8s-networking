@@ -13,6 +13,7 @@ set -euo pipefail
 : "${MACHINE_TYPE:?}"
 : "${NUM_NODES:?}"
 : "${EPHEMERAL_CLUSTER:?}"
+: "${REGIONAL_CLUSTER:?}"
 
 function latest_cluster_version() {
   gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
@@ -30,6 +31,11 @@ function create_cluster() {
     additional_args=()
     if [ "${ENABLE_IP_ALIAS}" = true ]; then
         additional_args+=("--enable-ip-alias")
+    fi
+
+    if [ "${REGIONAL_CLUSTER}" = true ]; then
+        additional_args+=("--region")
+        additional_args+=("${CLOUDSDK_COMPUTE_REGION}")
     fi
 
     echo "Creating cluster: ${CLUSTER_NAME} ..."
