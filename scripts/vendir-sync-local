@@ -1,5 +1,5 @@
 #!/bin/bash
 
 pushd ~/workspace/cf-for-k8s > /dev/null
-  vendir sync -d config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=~/workspace/cf-k8s-networking
+  vendir sync -d config/networking/_ytt_lib/cf-k8s-networking=~/workspace/cf-k8s-networking
 popd > /dev/null
