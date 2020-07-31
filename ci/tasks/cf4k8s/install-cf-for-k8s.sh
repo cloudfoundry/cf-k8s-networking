@@ -25,6 +25,11 @@ function install_cf() {
 
     export KUBECONFIG=kube-config.yml
 
+    if [ "${REGIONAL_CLUSTER}" = true ]; then
+        # unset zone since we are targetting a regional cluster
+        unset CLOUDSDK_COMPUTE_ZONE
+    fi
+
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
     gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
 
