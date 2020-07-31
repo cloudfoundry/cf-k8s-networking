@@ -62,7 +62,8 @@ function deploy_cf_for_k8s() {
 
 function target_cf() {
     echo "Targeting CF!"
-    cf api --skip-ssl-validation "https://api.${CF_DOMAIN}"
+
+    eval_with_retry 'cf api --skip-ssl-validation "https://api.${CF_DOMAIN}"'
     cf auth admin "$(cat "/tmp/${CLUSTER_NAME}/cf-values.yml" | grep cf_admin_password | awk '{print $2}')"
     cf create-org o
     cf create-space -o o s
@@ -123,4 +124,20 @@ function configure_dns() {
   done
   set -o pipefail
   echo "We did it! DNS propagated! 🥳"
+}
+
+function eval_with_retry() {
+    local command="${1}"
+    local tries="${2:-5}"
+    local timeout="${3:-2}"
+
+    local i=0
+
+    until [ "${i}" -ge "${tries}" ]
+    do
+       eval "${command}" && break
+       i=$((i+1))
+       echo "Failed to run the command, retrying in ${timeout} seconds..."
+       sleep "${timeout}"
+    done
 }
