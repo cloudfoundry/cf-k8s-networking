@@ -29,10 +29,10 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		defer GinkgoRecover()
 
 		session := cfWithRetry("delete-route", domain, "--hostname", routeToDelete, "-f")
-		Eventually(session, "30s").Should(Exit(0))
+		Eventually(session, "10s").Should(Exit(0))
 
 		session = cfWithRetry("map-route", appName, domain, "--hostname", routeToMap)
-		Eventually(session, "30s").Should(Exit(0))
+		Eventually(session, "10s").Should(Exit(0))
 
 		startTime := time.Now().Unix()
 		lastFailure := time.Now().Unix()
@@ -57,10 +57,12 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 func cfWithRetry(args ...string) *gexec.Session {
 	for i := 0; i < 3; i++ {
 		session := cf.Cf(args...)
-		session.Wait(5 * time.Second)
+		time.Sleep(2 * time.Second)
+		// session.Wait(5 * time.Second)
 		if session.ExitCode() == 0 {
 			return session
 		}
+		time.Sleep(10 * time.Second)
 	}
 	Fail("Never successfully ran cf command")
 	panic("How did you get here?")
