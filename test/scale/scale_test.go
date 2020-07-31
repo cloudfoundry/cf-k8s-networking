@@ -68,7 +68,7 @@ var _ = Describe("Scale", func() {
 				routeToDelete := fmt.Sprintf("bin-%d", i)
 				routeToMap := fmt.Sprintf("bin-new-%d", i)
 				routeMapper.MapRoute(appName, domain, routeToDelete, routeToMap)
-				time.Sleep(10 * time.Second)
+				time.Sleep(5 * time.Second)
 			})
 
 			routeMapper.Wait()
@@ -92,5 +92,6 @@ func forEachAppInSpace(apps, appsPerSpace int, f func(int)) {
 			appNumber := (n * appsPerSpace) + i
 			f(appNumber)
 		}
+		time.Sleep(30 * time.Second)
 	}
 }
