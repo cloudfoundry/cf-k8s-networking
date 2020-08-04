@@ -21,6 +21,7 @@ var _ = Describe("Scale", func() {
 	var (
 		routeMapper *collector.RouteMapper
 		results     []float64
+		failures    int
 	)
 
 	BeforeEach(func() {
@@ -35,7 +36,9 @@ var _ = Describe("Scale", func() {
 		// For development purposes, to reset the routes back to the original hostnames
 		// so we can rerun the tests
 		if cleanup {
+			fmt.Println("Beginning cleanup...")
 			forEachAppInSpace(numApps, numAppsPerSpace, func(i int) {
+				fmt.Println(i, "of", numApps)
 				appName := fmt.Sprintf("bin-%d", i)
 				routeHost := fmt.Sprintf("bin-new-%d", i)
 
@@ -57,6 +60,7 @@ var _ = Describe("Scale", func() {
 			fmt.Fprintf(GinkgoWriter, "\tMin: %.2f Seconds\n", min)
 			fmt.Fprintf(GinkgoWriter, "\tMax: %.2f Seconds\n", max)
 			fmt.Fprintf(GinkgoWriter, "\tAverage: %.2f Seconds\n", avg)
+			fmt.Fprintf(GinkgoWriter, "\n\tRoutes failed to map: %d\n", failures)
 			fmt.Fprintln(GinkgoWriter, "*********************************************")
 		}
 	})
@@ -64,6 +68,7 @@ var _ = Describe("Scale", func() {
 	Context("On an environment with 1000 apps and 1000 routes", func() {
 		It("maps 95% of the routes within 10 seconds", func() {
 			forEachAppInSpace(numApps, numAppsPerSpace, func(i int) {
+				fmt.Println("Handling app", i)
 				appName := fmt.Sprintf("bin-%d", i)
 				routeToDelete := fmt.Sprintf("bin-%d", i)
 				routeToMap := fmt.Sprintf("bin-new-%d", i)
@@ -74,9 +79,11 @@ var _ = Describe("Scale", func() {
 			routeMapper.Wait()
 
 			results = routeMapper.GetResults()
+			failures = routeMapper.GetFailures()
 			p95, err := stats.Percentile(results, 95)
 			Expect(err).NotTo(HaveOccurred())
 
+			Expect(failures).To(Equal(0), "Expected no map-routes to fail but some did :(")
 			Expect(p95).To(BeNumerically("<=", 10))
 		})
 	})
