@@ -104,7 +104,7 @@ func (inj *Injector) updateServiceAccount(req *v1beta1.AdmissionRequest) ([]patc
 
 	actualServiceAccountName := pod.Spec.ServiceAccountName
 	desiredServiceAccountName := inj.getServiceAccountName(&pod)
-	if err := inj.checkAndCreateServiceAccount(desiredServiceAccountName); err != nil {
+	if err := inj.checkAndCreateServiceAccount(desiredServiceAccountName, pod.ObjectMeta.OwnerReferences); err != nil {
 		return nil, fmt.Errorf("could not create service account object: %v", err)
 	}
 
@@ -123,7 +123,7 @@ func (inj *Injector) updateServiceAccount(req *v1beta1.AdmissionRequest) ([]patc
 	return patches, nil
 }
 
-func (inj *Injector) checkAndCreateServiceAccount(name string) error {
+func (inj *Injector) checkAndCreateServiceAccount(name string, ownerReferences []metav1.OwnerReference) error {
 	log.Printf("checking if service account for pod %s exist", name)
 	_, err := inj.kubeclient.CoreV1().ServiceAccounts(workloadsNs).Get(name, metav1.GetOptions{})
 	if err != nil && !errors.IsNotFound(err) {
@@ -137,7 +137,8 @@ func (inj *Injector) checkAndCreateServiceAccount(name string) error {
 	log.Printf("service account for %s doesnt't exist, creating it...", name)
 	serviceAccount := &corev1.ServiceAccount{
 		ObjectMeta: metav1.ObjectMeta{
-			Name: name,
+			Name:            name,
+			OwnerReferences: ownerReferences,
 		},
 	}
 	_, err = inj.kubeclient.CoreV1().ServiceAccounts(workloadsNs).Create(serviceAccount)
