@@ -17,6 +17,7 @@ type RouteMapper struct {
 	Client http.Client
 
 	results   []float64
+	failures  int
 	waitGroup sync.WaitGroup
 	mutex     sync.Mutex
 }
@@ -28,14 +29,17 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		defer r.waitGroup.Done()
 		defer GinkgoRecover()
 
+		fmt.Println("Deleting:", routeToDelete)
 		session := cfWithRetry("delete-route", domain, "--hostname", routeToDelete, "-f")
 		Eventually(session, "10s").Should(Exit(0))
 
+		fmt.Println("Route to Map:", routeToMap)
 		session = cfWithRetry("map-route", appName, domain, "--hostname", routeToMap)
 		Eventually(session, "10s").Should(Exit(0))
 
 		startTime := time.Now().Unix()
 		lastFailure := time.Now().Unix()
+		succeeded := false
 		for j := 0; j < 40; j++ {
 			time.Sleep(1 * time.Second)
 
@@ -47,7 +51,18 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 
 			if resp.StatusCode != http.StatusOK {
 				lastFailure = time.Now().Unix()
+			} else {
+				if !succeeded {
+					fmt.Println("Success for number", j, "route:", routeToMap)
+					succeeded = true
+				}
 			}
+		}
+
+		if !succeeded {
+			fmt.Println(routeToMap, "never became healthy this is a problem/failure")
+			r.addFailure()
+			return
 		}
 
 		r.addResult(float64(lastFailure - startTime))
@@ -84,4 +99,18 @@ func (r *RouteMapper) addResult(result float64) {
 	defer r.mutex.Unlock()
 
 	r.results = append(r.results, result)
+}
+
+func (r *RouteMapper) GetFailures() int {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	return r.failures
+}
+
+func (r *RouteMapper) addFailure() {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	r.failures = r.failures + 1
 }
