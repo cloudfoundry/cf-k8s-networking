@@ -21,13 +21,6 @@ function latest_cluster_version() {
 
 function create_cluster() {
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
-
-    if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
-        echo "${CLUSTER_NAME} already exists! Destroying..."
-        gcloud container clusters delete ${CLUSTER_NAME} --quiet
-    fi
-
-
     additional_args=()
     if [ "${ENABLE_IP_ALIAS}" = true ]; then
         additional_args+=("--enable-ip-alias")
@@ -37,6 +30,12 @@ function create_cluster() {
         additional_args+=("--region")
         additional_args+=("${CLOUDSDK_COMPUTE_REGION}")
     fi
+
+    if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
+        echo "${CLUSTER_NAME} already exists! Destroying..."
+        gcloud container clusters delete ${CLUSTER_NAME} --quiet "${additional_args[@]}"
+    fi
+
 
     echo "Creating cluster: ${CLUSTER_NAME} ..."
     gcloud container clusters create ${CLUSTER_NAME} \
