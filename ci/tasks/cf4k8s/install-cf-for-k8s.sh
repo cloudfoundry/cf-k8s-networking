@@ -39,10 +39,10 @@ function install_cf() {
 
     echo "Installing CF..."
     if [[ "${USE_NODEPORT_SERVICE}" == "true" ]]; then
-        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-nodeport -f cf-install-values-out/cf-install-values.yml) \
             -y --wait-timeout ${KAPP_TIMEOUT}
     else
-        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-loadbalancer.yml -f cf-install-values-out/cf-install-values.yml) \
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
             -y --wait-timeout ${KAPP_TIMEOUT}
     fi
 
