@@ -11,43 +11,26 @@ ENV ISTIOCTL_VERSION 1.4.3
 RUN \
       apt update && \
       apt -y install --fix-missing \
-            build-essential \
-            curl \
             docker \
-            git \
-            netcat-openbsd \
             htop \
             libpython-dev \
             lsof \
             psmisc \
             python \
             strace \
-            libreadline6-dev\
             wget \
-            unzip \
             libfontconfig1-dev libfreetype6 libssl-dev libpng-dev libjpeg-dev \
             jq \
-            libssl-dev \
-            libxml2-dev \
-            libxslt-dev \
-            libyaml-dev \
             ruby-all-dev \
-            openssl \
             vim \
             zip \
             python-pip \
-            zlib1g-dev \
       && \
       apt clean
 
 
 # Temp fix to get around apt-key issues with canonical
 RUN chmod 1777 /tmp
-
-# cf cli
-RUN wget -q -O - https://packages.cloudfoundry.org/debian/cli.cloudfoundry.org.key | apt-key add - && \
-    echo "deb https://packages.cloudfoundry.org/debian stable main" | tee /etc/apt/sources.list.d/cloudfoundry-cli.list && \
-    apt-get update -y && apt-get install cf-cli -y
 
 # gcloud SDK
 RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
