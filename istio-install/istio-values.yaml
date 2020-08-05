@@ -20,6 +20,7 @@ spec:
             minReplicas: 20
             maxReplicas: 20
           service:
+            type: LoadBalancer
             externalTrafficPolicy: Local
             ports: # TODO: remove when https://github.com/istio/istio/issues/24432 fixed
             - name: status-port
