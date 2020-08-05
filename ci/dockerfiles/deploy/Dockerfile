@@ -23,13 +23,11 @@ RUN \
             python \
             strace \
             libreadline6-dev\
-            lsb-core \
             wget \
             unzip \
             libfontconfig1-dev libfreetype6 libssl-dev libpng-dev libjpeg-dev \
             jq \
             libssl-dev \
-            libssl1.0.0 \
             libxml2-dev \
             libxslt-dev \
             libyaml-dev \
