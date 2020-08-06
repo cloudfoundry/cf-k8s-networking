@@ -62,8 +62,8 @@ resources:
     branch: develop
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    paths:
-      - config
+    ignore_paths:
+      - routecontroller
 
 - name: cf-k8s-networking-ci
   type: git
@@ -256,9 +256,9 @@ jobs:
     - task: networking-acceptance-gke-tests
       file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
       params:
-        INTEGRATION_CONFIG_FILE: "config.json"
         CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        INTEGRATION_CONFIG_FILE: "config.json"
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
