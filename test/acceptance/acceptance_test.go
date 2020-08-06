@@ -143,6 +143,7 @@ func pushDockerApp(name string, container string) string {
 		name,
 		"-o", container,
 		"-u", "http",
+		"--endpoint", "/",
 	)
 	// cf push does not exit 0 on cf-for-k8s yet because logcache is unreliable (stats server error)
 	Expect(session.Wait(120 * time.Second)).To(gexec.Exit())
@@ -161,6 +162,7 @@ func pushApp(name string) string {
 		name,
 		"-o", "cfrouting/httpbin",
 		"-u", "http",
+		"--endpoint", "/",
 	)
 	// cf push does not exit 0 on cf-for-k8s yet because logcache is unreliable (stats server error)
 	Expect(session.Wait(120 * time.Second)).To(gexec.Exit())
