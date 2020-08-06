@@ -15,10 +15,10 @@ spec:
             name: istio-ingressgateway
             patches:
               - path: spec.replicas
-                value: 20
+                value: 10
           hpaSpec:
-            minReplicas: 20
-            maxReplicas: 20
+            minReplicas: 10
+            maxReplicas: 10
           service:
             type: LoadBalancer
             externalTrafficPolicy: Local
@@ -37,16 +37,16 @@ spec:
               targetPort: 15443
     pilot:
       k8s:
-        replicaCount: 20
+        replicaCount: 10
         overlays:
           - kind: Deployment
             name: istiod
             patches:
               - path: spec.replicas
-                value: 20
+                value: 10
         hpaSpec:
-          minReplicas: 20
-          maxReplicas: 20
+          minReplicas: 10
+          maxReplicas: 10
   values:
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
