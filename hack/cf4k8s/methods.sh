@@ -56,7 +56,7 @@ function deploy_cf_for_k8s() {
 
           yq -r '.| {"kubeconfig_path": "/Users/user/.kube/config",  "api": ("api." + .system_domain), "admin_user":"admin", "admin_password": .cf_admin_password, "apps_domain": .app_domains[0]}' /tmp/${CLUSTER_NAME}/cf-values.yml > "${CLUSTER_CONFIG_PATH}/acceptance_config.json"
         fi
-        kapp deploy -a cf -f <(ytt -f config -f config-optional/ingressgateway-service-loadbalancer.yml -f "${CLUSTER_CONFIG_PATH}/cf-values.yml") -y
+        kapp deploy -a cf -f <(ytt -f config -f "${CLUSTER_CONFIG_PATH}/cf-values.yml") -y
     popd
 }
 
