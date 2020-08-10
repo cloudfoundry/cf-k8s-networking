@@ -39,10 +39,11 @@ function install_cf() {
 
     echo "Installing CF..."
     if [[ "${USE_NODEPORT_SERVICE}" == "true" ]]; then
-        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml) \
-            -y --wait-timeout ${KAPP_TIMEOUT}
+        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml) \
+             --wait-timeout ${KAPP_TIMEOUT}
     else
-        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \ -y --wait-timeout ${KAPP_TIMEOUT}
+        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
+             --wait-timeout ${KAPP_TIMEOUT}
     fi
 
     bosh interpolate --path /cf_admin_password cf-install-values/cf-install-values.yml > env-metadata/cf-admin-password.txt
