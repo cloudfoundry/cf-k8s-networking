@@ -27,7 +27,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: networking-istio-1-6-4
+    branch: master
     ignore_paths:
       - ci/**
 
