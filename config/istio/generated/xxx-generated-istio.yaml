@@ -5655,7 +5655,7 @@ spec:
   selector:
     app: istio-ingressgateway
     istio: ingressgateway
-  type: NodePort
+  type: LoadBalancer
 ---
 apiVersion: v1
 kind: ServiceAccount
