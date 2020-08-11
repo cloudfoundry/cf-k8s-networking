@@ -2,7 +2,7 @@
 set -eu
 
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
-DESIRED_ISTIO_VERSION=${DESIRED_ISTIO_VERSION:-$(cat $SCRIPT_DIR/../values.yaml | yq -r .istioVersion)}
+DESIRED_ISTIO_VERSION=${DESIRED_ISTIO_VERSION:-$(cat $SCRIPT_DIR/../config/values.yaml | yq -r .istioVersion)}
 
 
 istioctl_version="$(istioctl version --remote=false)"
@@ -14,6 +14,6 @@ fi
 echo "generating Istio resource definitions..." >&2
 istioctl manifest generate -f "${SCRIPT_DIR}/istio-values.yaml" "$@" | \
   ytt --ignore-unknown-comments \
-    -f "${SCRIPT_DIR}/../values.yaml" \
+    -f "${SCRIPT_DIR}/../config/values.yaml" \
     -f - \
     -f "${SCRIPT_DIR}/overlays" \
