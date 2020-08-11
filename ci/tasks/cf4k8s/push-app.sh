@@ -6,6 +6,7 @@ set -euo pipefail
 : "${APP_NAME:?}"
 : "${ORG_NAME:?}"
 : "${SPACE_NAME:?}"
+: "${INSTANCES:?}"
 
 ROOT="$(cd "$(dirname "${0}")/../../../.." && pwd)"
 
@@ -26,7 +27,7 @@ function create_org_and_space() {
 
 function deploy_app() {
     local name="${1}"
-    cf push "${name}" -o "cfrouting/httpbin"
+    cf push "${name}" -o "cfrouting/httpbin" -i "${INSTANCES}"
 }
 
 function main() {

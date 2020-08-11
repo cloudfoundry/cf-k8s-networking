@@ -15,3 +15,4 @@ params:
   APP_NAME:
   ORG_NAME:
   SPACE_NAME:
+  INSTANCES: 1
