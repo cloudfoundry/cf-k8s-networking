@@ -6,6 +6,8 @@ spec:
   profile: default
   namespace: istio-system
   components:
+    telemetry:
+      enabled: false
     ingressGateways:
       - name: istio-ingressgateway
         enabled: true
@@ -35,6 +37,13 @@ spec:
             - name: tls
               port: 15443
               targetPort: 15443
+          resources:
+            limits:
+              cpu: "4"
+              memory: 2Gi
+            requests:
+              cpu: "2"
+              memory: 1Gi
     pilot:
       k8s:
         replicaCount: 10
@@ -48,6 +57,14 @@ spec:
           minReplicas: 10
           maxReplicas: 10
   values:
+    prometheus:
+      enabled: true
+    grafana:
+      enabled: true
+    telemetry:
+      enabled: false
+      v2:
+        enabled: false
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     meshConfig:
