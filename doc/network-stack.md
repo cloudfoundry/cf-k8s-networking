@@ -88,7 +88,7 @@ The picture illustrates what is happen during `cf push`.
 | [Eirini ](https://github.com/cloudfoundry-incubator/eirini#what-is-eirini)| Eirini enables pluggable scheduling for the Cloud Foundry Application Runtime. During `cf push` scenario it creates `StatefulSet`s to deploy the applications. |
 | [App Service](https://kubernetes.io/docs/concepts/services-networking/service/)  | Kubernetes service which is used by Istio to retrieve information about the location of the application pods.|
 | [Virtual Service for Applications](https://istio.io/docs/reference/config/networking/virtual-service/)| For each application a `VirtualService` is created. Each `VirtualService` refers to a Kubernetes service. [`DestinationRules`](https://istio.io/docs/concepts/traffic-management/#destination-rules) are also part of Istio traffic management. Using destination rules you can configure what happens to traffic for that destination (e.g. traffic policy).|
-| [Pilot](https://istio.io/docs/ops/deployment/architecture/#pilot)                                                                                                                                | Pilot converts high level routing rules (e.g. `Gateways` or `VirtualServices`) that control traffic behavior into Envoy-specific configurations, and propagates them to the Ingress and Sidecar Envoys at runtime. Since Istio 1.5 [istiod](https://istio.io/latest/docs/ops/deployment/architecture/#istiod) takes over this task.|
+| [istiod](https://istio.io/latest/docs/ops/deployment/architecture/#istiod)                                                                                                                                |  Converts high level routing rules (e.g. `Gateways` or `VirtualServices`) that control traffic behavior into Envoy-specific configurations, and propagates them to the Ingress and Sidecar Envoys at runtime.|
 | App | See [above](#network-traffic).|
 | Sidecar Envoy | See [above](#network-traffic).|
 | Ingress Envoy | See [above](#network-traffic).|
@@ -766,7 +766,7 @@ ENDPOINT             STATUS      OUTLIER CHECK     CLUSTER
 ```
 
 The picture illustrates the described above config.
-![](assets/egress.png)
+![](assets/network-egress.png)
 
 
 ## Traffic restrictions
@@ -850,7 +850,7 @@ Aside from external tools, Envoy also supports [tapping](https://www.envoyproxy.
 
 For tapping into CF apps, a selector for the app guid is recommended so that only the Sidecar Envoy of that particular app is tapped.
 
-A [small tool](envoy-tap/tap.sh) has been provided to inject a filter conveniently into a CF app.
+A [small tool](network-envoy-tap/tap.sh) has been provided to inject a filter conveniently into a CF app.
 
 After a HTTP filter has been injected the `virtualInbound listener` configuration will look like this:
 
