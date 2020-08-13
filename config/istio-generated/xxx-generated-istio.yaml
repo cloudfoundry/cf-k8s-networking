@@ -3597,10 +3597,10 @@ metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
-        - Tag: 1.6.4
+        - Tag: 1.6.8
           Type: resolved
-          URL: gcr.io/cf-routing/proxyv2:1.6.4
-        URL: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
+          URL: docker.io/istio/proxyv2:1.6.8
+        URL: index.docker.io/istio/proxyv2@sha256:1d3a72f72814d9895cd6dbd450d6badefb353fe99f3f4a8860ec4968136c04e0
       - Metas:
         - Tag: v2.15.1
           Type: resolved
@@ -3728,7 +3728,7 @@ spec:
           value: cluster.local
         - name: ISTIO_META_CLUSTER_ID
           value: Kubernetes
-        image: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
+        image: index.docker.io/istio/proxyv2@sha256:1d3a72f72814d9895cd6dbd450d6badefb353fe99f3f4a8860ec4968136c04e0
         imagePullPolicy: Always
         name: istio-proxy
         ports:
@@ -9163,10 +9163,10 @@ metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
-        - Tag: 1.6.4
+        - Tag: 1.6.8
           Type: resolved
-          URL: gcr.io/cf-routing/proxyv2:1.6.4
-        URL: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
+          URL: docker.io/istio/proxyv2:1.6.8
+        URL: index.docker.io/istio/proxyv2@sha256:1d3a72f72814d9895cd6dbd450d6badefb353fe99f3f4a8860ec4968136c04e0
   labels:
     app: istio-ingressgateway
     cloudfoundry.org/istio_version: 1.6.4
@@ -9297,7 +9297,7 @@ spec:
           value: sni-dnat
         - name: ISTIO_META_CLUSTER_ID
           value: Kubernetes
-        image: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
+        image: index.docker.io/istio/proxyv2@sha256:1d3a72f72814d9895cd6dbd450d6badefb353fe99f3f4a8860ec4968136c04e0
         name: istio-proxy
         ports:
         - containerPort: 15021
@@ -9589,10 +9589,10 @@ metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
-        - Tag: 1.6.4
+        - Tag: 1.6.8
           Type: resolved
-          URL: gcr.io/cf-routing/pilot:1.6.4
-        URL: gcr.io/cf-routing/pilot@sha256:0516ef03cc2fb03e0202c7d08e73ffc761caad6946b664bd9ad1814020462c09
+          URL: docker.io/istio/pilot:1.6.8
+        URL: index.docker.io/istio/pilot@sha256:178a30ae6f762ba40b09dfd09acbb3584fff835cd3027815d482c8dcfb308fdb
   labels:
     app: istiod
     cloudfoundry.org/istio_version: 1.6.4
@@ -9668,7 +9668,7 @@ spec:
           value: Kubernetes
         - name: CENTRAL_ISTIOD
           value: "false"
-        image: gcr.io/cf-routing/pilot@sha256:0516ef03cc2fb03e0202c7d08e73ffc761caad6946b664bd9ad1814020462c09
+        image: index.docker.io/istio/pilot@sha256:178a30ae6f762ba40b09dfd09acbb3584fff835cd3027815d482c8dcfb308fdb
         name: discovery
         ports:
         - containerPort: 8080
@@ -9774,7 +9774,11 @@ data:
         - "-b"
         - "{{ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts` `*` }}"
         - "-d"
+        {{- if excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts` .Values.global.proxy.excludeInboundPorts) }}
         - "15090,15021,{{ excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts` .Values.global.proxy.excludeInboundPorts) }}"
+        {{- else }}
+        - "15090,15021"
+        {{- end }}
         {{ if or (isset .ObjectMeta.Annotations `traffic.sidecar.istio.io/excludeOutboundPorts`) (ne (valueOrDefault .Values.global.proxy.excludeOutboundPorts "") "") -}}
         - "-o"
         - "{{ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundPorts` .Values.global.proxy.excludeOutboundPorts }}"
@@ -10204,7 +10208,7 @@ data:
         },
         "enableHelmTest": false,
         "enabled": true,
-        "hub": "gcr.io/cf-routing",
+        "hub": "docker.io/istio",
         "imagePullPolicy": "",
         "imagePullSecrets": [],
         "istioNamespace": "istio-system",
@@ -10290,7 +10294,7 @@ data:
         "sts": {
           "servicePort": 0
         },
-        "tag": "1.6.4",
+        "tag": "1.6.8",
         "telemetryNamespace": "istio-system",
         "tracer": {
           "datadog": {
@@ -10414,10 +10418,6 @@ spec:
     targetPort: 15017
   - name: http-monitoring
     port: 15014
-  - name: dns
-    port: 53
-    protocol: UDP
-    targetPort: 15053
   - name: dns-tls
     port: 853
     protocol: TCP
