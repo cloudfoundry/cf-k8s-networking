@@ -5757,6 +5757,7 @@ data:
     reportBatchMaxEntries: 100
     reportBatchMaxTime: 1s
     sdsUdsPath: unix:/etc/istio/proxy/SDS
+    tcpKeepalive: {}
     trustDomain: cluster.local
     trustDomainAliases: null
   meshNetworks: 'networks: {}'

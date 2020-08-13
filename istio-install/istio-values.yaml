@@ -39,6 +39,7 @@ spec:
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     meshConfig:
+      tcpKeepalive: {}
       enableAutoMtls: true
       accessLogFile: "/dev/stdout"
       accessLogFormat: >-
