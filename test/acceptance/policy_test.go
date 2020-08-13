@@ -7,6 +7,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
@@ -64,7 +65,11 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	Context("from apps", func() {
 		Context("to istio control plane components", func() {
 			It("fails", func() {
-				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:8080/debug/edsz"))
+				// using the istiod ip because this endpoint is not exposed via the service, and we want to make sure it can't be reached.
+				ip, err := getPodIPBySelector("istio-system", "app=istiod")
+				Expect(err).NotTo(HaveOccurred())
+				istiodDebugEndpoint := fmt.Sprintf("%s:8080/debug/edsz", ip)
+				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape(istiodDebugEndpoint))
 				expectConnectError(client, route)
 			})
 		})
@@ -116,4 +121,20 @@ func expectConnectError(client *http.Client, route string) {
 	Expect(bodyStr).To(MatchRegexp("connect error"))
 
 	defer resp.Body.Close()
+}
+
+func getPodIPBySelector(namespace string, selector string) (string, error) {
+	output, err := kubectl.Run("-n", namespace, "get", "pods", "-l", selector)
+	if err != nil {
+		return "", err
+	}
+
+	Expect(strings.Trim(string(output), "'")).ToNot(MatchRegexp("No resources found"))
+
+	output, err = kubectl.Run("-n", namespace, "get", "pods", "-l", selector, "-ojsonpath='{.items[0].status.podIP}'")
+	if err != nil {
+		return "", err
+	}
+
+	return strings.Trim(string(output), "'"), nil
 }
