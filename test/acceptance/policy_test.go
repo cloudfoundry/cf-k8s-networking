@@ -2,6 +2,7 @@ package acceptance_test
 
 import (
 	"bytes"
+	"crypto/tls"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -20,6 +21,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		app2name string
 		app2guid string
 		domain   string
+		client   *http.Client
 	)
 
 	BeforeEach(func() {
@@ -30,6 +32,11 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		app2guid = pushProxy(app2name)
 
 		domain = globals.AppsDomain
+
+		tr := &http.Transport{
+			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+		}
+		client = &http.Client{Transport: tr}
 	})
 
 	AfterEach(func() {
@@ -41,7 +48,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		It("succeeds", func() {
 			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:15014/metrics"))
 			fmt.Printf("Attempting to reach %s", route)
-			resp, err := http.Get(route)
+			resp, err := client.Get(route)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(200))
 			defer resp.Body.Close()
@@ -58,7 +65,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		Context("to istio control plane components", func() {
 			It("fails", func() {
 				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:8080/debug/edsz"))
-				expectConnectError(route)
+				expectConnectError(client, route)
 			})
 		})
 
@@ -68,7 +75,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape(service))
-				expectConnectError(route)
+				expectConnectError(client, route)
 			})
 		})
 
@@ -76,12 +83,13 @@ var _ = Describe("Policy and mesh connectivity", func() {
 			It("succeeds", func() {
 				route := fmt.Sprintf("http://%s.%s/proxy/%s.%s", app1name, domain, app2name, domain)
 				fmt.Printf("Attempting to reach %s", route)
-				resp, err := http.Get(route)
+				resp, err := client.Get(route)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(200))
 
 				buf := new(bytes.Buffer)
-				buf.ReadFrom(resp.Body)
+				_, err = buf.ReadFrom(resp.Body)
+				Expect(err).NotTo(HaveOccurred())
 				bodyStr := buf.String()
 				fmt.Println(bodyStr)
 
@@ -93,14 +101,15 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	})
 })
 
-func expectConnectError(route string) {
+func expectConnectError(client *http.Client, route string) {
 	fmt.Printf("Attempting to reach %s", route)
-	resp, err := http.Get(route)
+	resp, err := client.Get(route)
 	Expect(err).NotTo(HaveOccurred())
 	Expect(resp.StatusCode).To(Equal(200))
 
 	buf := new(bytes.Buffer)
-	buf.ReadFrom(resp.Body)
+	_, err = buf.ReadFrom(resp.Body)
+	Expect(err).NotTo(HaveOccurred())
 	bodyStr := buf.String()
 	fmt.Println(bodyStr)
 

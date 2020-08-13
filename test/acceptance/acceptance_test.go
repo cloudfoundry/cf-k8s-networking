@@ -154,6 +154,10 @@ func pushDockerApp(name string, container string) string {
 }
 
 func pushProxy(name string) string {
+	session := cf.Cf("create-app", name, "--app-type", "docker")
+	Expect(session.Wait(5 * time.Second)).To(gexec.Exit())
+	session = cf.Cf("set-env", name, "SKIP_CERT_VERIFY", "true")
+	Expect(session.Wait(5 * time.Second)).To(gexec.Exit())
 	return pushDockerApp(name, "cfrouting/proxy")
 }
 
