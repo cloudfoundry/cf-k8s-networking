@@ -376,7 +376,7 @@ $ kubectl get route -n cf-workloads 9fa832fa-4054-430f-9fc4-6d82733df836 -o json
     }
 }
 ```
-The `Istio VirtualService` is created by `RouteController` that watches the `Route CR`.
+The `RouteController` watches the `Route CR`. As the new route is for a new domain entry, a new `Istio VirtualService` is created by `RouteController`. In other words there is one-to-one relationship between `Istio VirtualService` and `Full-Qualified Domain Name` (FQDN).
 
 ```json
 $ kubectl get virtualservices -n cf-workloads vs-1f238ea5cba255ced517ca9036deab2c7a5f662f9ecd9b14c88e2130a929bdc4 -o json
@@ -850,7 +850,7 @@ Aside from external tools, Envoy also supports [tapping](https://www.envoyproxy.
 
 For tapping into CF apps, a selector for the app guid is recommended so that only the Sidecar Envoy of that particular app is tapped.
 
-A [small tool](network-envoy-tap/tap.sh) has been provided to inject a filter conveniently into a CF app.
+A [small tool](assets/network-envoy-tap.sh) has been provided to inject a filter conveniently into a CF app.
 
 After a HTTP filter has been injected the `virtualInbound listener` configuration will look like this:
 
