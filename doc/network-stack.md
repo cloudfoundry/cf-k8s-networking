@@ -21,9 +21,11 @@
   - [Traffic restrictions](#traffic-restrictions)
     - [Egress](#egress)
   - [Debugging](#debugging)
-    - [Log levels](#log-levels)
-    - [Looking into the TCP layer](#looking-into-the-tcp-layer)
     - [When to use which method of traffic debugging](#when-to-use-which-method-of-traffic-debugging)
+    - [Log levels](#log-levels)
+    - [ksniff](#ksniff)
+    - [EnvoyFilter](#envoyfilter)
+    - [Inspektor Gadget](#inspektor-gadget)
 
 <!-- /TOC -->
 
@@ -518,22 +520,17 @@ E.g., in the table below, there are two entries for port `8080`. In order to dis
 ```bash
 $ istioctl proxy-config listener test-app-a-test-eb94aee321-0.cf-workloads
 ADDRESS          PORT      TYPE
-0.0.0.0          15001     TCP    # outbound envoy port
-0.0.0.0          15006     TCP    # inbound envoy port
-10.68.227.69     8080      TCP    # Outbound HTTPS/TCP traffic to metric-proxy.cf-system service
-10.66.218.25     8085      TCP    # Outbound HTTPS/TCP traffic to eirini.cf-system service
-10.68.94.164     24224     TCP    # Outbound HTTPS/TCP traffic to fluentd-forwarder-ingress.cf-system service
-10.66.80.251     8082      TCP    # Outbound HTTPS/TCP traffic to log-cache-syslog.cf-system service
-0.0.0.0          8080      TCP    # Outbound HTTP traffic to uaa.cf-system
-0.0.0.0          80        TCP    # Outbound HTTP traffic to capi.cf-system and cfroutesync.cf-system
-0.0.0.0          8083      TCP    # Outbound HTTP traffic to log-cache.cf-system service. Check below for detailed config
-0.0.0.0          15090     HTTP   # Envoy Prometheus telemetry
-10.96.4.62       15020     TCP    # deprecated (https://github.com/istio/istio/issues/24147)
-10.96.4.62       8080      HTTP   # deprecated (https://github.com/istio/istio/issues/24147)
+10.68.227.69     8080      TCP         # Outbound HTTPS/TCP traffic to metric-proxy.cf-system service
+0.0.0.0          80        HTTP+TCP    # Outbound HTTP traffic to capi.cf-system and cfroutesync.cf-system
+0.0.0.0          8080      HTTP+TCP    # Outbound HTTP traffic to uaa.cf-system
+10.68.94.164     24224     HTTP+TCP    # Outbound HTTPS/TCP traffic to fluentd-forwarder-ingress.cf-system service
+10.66.80.251     8082      HTTP+TCP    # Outbound HTTPS/TCP traffic to log-cache-syslog.cf-system service
+0.0.0.0          8083      HTTP+TCP    # Outbound HTTP traffic to log-cache.cf-system service. Check below for detailed config
+0.0.0.0          15001     TCP         # outbound envoy port
+0.0.0.0          15006     HTTP+TCP    # inbound envoy port
+0.0.0.0          15090     HTTP        # Envoy Prometheus telemetry
+0.0.0.0          15021     HTTP        # /healthz/ready
 ```
-
-> **CAVEAT**: The additional listeners besides outbound and inbound Envoy capture ports are obsolete and will not be used for routing. They will be removed in Istio 1.6. See [this issue](https://github.com/istio/istio/issues/24147) for details.
-
 > **NOTE:** For a deep-dive into how the Sidecar Pattern works in Istio, check out [Jimmy Song's blog post](https://jimmysong.io/en/blog/sidecar-injection-iptables-and-traffic-routing/) which also features a great [routing workflow diagram](https://jimmysong.io/en/blog/sidecar-injection-iptables-and-traffic-routing/envoy-sidecar-traffic-interception-jimmysong-blog-en.png) that shows exactly how the traffic is routed.
 
 ### How traffic is forwarded from sidecar to app container
@@ -794,15 +791,24 @@ Egress traffic from an app is always routed via the sidecar. For a more detailed
 
 ## Debugging
 
+### When to use which method of traffic debugging
+Depending on the layer you want to look at different tools are more helpful than others:
+
+|Layer|Task|Recommended Tool|Requirements|
+|-----|----|----------------|------------|
+|L4|Generic connection tracking similar to `tcpdump`|[ksniff](#ksniff)|k8s v1.16.9, ability to create privileged pods
+|L4|Socket-level filtering on Envoy| [EnvoyFilter w/ transport_socket](#envoyfilter)|Istio v1.4, istioctl
+|L4|Get an overview of all connections on a pod similar to `netstat`|[inspektor gadget tcptop](#inspektor-gadget)|`linux-headers` package installed on k8s nodes
+|L7|Find requests to a specific cf app| [EnvoyFilter w/ http_filter](#envoyfilter)|Istio v1.4, istioctl
+|L7|Find requests based on http headers| [EnvoyFilter w/ http_filter](#envoyfilter)|Istio v1.4, istioctl
+
 ### Log levels
 
 It is possible to set Envoy's log level via
 `curl -X POST -s http://localhost:15000/logging?level=debug`.
 It is also possible to increase the log level for individual loggers. Possible log levels are critical, error, warning, info, debug, trace.
 
-### Looking into the TCP layer
-
-**ksniff**
+### ksniff
 
 [ksniff](https://github.com/eldadru/ksniff) is a tool that injects a statically linked tcpdump binary into a running pod. It allows to
 tap into the pod traffic directly and streams the live capture into a local wireshark. Alternatively it can dump tcp traffic into a pcap file.
@@ -842,7 +848,7 @@ Find your packet on wireshark:
 > **CAVEAT:** Running ksniff in privileged mode will require additional resources as a new pod is started. This can be an issue if the supporting node
 is near out of resources.
 
-**EnvoyFilter**
+### EnvoyFilter
 
 Aside from external tools, Envoy also supports [tapping](https://www.envoyproxy.io/docs/envoy/v1.12.0/operations/traffic_tapping) into listener or cluster traffic. Currently, there are two ways of tapping:
 - [Socket Tapping](https://www.envoyproxy.io/docs/envoy/v1.12.0/api-v2/api/v2/core/base.proto#envoy-api-msg-core-transportsocket): Directly tap into a socket. Very low-level, similar to tcpdump (also supports creating pcap files for wireshark).
@@ -1124,7 +1130,7 @@ istio-proxy@go-app-test-2ab43bc022-0:/etc/istio/proxy$ cat tap_11344748775327413
 }
 ```
 
-**Inspektor Gadget**
+### Inspektor Gadget
 
 [Inspektor Gadget](https://github.com/kinvolk/inspektor-gadget) is a collection of K8S tools developed by [Kinvolk](https://kinvolk.io/) to help ease the development of Kubernetes workloads. Inspektor Gadget provides a kubectl plugin that has 3 network-related debugging features:
 - tcptop: Shows network connections on a pod, similar to tools like `netstat` or `ss`
@@ -1132,15 +1138,3 @@ istio-proxy@go-app-test-2ab43bc022-0:/etc/istio/proxy$ cat tap_11344748775327413
 - tcptracer: Traces into existing tcp connections, specifically connect, accept and close events.
 
 Unfortunately, we were unable to test Inspektor Gadget on cf-for-k8s, because it needs to install a privileged daemonset on all nodes which needs kernel source headers to work. This will work only if the node OS supports it, which for Kubernetes Gardener's `Garden Linux` requires [issue 76](https://github.com/gardenlinux/gardenlinux/issues/76) to be fixed.
-
-
-### When to use which method of traffic debugging
-Depending on the layer you want to look at different tools are more helpful than others:
-
-|Layer|Task|Recommended Tool|Requirements|
-|-----|----|----------------|------------|
-|L4|Generic connection tracking similar to `tcpdump`|ksniff|k8s v1.16.9, ability to create privileged pods
-|L4|Socket-level filtering on Envoy| EnvoyFilter w/ transport_socket|Istio v1.4, istioctl
-|L4|Get an overview of all connections on a pod similar to `netstat`|inspektor gadget tcptop|`linux-headers` package installed on k8s nodes
-|L7|Find requests to a specific cf app| EnvoyFilter w/ http_filter|Istio v1.4, istioctl
-|L7|Find requests based on http headers| EnvoyFilter w/ http_filter|Istio v1.4, istioctl
