@@ -48,21 +48,9 @@ var _ = Describe("Scale", func() {
 				session = cf.Cf("map-route", appName, domain, "--hostname", appName)
 				Eventually(session, "30s").Should(Exit(0))
 			})
-
-			// Print out the statistics after the test
-			p95, _ := stats.Percentile(results, 95)
-			min, _ := stats.Min(results)
-			max, _ := stats.Max(results)
-			avg, _ := stats.Mean(results)
-			fmt.Fprintln(GinkgoWriter, "\n\n\n*********************************************")
-			fmt.Fprintln(GinkgoWriter, "Map Route Latency Steady State Results")
-			fmt.Fprintf(GinkgoWriter, "\tP95: %.2f Seconds\n", p95)
-			fmt.Fprintf(GinkgoWriter, "\tMin: %.2f Seconds\n", min)
-			fmt.Fprintf(GinkgoWriter, "\tMax: %.2f Seconds\n", max)
-			fmt.Fprintf(GinkgoWriter, "\tAverage: %.2f Seconds\n", avg)
-			fmt.Fprintf(GinkgoWriter, "\n\tRoutes failed to map: %d\n", failures)
-			fmt.Fprintln(GinkgoWriter, "*********************************************")
 		}
+
+		printStats(routeMapper)
 	})
 
 	Context("On an environment with 1000 apps and 1000 routes", func() {
@@ -74,6 +62,7 @@ var _ = Describe("Scale", func() {
 				routeToMap := fmt.Sprintf("bin-new-%d", i)
 				routeMapper.MapRoute(appName, domain, routeToDelete, routeToMap)
 				time.Sleep(5 * time.Second)
+				printStats(routeMapper)
 			})
 
 			routeMapper.Wait()
@@ -101,4 +90,24 @@ func forEachAppInSpace(apps, appsPerSpace int, f func(int)) {
 		}
 		time.Sleep(30 * time.Second)
 	}
+}
+
+func printStats(routeMapper *collector.RouteMapper) {
+	results := routeMapper.GetResults()
+	failures := routeMapper.GetFailures()
+	p95, err := stats.Percentile(results, 95)
+	Expect(err).NotTo(HaveOccurred())
+
+	// Print out the statistics after the test
+	min, _ := stats.Min(results)
+	max, _ := stats.Max(results)
+	avg, _ := stats.Mean(results)
+	fmt.Fprintln(GinkgoWriter, "\n\n\n*********************************************")
+	fmt.Fprintln(GinkgoWriter, "Map Route Latency Steady State Results")
+	fmt.Fprintf(GinkgoWriter, "\tP95: %.2f Seconds\n", p95)
+	fmt.Fprintf(GinkgoWriter, "\tMin: %.2f Seconds\n", min)
+	fmt.Fprintf(GinkgoWriter, "\tMax: %.2f Seconds\n", max)
+	fmt.Fprintf(GinkgoWriter, "\tAverage: %.2f Seconds\n", avg)
+	fmt.Fprintf(GinkgoWriter, "\n\tRoutes failed to map: %d\n", failures)
+	fmt.Fprintln(GinkgoWriter, "*********************************************")
 }
