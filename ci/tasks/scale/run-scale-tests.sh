@@ -16,7 +16,17 @@ function run_scale_test() {
     popd
 }
 
+function hack_dns() {
+    system_ip=$(kubectl get svc -n istio-system -l "istio=istio-system-ingressgateway" -ojsonpath='{.items[0].status.loadBalancer.ingress[0].ip}')
+    cat >> /etc/hosts <<EOF
+${system_ip} api.$(cat env-metadata/dns-domain.txt)
+${system_ip} login.$(cat env-metadata/dns-domain.txt)
+${system_ip} uaa.$(cat env-metadata/dns-domain.txt)
+EOF
+}
+
 function main() {
+    hack_dns
     login_and_target
     run_scale_test
 }
