@@ -3,7 +3,7 @@
 set -euo pipefail
 
 function login_and_target() {
-    cf api --skip-ssl-validation "https://api.$(cat env-metadata/dns-domain.txt)"
+    cf api --skip-ssl-validation "http://api.$(cat env-metadata/dns-domain.txt)"
     CF_USERNAME=admin CF_PASSWORD=$(cat env-metadata/cf-admin-password.txt) cf auth
 }
 

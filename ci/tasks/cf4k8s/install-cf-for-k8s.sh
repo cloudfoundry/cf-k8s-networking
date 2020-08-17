@@ -40,6 +40,11 @@ function install_cf() {
         echo -n $KPACK_GCR_ACCOUNT_KEY > /tmp/service-account.json
         mkdir -p cf-install-values
         cf-for-k8s/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values/cf-install-values.yml
+        cat <<EOF >> cf-install-values/cf-install-values.yml
+
+gateway:
+  https_only: false
+EOF
     fi
 
     cp cf-install-values/cf-install-values.yml cf-install-values-out/cf-install-values.yml
