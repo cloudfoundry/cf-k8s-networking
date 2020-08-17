@@ -14,3 +14,8 @@ run:
 
 params:
   NUMBER_OF_APPS: 1000
+  GCP_SERVICE_ACCOUNT_KEY:
+  CLUSTER_NAME:
+  CLOUDSDK_COMPUTE_REGION: "us-west1"
+  CLOUDSDK_COMPUTE_ZONE: "us-west1-a"
+  GCP_PROJECT: "cf-routing"

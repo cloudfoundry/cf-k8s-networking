@@ -17,6 +17,8 @@ function run_scale_test() {
 }
 
 function hack_dns() {
+    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
+    gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
     system_ip=$(kubectl get svc -n istio-system -l "istio=istio-system-ingressgateway" -ojsonpath='{.items[0].status.loadBalancer.ingress[0].ip}')
     cat >> /etc/hosts <<EOF
 ${system_ip} api.$(cat env-metadata/dns-domain.txt)
