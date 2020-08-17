@@ -33,6 +33,8 @@ function install_cf() {
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
     gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
 
+    kapp delete -a cf -y
+
     if [[ ! -d "./cf-install-values" ]]; then
         echo "Generating install values..."
         echo -n $KPACK_GCR_ACCOUNT_KEY > /tmp/service-account.json
