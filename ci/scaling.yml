@@ -47,30 +47,36 @@ jobs:
         - get: cf-for-k8s
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
-    - task: create-gke-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
-      params:
-        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        ENABLE_IP_ALIAS: true
-        MACHINE_TYPE: "n1-standard-8"
-        NUM_NODES: 34
-        REGIONAL_CLUSTER: true
+    # - task: create-gke-cluster
+    #   file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+    #   params:
+    #     CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+    #     GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    #     ENABLE_IP_ALIAS: true
+    #     MACHINE_TYPE: "n1-standard-8"
+    #     NUM_NODES: 34
+    #     REGIONAL_CLUSTER: true
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
         CF_DOMAIN: &scale-testing-domain "ci-scale-testing.routing.lol"
-        CLUSTER_NAME: *scale-testing-cluster-name
+        # CLUSTER_NAME: *scale-testing-cluster-name
+        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
         KAPP_TIMEOUT: "45m"
         REGIONAL_CLUSTER: true
     - task: pave-cf-for-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/pave-cf-for-scale-tests.yml
+      params:
+        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: run-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.yml
       params:
         NUMBER_OF_APPS: 100
+        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: manually-delete-gke-cluster
   serial_groups: [scale-test]

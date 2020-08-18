@@ -62,10 +62,10 @@ var _ = Describe("Scale", func() {
 				routeToMap := fmt.Sprintf("bin-new-%d", i)
 				routeMapper.MapRoute(appName, domain, routeToDelete, routeToMap)
 				time.Sleep(5 * time.Second)
-				printStats(routeMapper)
 			})
 
 			routeMapper.Wait()
+			printStats(routeMapper)
 
 			results = routeMapper.GetResults()
 			failures = routeMapper.GetFailures()
@@ -95,8 +95,8 @@ func forEachAppInSpace(apps, appsPerSpace int, f func(int)) {
 func printStats(routeMapper *collector.RouteMapper) {
 	results := routeMapper.GetResults()
 	failures := routeMapper.GetFailures()
-	p95, err := stats.Percentile(results, 95)
-	Expect(err).NotTo(HaveOccurred())
+	p95, _ := stats.Percentile(results, 95)
+	// Expect(err).NotTo(HaveOccurred())
 
 	// Print out the statistics after the test
 	min, _ := stats.Min(results)

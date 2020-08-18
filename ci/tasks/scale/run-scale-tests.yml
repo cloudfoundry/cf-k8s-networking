@@ -13,9 +13,21 @@ run:
   path: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.sh
 
 params:
-  NUMBER_OF_APPS: 1000
-  GCP_SERVICE_ACCOUNT_KEY:
-  CLUSTER_NAME:
+  NUMBER_OF_APPS: 10
+  GCP_SERVICE_ACCOUNT_KEY: |
+    {
+      "type": "service_account",
+      "project_id": "cf-networking-images",
+      "private_key_id": "8d948ebe68bdd1e1501e620fdceb82a644bf91da",
+      "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvQIBADANBgkqhkiG9w0BAQEFAASCBKcwggSjAgEAAoIBAQClc6Dkif/80bx0\nxG0NHAAYkZwuEA8Y8+NJgxaRCAN/eifVTHVoLL/mv166o38iLzwtV9yg99/KDMwx\ngL59N6anacRUCaxe2WztFiiyIszTjozMqrZjIK8sbxQrmRnJvakdYJ5cQQcQUfBE\nTyrc6niQX2DWL9WrBDU+j83CyaiYCZUdxEXpPnG1rKnsQFSgGuS/a/Tj6UMjNPVn\nb6xHNX/lhsCXmnXWiFv4ke0MbOpKMHgPElItvYvmr4FSV/B0Bd6x2lvassWSOiaB\nx/F9l+jNeYmgtvJQRCsR18zqZrRnRoIunaa7mw4N639uNwij2+Tc0+smD3WZq8Zb\nDHPD72KZAgMBAAECggEAQm/6iRsDILXl66uesLdwMG10HikTruzsdW3+x1FE+lEG\nose3k5P4oUNyWhbiK8t06i5QaZDvm9ZkvnIYy/ZnZO17SVWzEklTzKZrxBBmWINy\n9ZKNd6O9w+V83370lIak3KeaH6h7GioVBZEWwKwkqrCqFYgS0D/503vyX4gTu6zk\nFr7YpGvJzxJWI0Jz9lc2m5QfZmQY+HLSxOqGrCzTf/Jf/ndzOfBua6yEdbJ7SBLW\nnjK4vOAS+mp3dIi2apIipCjEH7vENVRkvhlhyiAbOnPZHM4oOXTRrVVrewTvBLdm\nLQI9hFyG+RGPPIv+wDgkYGusOEFpnBMegpgV0dX84wKBgQDQ8eWJlAZECbpzT8ZD\nTM+GQpOPdjRp7uM5VfPt0lk/VzAndUWvNaCiPuTVl+rXCDYJKn96YxBaQaPaPRKA\nQpgySK3sj26LPGJYEioCXRCU/mA5D42uvgM2rngv0zC0xUKHRSnwtwPmLYU7nnHC\nXt+AV7htT2J7xrofs51oFaCKkwKBgQDKtkHqeUuhs1t15iJmLrOqYDMhwyPrzajb\n56Q5n01wA9YB/uw4ZT+QPsWKfkU8+EAlKADDGs+DympHzgTQAPCkDAbKXrVd7F53\nfVOz60tqaSqCAvpbRFgHDKKbAnAsyF9w/PO6T84NDmbQ/7sgJPaW0Q0limTz+Q9T\nGvRf9TmdowKBgG2+f+dQ/jGCQpIKVoJGt8E2+rYhScpSFLqqsKI7F3EzZDF1YRJz\nwlk1W4/saQZkY61QywAHRDGDxIH+DdecIsBWeDOF6nPrVWQYtkPjibAYI4YU6z/a\nwWlZHftQm4Z3DUhrRWoPVlbxlccIo4uJtS595HpVdc65RE0eVBC1O0tNAoGAad+Z\nO9KQOutHaKOC8eWQdvr5mbem6kCm4fvxHRtjwY5vVumDDM1sznTKjdP3a6mpLv7e\nrwgwu/+bVNd4Uf87sCKL5WRjy6Npj3UIo57P68rzpaXShpqCc2QZBWbXmbwphQTI\nc1W9I7qS3rPCUz6bABg9io7mvTom09vvKLMWnYsCgYEAskfGzsBOKZU88iLtUKXB\n9P1IJuaZwrILGFvmgPNS1CYy9I6RJVBbz1vu4+HlvH9MpnazuX0S2Rbo6IeVMJoX\nW8Nkhvno3bTvur0AX7Lk/vCIm6HJiLYB1bZ4bQbgHW9uD4bUVVY9BKPC66txpraU\nTwr1/6AEP8x4Nnv3K5wRFNw=\n-----END PRIVATE KEY-----\n",
+      "client_email": "cf-k8s-networking-gcr-ci-bot@cf-networking-images.iam.gserviceaccount.com",
+      "client_id": "110199976376482805637",
+      "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+      "token_uri": "https://oauth2.googleapis.com/token",
+      "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+      "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/cf-k8s-networking-gcr-ci-bot%40cf-networking-images.iam.gserviceaccount.com"
+    }
+  CLUSTER_NAME: ci-scale-testing-cluster
   CLOUDSDK_COMPUTE_REGION: "us-west1"
   CLOUDSDK_COMPUTE_ZONE: "us-west1"
   GCP_PROJECT: "cf-routing"
