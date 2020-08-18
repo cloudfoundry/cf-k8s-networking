@@ -73,7 +73,7 @@ var _ = Describe("Scale", func() {
 				routeToDelete := fmt.Sprintf("bin-%d", i)
 				routeToMap := fmt.Sprintf("bin-new-%d", i)
 				routeMapper.MapRoute(appName, domain, routeToDelete, routeToMap)
-				time.Sleep(5 * time.Second)
+				time.Sleep(15 * time.Second)
 			})
 
 			routeMapper.Wait()
