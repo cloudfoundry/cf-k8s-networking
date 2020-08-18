@@ -1,6 +1,7 @@
 package scale_test
 
 import (
+	"crypto/tls"
 	"math"
 	"net/http"
 	"time"
@@ -30,6 +31,8 @@ var _ = Describe("Scale", func() {
 				Timeout: 1 * time.Second,
 			},
 		}
+
+		routeMapper.Client.Transport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	})
 
 	AfterEach(func() {
