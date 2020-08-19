@@ -12,7 +12,7 @@ function run_scale_test() {
     export CLEANUP="true" #Remove when we run these tests regularly after they start to pass
 
     pushd cf-k8s-networking/test/scale
-        ginkgo .
+        ginkgo -v .
     popd
 }
 

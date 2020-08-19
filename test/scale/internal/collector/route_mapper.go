@@ -41,8 +41,6 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		lastFailure := time.Now().Unix()
 		succeeded := false
 		for j := 0; j < 60; j++ {
-			time.Sleep(1 * time.Second)
-
 			url := fmt.Sprintf("https://%s.%s/", routeToMap, domain)
 			resp, err := r.Client.Get(url)
 			if err != nil {
@@ -54,9 +52,11 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 			} else {
 				if !succeeded {
 					fmt.Println("Success for number", j, "route:", routeToMap)
+					lastFailure = time.Now().Unix()
 					succeeded = true
 				}
 			}
+			time.Sleep(1 * time.Second)
 		}
 
 		if !succeeded {
