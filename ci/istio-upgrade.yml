@@ -1,0 +1,98 @@
+---
+resources:
+- name: istio-release
+  type: github-release
+  icon: github-box
+  source:
+    owner: istio
+    repository: istio
+    version: latest
+    access_token: ((github_access_token))
+
+- name: istio
+  type: git
+  icon: github-box
+  source:
+    uri: https://github.com/istio/istio.git
+    fetch_tags: true
+
+- name: istio-proxyv2-image
+  type: registry-image
+  source:
+    repository: docker.io/istio/proxyv2
+
+- name: cf-networking-proxyv2-image
+  type: registry-image
+  source:
+    repository: gcr.io/cf-routing/proxyv2
+    username: _json_key
+    password: ((shared_gcp_account_creds))
+
+- name: istio-pilot-image
+  type: registry-image
+  source:
+    repository: docker.io/istio/pilot
+
+- name: cf-networking-pilot-image
+  type: registry-image
+  source:
+    repository: gcr.io/cf-routing/pilot
+    username: _json_key
+    password: ((shared_gcp_account_creds))
+
+jobs:
+- name: pull-and-tag-istio-images
+  plan:
+  - in_parallel:
+    - get: istio-release
+      trigger: true
+    - get: istio
+    - get: istio-proxyv2-image
+      resource: istio-proxyv2-image
+      params:
+        format: oci
+    - get: istio-pilot-image
+      resource: istio-pilot-image
+      params:
+        format: oci
+  - task: deplab
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: dev.registry.pivotal.io/navcon/deplab-task
+          tag: dev
+          username: pivotal-cf-networking@pivotal.io
+          password: ((pivotal_cf_networking_pivnet_password))
+      inputs:
+      - name: istio-release
+      - name: istio
+      - name: istio-proxyv2-image
+      - name: istio-pilot-image
+      outputs:
+      - name: cf-networking-images
+      run:
+        path: /bin/bash
+        args:
+        - -cex
+        - |
+          apt update && apt install -y git
+          pushd istio > /dev/null
+            git checkout "$(cat ../istio-release/commit_sha)"
+          popd
+          deplab --image-tar istio-proxyv2-image/image.tar \
+            --git istio \
+            --output-tar cf-networking-images/proxyv2.tar
+          deplab --image-tar istio-pilot-image/image.tar \
+            --git istio \
+            --output-tar cf-networking-images/pilot.tar
+  - in_parallel:
+    - put: cf-networking-pilot-image
+      params:
+        image: cf-networking-images/pilot.tar
+        additional_tags: istio-release/tag
+    - put: cf-networking-proxyv2-image
+      params:
+        image: cf-networking-images/proxyv2.tar
+        additional_tags: istio-release/tag
