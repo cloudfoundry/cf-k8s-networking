@@ -24,7 +24,6 @@ CONFIG="${test_config_path}" ginkgo \
   -trace \
   -progress \
   -r \
-  -failOnPending \
   -randomizeAllSpecs \
   -race \
   -v \
