@@ -18,7 +18,12 @@ const systemNamespace = "cf-system"
 const CurlSuccessfulExitCode = 0
 const CurlFailedToConnectHostExitCode = 7
 
-var _ = Describe("mTLS setup on a CF-k8s env", func() {
+// Skipping this test temporarily. We have introduced NetworkPolicy that
+// disallows traffic from apps to system components, so the assumptions this
+// test is built on no longer hold. We need to find a way to test mtls
+// functionality without having traffic go from apps to a system component.
+// [#174475804](https://www.pivotaltracker.com/story/show/174475804)
+var _ = XDescribe("mTLS setup on a CF-k8s env", func() {
 	const cfAppContainerName = "opi"
 	const proxyContainerName = "istio-proxy"
 	const systemComponentContainerName = "system-component"
