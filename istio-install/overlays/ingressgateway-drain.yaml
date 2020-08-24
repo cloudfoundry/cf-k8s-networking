@@ -18,3 +18,11 @@ spec:
         #@overlay/append
         - name: TERMINATION_DRAIN_DURATION_SECONDS
           value: "60"
+        #@overlay/match missing_ok=True
+        lifecycle:
+          preStop:
+            exec:
+              command:
+              - /bin/bash
+              - -c
+              - sleep 20
