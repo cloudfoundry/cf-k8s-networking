@@ -92,7 +92,7 @@ resources:
   source:
     repository: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller
     username: _json_key
-    password: ((gcp_gcr_service_account_key))
+    password: ((gcp_gcr_networking_images_service_account_key))
 
 - name: concourse-dcind
   type: git
@@ -219,7 +219,6 @@ jobs:
       params:
         image: routecontroller-annotated-image/image.tar
         additional_tags: docker-info/tags
-        tag_as_latest: true
     - task: add-updated-digest
       file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
       input_mapping:
