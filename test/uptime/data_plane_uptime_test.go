@@ -41,7 +41,7 @@ var _ = Describe("Data Plane Uptime", func() {
 
 				// if the upgrade is finished (learned by checking the "finished at" in
 				// kapp app-change ls), and we've run for at least 15 minutes, stop running the test
-				if upgradeChecker.HasFoundUpgrade() && upgradeChecker.IsUpgradeFinished() && time.Since(startTime) > (time.Minute*15) {
+				if upgradeChecker.HasFoundUpgrade() && upgradeChecker.IsUpgradeFinished() {
 					break
 				}
 
