@@ -3,6 +3,9 @@ platform: linux
 image_resource:
   type: registry-image
   source:
+      # Deplab is a tool to annotate Docker images with additional metadata, such
+      # as SHA of the source code used to build an image, the list of used packages
+      # in the image, etc.
       repository: dev.registry.pivotal.io/navcon/deplab-task
       tag: dev
       username: pivotal-cf-networking@pivotal.io

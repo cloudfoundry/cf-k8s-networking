@@ -1,32 +1,4 @@
 resources:
-  # Deplab is a tool to annotate Docker images with additional metadata, such
-  # as SHA of the source code used to build an image, the list of used packages
-  # in the image, etc.
-  - name: deplab-task
-    type: docker-image
-    icon: docker
-    source:
-      repository: dev.registry.pivotal.io/navcon/deplab-task
-      tag: dev
-      username: pivotal-cf-networking@pivotal.io
-      password: ((pivotal_cf_networking_pivnet_password))
-
-  - name: gcr-deplab-task
-    type: docker-image
-    icon: docker
-    source:
-      repository: gcr.io/cf-routing/cf-k8s-networking/gcr-deplab-task
-      username: _json_key
-      password: ((shared_gcp_account_creds))
-
-  - name: annotate-image
-    type: docker-image
-    icon: docker
-    source:
-      repository: gcr.io/cf-routing/cf-k8s-networking/annotate
-      username: _json_key
-      password: ((shared_gcp_account_creds))
-
   - name: k8s-deploy-image
     type: docker-image
     icon: docker
@@ -112,30 +84,6 @@ resources:
       password: ((dockerhub_public.password))
 
 jobs:
-  - name: build-annotate-image
-    plan:
-      - in_parallel:
-          - get: deplab-task
-            trigger: true
-            params:
-              save: true
-          - get: cf-k8s-networking
-          - get: cf-k8s-networking-ci
-          - get: cf-k8s-networking-docker-images
-            trigger: true
-      # TODO(ck,mm): this is a hack. We can't figure out how to pull from deplabs
-      # actual registry, so we copy the image into our own registry first, then
-      # use the copy as the source for our new annotate image
-      - put: gcr-deplab-task
-        params:
-          tag_as_latest: true
-          load: deplab-task
-      - put: annotate-image
-        params:
-          build: cf-k8s-networking-docker-images/ci/dockerfiles/annotate
-          tag_as_latest: true
-
-
   - name: build-k8s-deploy-image
     plan:
       - in_parallel:
