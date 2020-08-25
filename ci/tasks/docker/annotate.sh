@@ -3,6 +3,6 @@
 set -euo pipefail
 
 deplab --image-tar input-image/image.tar \
-  --git respository \
+  --git repository \
   --output-tar output-image/image.tar
 
