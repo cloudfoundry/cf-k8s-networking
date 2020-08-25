@@ -1,0 +1,23 @@
+platform: linux
+
+image_resource:
+  type: registry-image
+  source:
+      repository: dev.registry.pivotal.io/navcon/deplab-task
+      tag: dev
+      username: pivotal-cf-networking@pivotal.io
+      password: ((pivotal_cf_networking_pivnet_password))
+
+inputs:
+  # input-image should contain an image.tar file
+  - name: input-image
+  # repository is the git respository containing the source code for the image
+  - name: repository
+  - name: cf-k8s-networking-ci
+
+outputs:
+  # output-image will contain a new annotated image under image.tar
+  - name: output-image
+
+run:
+  path: cf-k8s-networking-ci/ci/tasks/docker/annotate.sh
