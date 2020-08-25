@@ -51,7 +51,7 @@ var _ = BeforeSuite(func() {
 	dataPlaneSLOMaxRequestLatency, err = time.ParseDuration(getEnvOrUseDefault("DATA_PLANE_SLO_MAX_REQUEST_LATENCY", "300ms"))
 	Expect(err).NotTo(HaveOccurred(), "DATA_PLANE_SLO_MAX_REQUEST_LATENCY malformed")
 
-	dataPlaneSLOPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("DATA_PLANE_SLO_PERCENTAGE", "0.99"), FLOAT_BIT_SIZE)
+	dataPlaneSLOPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("DATA_PLANE_SLO_PERCENTAGE", "0.95"), FLOAT_BIT_SIZE)
 	Expect(err).NotTo(HaveOccurred(), "DATA_PLANE_SLO_PERCENTAGE malformed")
 
 	controlPlaneSLORoutePropagationTime, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME", "10s"))
