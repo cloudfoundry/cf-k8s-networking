@@ -61,6 +61,8 @@ jobs:
   plan:
   - in_parallel:
     - get: cf-for-k8s-stable
+    - get: cf-k8s-networking
+      trigger: true
     - get: cf-k8s-networking-ci
   - task: create-gke-cluster
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
