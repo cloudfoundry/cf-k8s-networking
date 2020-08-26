@@ -2,6 +2,7 @@ package collector
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"sync"
 	"time"
@@ -29,11 +30,11 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		defer r.waitGroup.Done()
 		defer GinkgoRecover()
 
-		fmt.Println("Deleting:", routeToDelete)
+		fmt.Fprintln(GinkgoWriter, "Deleting:", routeToDelete)
 		session := cfWithRetry("delete-route", domain, "--hostname", routeToDelete, "-f")
 		Eventually(session, "10s").Should(Exit(0))
 
-		fmt.Println("Route to Map:", routeToMap)
+		fmt.Fprintln(GinkgoWriter, "Route to Map:", routeToMap)
 		session = cfWithRetry("map-route", appName, domain, "--hostname", routeToMap)
 		Eventually(session, "10s").Should(Exit(0))
 
@@ -49,9 +50,25 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 
 			if resp.StatusCode != http.StatusOK {
 				lastFailure = time.Now().Unix()
+				if succeeded {
+					body, err := ioutil.ReadAll(resp.Body)
+					if err != nil {
+						body = []byte("Could not read body!!!")
+					}
+					session := cf.Cf("app", appName, "--guid")
+					session.Wait(5 * time.Minute)
+					appGuid := session.Out.Contents()
+					fmt.Fprintln(GinkgoWriter,
+						"Got post-success error for", j,
+						"route:", routeToMap,
+						"status code:", resp.StatusCode,
+						"response body:", string(body),
+						"app guid:", appGuid,
+					)
+				}
 			} else {
 				if !succeeded {
-					fmt.Println("Success for number", j, "route:", routeToMap)
+					fmt.Fprintln(GinkgoWriter, "Success for number", j, "route:", routeToMap)
 					lastFailure = time.Now().Unix()
 					succeeded = true
 				}
@@ -60,7 +77,7 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		}
 
 		if !succeeded {
-			fmt.Println(routeToMap, "never became healthy this is a problem/failure")
+			fmt.Fprintln(GinkgoWriter, routeToMap, "never became healthy this is a problem/failure")
 			r.addFailure()
 			return
 		}
