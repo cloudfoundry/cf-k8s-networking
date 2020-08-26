@@ -10,7 +10,7 @@ workloadsNamespace: cf-workloads
 routecontroller:
   image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:59bae5250aac171014bac055ef510f5818660d2fab70133618c83c514b12a577
 upgradeSidecars:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars@sha256:2e4253fd217138652a19dbd4d93cf925e70e18a3c3dc640d72d88580fddcb090
+  image: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars@sha256:05735df07597bd0546e2b888da94016d241e46b572661ae15f8e362a923b76e9
 
 service:
   externalPort: 80
