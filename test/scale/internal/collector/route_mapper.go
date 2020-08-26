@@ -55,15 +55,22 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 					if err != nil {
 						body = []byte("Could not read body!!!")
 					}
+
 					session := cf.Cf("app", appName, "--guid")
 					session.Wait(5 * time.Minute)
 					appGuid := session.Out.Contents()
+
+					session = cf.Cf("check-route", domain, "-n", routeToMap)
+					session.Wait(5 * time.Minute)
+					routeCheck := session.Out.Contents()
+
 					fmt.Fprintln(GinkgoWriter,
 						"Got post-success error for", j,
 						"route:", routeToMap,
 						"status code:", resp.StatusCode,
 						"response body:", string(body),
-						"app guid:", appGuid,
+						"app guid:", string(appGuid),
+						"route check:", string(routeCheck),
 					)
 				}
 			} else {
