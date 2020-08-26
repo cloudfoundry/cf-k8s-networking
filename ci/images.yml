@@ -44,7 +44,7 @@ resources:
       password: ((gcp_gcr_networking_images_service_account_key))
 
   - name: upgrade-sidecars-image
-    type: docker-image
+    type: registry-image
     icon: docker
     source:
       repository: gcr.io/cf-networking-images/cf-k8s-networking/upgrade-sidecars
@@ -134,26 +134,29 @@ jobs:
           - get: cf-k8s-networking-docker-images
             trigger: true
       - in_parallel:
-          # Note: 'initial-image' is not the image we publish. Just needed as intermediate
-          # step to inspect so we can label the final image.
-          - put: initial-image
-            resource: upgrade-sidecars-image
+          - task: build-upgrade-sidecars-job-image
+            privileged: true
+            file: cf-k8s-networking-ci/ci/tasks/docker/build-oci-image.yml
+            input_mapping:
+              repository: cf-k8s-networking-docker-images
+            output_mapping:
+              image: upgrade-sidecars-image
             params:
-              build: cf-k8s-networking-docker-images/ci/dockerfiles/upgrade
-              # dockerfile: cf-k8s-networking/routecontroller/Dockerfile
-            get_params:
-              save: true
+              CONTEXT: ci/dockerfiles/upgrade
+              DOCKERFILE: ci/dockerfiles/upgrade/Dockerfile
           - task: build-tag-file
             file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
-      - task: build-image-labels
-        file: cf-k8s-networking-ci/ci/tasks/docker/build-image-labels.yml
+      - task: annotate
+        file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
+        input_mapping:
+          input-image: upgrade-sidecars-image
+          repository: cf-k8s-networking
+        output_mapping:
+          output-image: upgrade-sidecars-annotated-image
       - put: upgrade-sidecars-image
         params:
-          build: cf-k8s-networking-docker-images/ci/dockerfiles/upgrade
-          # dockerfile: cf-k8s-networking/routecontroller/Dockerfile
+          image: upgrade-sidecars-annotated-image/image.tar
           additional_tags: docker-info/tags
-          tag_as_latest: true
-          labels_file: labels/labels.json
       - task: add-updated-digest
         file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
         input_mapping:
