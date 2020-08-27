@@ -12,8 +12,13 @@ image_resource:
       password: ((pivotal_cf_networking_pivnet_password))
 
 inputs:
-  # input-image should contain an image.tar file
-  - name: input-image
+  # When using this task, you must specify EITHER input-image-tar OR input-image-name
+  # input-image-tar should contain an image.tar file
+  - name: input-image-tar
+    optional: true
+  # input-image-name should contain a name.txt file with the name of the image
+  - name: input-image-name
+    optional: true
   # repository is the git respository containing the source code for the image
   - name: repository
   - name: cf-k8s-networking-ci
