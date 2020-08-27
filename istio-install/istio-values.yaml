@@ -57,6 +57,11 @@ spec:
           minReplicas: 10
           maxReplicas: 10
   values:
+    pilot:
+      env:
+        PILOT_PUSH_THROTTLE: 1
+        PILOT_DEBOUNCE_AFTER: 10s
+        PILOT_DEBOUNCE_MAX: 30s
     telemetry:
       enabled: false
       v2:

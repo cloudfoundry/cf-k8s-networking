@@ -12,8 +12,6 @@ if [[ ${istioctl_version} != "${DESIRED_ISTIO_VERSION}" ]]; then
 fi
 
 echo "generating Istio resource definitions..." >&2
-# export PILOT_DEBOUNCE_MAX=20s
-# export PILOT_DEBOUNCE_AFTER=500ms
 istioctl manifest generate -f "${SCRIPT_DIR}/istio-values.yaml" "$@" | \
   ytt --ignore-unknown-comments \
     -f "${SCRIPT_DIR}/../config/values.yaml" \
