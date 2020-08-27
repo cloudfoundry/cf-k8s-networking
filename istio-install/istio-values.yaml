@@ -57,10 +57,6 @@ spec:
           minReplicas: 10
           maxReplicas: 10
   values:
-    prometheus:
-      enabled: true
-    grafana:
-      enabled: true
     telemetry:
       enabled: false
       v2:
