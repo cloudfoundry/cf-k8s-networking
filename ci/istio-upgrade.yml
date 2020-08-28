@@ -60,8 +60,19 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
+- name: cf-for-k8s
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    ignore_paths:
+      - ci/**
+
 jobs:
 - name: pull-and-tag-istio-images
+  serial_groups: ['bump-istio']
   plan:
   - in_parallel:
     - get: cf-k8s-networking-ci
@@ -148,6 +159,7 @@ jobs:
         additional_tags: istio-release/tag
 
 - name: generate-new-istio-config
+  serial_groups: ['bump-istio']
   plan:
   - in_parallel:
     - get: cf-k8s-networking-ci
@@ -197,3 +209,61 @@ jobs:
       tag_prefix: istio-bump-to-
       tag: istio-release/tag
       force: true
+
+
+# Environment to run tests
+- name: deploy-and-test-new-istio-version
+  serial_groups: ['bump-istio']
+  plan:
+  - in_parallel:
+    - get: cf-for-k8s
+    - get: cf-k8s-networking-ci
+    - get: cf-k8s-networking
+      resource: cf-k8s-networking-istio-bump-branch
+      trigger: true
+      passed:
+      - generate-new-istio-config
+  - task: create-gke-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+    params:
+      CLUSTER_NAME: &ci-test-for-k8s-cluster-name bump-istio-test
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+  - task: install-cf
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+    params:
+      CF_DOMAIN: &ci-test-for-k8s-domain "bump-istio-test.routing.lol"
+      CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+      KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+  - task: run-smoke-test
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+    params:
+      SMOKE_TEST_SKIP_SSL: true
+  - task: generate-integration-configs
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
+  - task: networking-acceptance-gke-tests
+    file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
+    params:
+      CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+      INTEGRATION_CONFIG_FILE: "config.json"
+  - task: destroy-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+    params:
+      CF_DOMAIN: *ci-test-for-k8s-domain
+      CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+- name: push-to-develop
+  serial_groups: ['bump-istio']
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking
+    - get: cf-k8s-networking-istio-bump-branch
+      trigger: true
+      passed:
+      - deploy-and-test-new-istio-version
+  - put: cf-k8s-networking
+    params:
+      repository: cf-k8s-networking-istio-bump-branch
+      rebase: true
