@@ -149,7 +149,7 @@ jobs:
       - task: annotate
         file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
         input_mapping:
-          input-image: upgrade-sidecars-image
+          input-image-tar: upgrade-sidecars-image
           repository: cf-k8s-networking
         output_mapping:
           output-image: upgrade-sidecars-annotated-image
