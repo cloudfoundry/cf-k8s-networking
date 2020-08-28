@@ -8,7 +8,6 @@ ENV YTT_VERSION "v0.30.0"
 ENV YTT_CHECKSUM "456e58c70aef5cd4946d29ed106c2b2acbb4d0d5e99129e526ecb4a859a36145"
 ENV KBLD_VERSION "v0.24.0"
 ENV KBLD_CHECKSUM "63f06c428cacd66e4ebbd23df3f04214109bc44ee623c7c81ecb9aa35c192c65"
-ENV ISTIOCTL_VERSION 1.6.4
 
 RUN \
       apt update && \
@@ -42,17 +41,6 @@ RUN export CLOUD_SDK_REPO="cloud-sdk-$(lsb_release -c -s)" && \
 
 # install kubectl
 RUN apt-get install kubectl
-
-# install istioctl
-RUN tmp=$(mktemp -d /tmp/istioctl.XXXXXX) && \
-  filename="istioctl-${ISTIOCTL_VERSION}-linux.tar.gz" && \
-  cd "$tmp" && \
-  URL="https://github.com/istio/istio/releases/download/${ISTIOCTL_VERSION}/istioctl-${ISTIOCTL_VERSION}-linux.tar.gz" && \
-  curl -sLO "${URL}" &&\
-  tar -xzf "${filename}" && \
-  mv "${tmp}/istioctl" /usr/local/bin/istioctl && \
-  chmod +x /usr/local/bin/istioctl && \
-  rm -r "${tmp}"
 
 # Get Helm
 RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-linux-amd64.tar.gz -P /tmp && \
