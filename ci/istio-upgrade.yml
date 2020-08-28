@@ -44,6 +44,22 @@ resources:
       - ci
       - config
 
+- name: cf-k8s-networking
+  type: git
+  icon: github-box
+  source:
+    branch: develop
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+
+- name: cf-k8s-networking-istio-bump-branch
+  type: git
+  icon: github-box
+  source:
+    branch: istio-patch-bump
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+
 jobs:
 - name: pull-and-tag-istio-images
   plan:
@@ -130,3 +146,54 @@ jobs:
       params:
         image: istio-proxyv2-annotated-image/image.tar
         additional_tags: istio-release/tag
+
+- name: generate-new-istio-config
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking-ci
+    - get: cf-k8s-networking
+    - get: istio-release
+      trigger: true
+      passed:
+      - pull-and-tag-istio-images
+  - task: generate-and-commit-config
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
+      inputs:
+      - name: istio-release
+      - name: cf-k8s-networking
+      outputs:
+      - name: cf-k8s-networking
+      run:
+        path: /bin/bash
+        args:
+        - -cex
+        - |
+          pushd istio-release > /dev/null
+            tar -xzvf istioctl-*-linux-amd64.tar.gz
+            mv istioctl /usr/local/bin
+          popd
+
+          ISTIO_VERSION="$(cat istio-release/tag)"
+
+          sed -i \
+            "s/istioVersion.*\$/istioVersion: $ISTIO_VERSION/" \
+            cf-k8s-networking/config/values.yaml
+
+          cf-k8s-networking/istio-install/build.sh
+
+          pushd cf-k8s-networking > /dev/null
+            git config --global user.name "CF Networking Team CI Bot"
+            git config --global user.email "CF-Networking@pivotal.io"
+            git commit -a -m "Bump Istio to ${ISTIO_VERSION}"
+          popd
+  - put: cf-k8s-networking-istio-bump-branch
+    params:
+      repository: cf-k8s-networking
+      tag_prefix: istio-bump-to-
+      tag: istio-release/tag
+      force: true
