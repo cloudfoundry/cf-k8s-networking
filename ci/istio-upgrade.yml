@@ -6,15 +6,8 @@ resources:
   source:
     owner: istio
     repository: istio
-    version: latest
+    tag_filter: '1\.6\..*'
     access_token: ((github_access_token))
-
-- name: istio
-  type: git
-  icon: github-box
-  source:
-    uri: https://github.com/istio/istio.git
-    fetch_tags: true
 
 - name: istio-proxyv2-image
   type: registry-image
@@ -58,7 +51,6 @@ jobs:
     - get: cf-k8s-networking-ci
     - get: istio-release
       trigger: true
-    - get: istio
     - get: istio-proxyv2-image
       resource: istio-proxyv2-image
       params:
@@ -95,19 +87,37 @@ jobs:
           git clone https://github.com/istio/istio.git ./istio-at-specified-sha
           pushd istio-at-specified-sha > /dev/null
             git checkout "$(cat ../istio-release/commit_sha)"
-            git status
           popd
+  - task: create-image-names
+    config:
+      platform: linux
+      image_resource:
+        type: docker-image
+        source:
+          repository: c2cnetworking/small-git
+      inputs:
+      - name: istio-release
+      outputs:
+      - name: pilot-image-name
+      - name: proxyv2-image-name
+      run:
+        path: /bin/bash
+        args:
+        - -cex
+        - |
+          echo "index.docker.io/istio/pilot:$(cat istio-release/tag)" > pilot-image-name/name.txt
+          echo "index.docker.io/istio/proxyv2:$(cat istio-release/tag)" > proxyv2-image-name/name.txt
   - task: annotate-istio-proxyv2
     file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
     input_mapping:
-      input-image: istio-proxyv2-image
+      input-image-name: proxyv2-image-name
       repository: istio-at-specified-sha
     output_mapping:
       output-image: istio-proxyv2-annotated-image
   - task: annotate-istio-pilot
     file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
     input_mapping:
-      input-image: istio-pilot-image
+      input-image-name: pilot-image-name
       repository: istio-at-specified-sha
     output_mapping:
       output-image: istio-pilot-annotated-image
