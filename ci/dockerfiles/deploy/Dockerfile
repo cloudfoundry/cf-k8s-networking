@@ -6,6 +6,8 @@ ENV KAPP_VERSION "v0.33.0"
 ENV KAPP_CHECKSUM "2a3328c9eca9f43fe639afb524501d9d119feeea52c8a913639cfb96e38e93d1"
 ENV YTT_VERSION "v0.30.0"
 ENV YTT_CHECKSUM "456e58c70aef5cd4946d29ed106c2b2acbb4d0d5e99129e526ecb4a859a36145"
+ENV KBLD_VERSION "v0.24.0"
+ENV KBLD_CHECKSUM "63f06c428cacd66e4ebbd23df3f04214109bc44ee623c7c81ecb9aa35c192c65"
 ENV ISTIOCTL_VERSION 1.4.3
 
 RUN \
@@ -57,7 +59,7 @@ RUN wget https://storage.googleapis.com/kubernetes-helm/helm-v${HELM_VERSION}-li
   tar -xvf /tmp/helm-v${HELM_VERSION}-linux-amd64.tar.gz -C /tmp && \
   mv /tmp/linux-amd64/helm /usr/local/bin/helm
 
-# install k14s utils (ytt, kapp)
+# install k14s utils (ytt, kapp, kbld)
 RUN  wget -O- https://github.com/k14s/ytt/releases/download/${YTT_VERSION}/ytt-linux-amd64 > /tmp/ytt && \
     echo "${YTT_CHECKSUM}  /tmp/ytt" | shasum -c - && \
     mv /tmp/ytt /usr/local/bin/ytt && \
@@ -67,6 +69,11 @@ RUN wget -O- https://github.com/k14s/kapp/releases/download/${KAPP_VERSION}/kapp
     echo "${KAPP_CHECKSUM}  /tmp/kapp" | shasum -c - && \
     mv /tmp/kapp /usr/local/bin/kapp && \
     chmod +x /usr/local/bin/kapp
+
+RUN wget -O- https://github.com/k14s/kbld/releases/download/${KBLD_VERSION}/kbld-linux-amd64 > /tmp/kbld && \
+    echo "${KBLD_CHECKSUM}  /tmp/kbld" | shasum -c - && \
+    mv /tmp/kbld /usr/local/bin/kbld && \
+    chmod +x /usr/local/bin/kbld
 
 # Clean up
 RUN apt-get remove -y python-dev apt-transport-https && \
