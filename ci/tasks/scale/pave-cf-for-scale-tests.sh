@@ -36,8 +36,9 @@ function deploy_apps() {
 }
 
 function main() {
+    sleep 10
     # hopefully wait for til it works?
-    curl -vvv --retry 300 --retry-delay 5 -k "https://api.$(cat env-metadata/dns-domain.txt)"
+    curl -vvv --retry 300 -k "https://api.$(cat env-metadata/dns-domain.txt)"
 
     login
     prepare_cf_foundation
