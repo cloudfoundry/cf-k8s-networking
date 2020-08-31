@@ -55,7 +55,7 @@ jobs:
         ENABLE_IP_ALIAS: true
         MACHINE_TYPE: "n1-standard-8"
         NUM_NODES: 34
-        # REGIONAL_CLUSTER: true
+        REGIONAL_CLUSTER: false
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
