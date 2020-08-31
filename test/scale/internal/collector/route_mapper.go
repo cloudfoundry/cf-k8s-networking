@@ -76,7 +76,6 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 			} else {
 				if !succeeded {
 					fmt.Fprintln(GinkgoWriter, "Success for number", j, "route:", routeToMap)
-					lastFailure = time.Now().Unix()
 					succeeded = true
 				}
 			}
@@ -96,8 +95,8 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 func cfWithRetry(args ...string) *gexec.Session {
 	for i := 0; i < 3; i++ {
 		session := cf.Cf(args...)
-		time.Sleep(2 * time.Second)
-		// session.Wait(5 * time.Second)
+		// time.Sleep(2 * time.Second)
+		session.Wait(15 * time.Second)
 		if session.ExitCode() == 0 {
 			return session
 		}
