@@ -17,10 +17,11 @@ import (
 type RouteMapper struct {
 	Client http.Client
 
-	results   []float64
-	failures  int
-	waitGroup sync.WaitGroup
-	mutex     sync.Mutex
+	results      []float64
+	failures     int
+	postFailures int
+	waitGroup    sync.WaitGroup
+	mutex        sync.Mutex
 }
 
 func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string) {
@@ -41,6 +42,7 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		startTime := time.Now().Unix()
 		lastFailure := time.Now().Unix()
 		succeeded := false
+		postFailed := false
 		for j := 0; j < 60; j++ {
 			url := fmt.Sprintf("https://%s.%s/", routeToMap, domain)
 			resp, err := r.Client.Get(url)
@@ -51,32 +53,34 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 			if resp.StatusCode != http.StatusOK {
 				lastFailure = time.Now().Unix()
 				if succeeded {
+					postFailed = true
 					body, err := ioutil.ReadAll(resp.Body)
 					if err != nil {
 						body = []byte("Could not read body!!!")
 					}
 
-					session := cf.Cf("app", appName, "--guid")
-					session.Wait(5 * time.Minute)
-					appGuid := session.Out.Contents()
+					// 					session := cf.Cf("app", appName, "--guid")
+					// 					session.Wait(5 * time.Minute)
+					// 					appGuid := session.Out.Contents()
 
-					session = cf.Cf("check-route", domain, "-n", routeToMap)
-					session.Wait(5 * time.Minute)
-					routeCheck := session.Out.Contents()
+					// 					session = cf.Cf("check-route", domain, "-n", routeToMap)
+					// 					session.Wait(5 * time.Minute)
+					// 					routeCheck := session.Out.Contents()
 
 					fmt.Fprintln(GinkgoWriter,
 						"Got post-success error for", j,
 						"route:", routeToMap,
 						"status code:", resp.StatusCode,
 						"response body:", string(body),
-						"app guid:", string(appGuid),
-						"route check:", string(routeCheck),
+						// "app guid:", string(appGuid),
+						// "route check:", string(routeCheck),
 					)
 				}
 			} else {
 				if !succeeded {
 					fmt.Fprintln(GinkgoWriter, "Success for number", j, "route:", routeToMap)
 					succeeded = true
+					postFailed = false
 				}
 			}
 			time.Sleep(1 * time.Second)
@@ -86,6 +90,11 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 			fmt.Fprintln(GinkgoWriter, routeToMap, "never became healthy this is a problem/failure")
 			r.addFailure()
 			return
+		}
+
+		if postFailed {
+			fmt.Fprintln(GinkgoWriter, routeToMap, "became healthy but then became unhealthy problem/failure")
+			r.addPostFailure()
 		}
 
 		r.addResult(float64(lastFailure - startTime))
@@ -136,4 +145,18 @@ func (r *RouteMapper) addFailure() {
 	defer r.mutex.Unlock()
 
 	r.failures = r.failures + 1
+}
+
+func (r *RouteMapper) GetPostFailures() int {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	return r.postFailures
+}
+
+func (r *RouteMapper) addPostFailure() {
+	r.mutex.Lock()
+	defer r.mutex.Unlock()
+
+	r.postFailures = r.postFailures + 1
 }

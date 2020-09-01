@@ -20,9 +20,10 @@ import (
 
 var _ = Describe("Scale", func() {
 	var (
-		routeMapper *collector.RouteMapper
-		results     []float64
-		failures    int
+		routeMapper  *collector.RouteMapper
+		results      []float64
+		failures     int
+		postFailures int
 	)
 
 	BeforeEach(func() {
@@ -70,6 +71,7 @@ var _ = Describe("Scale", func() {
 		fmt.Fprintf(GinkgoWriter, "\tAverage: %.0f Seconds\n", avg)
 		fmt.Fprintf(GinkgoWriter, "\tMedian: %.0f Seconds\n", median)
 		fmt.Fprintf(GinkgoWriter, "\n\tRoutes failed to map: %d\n", failures)
+		fmt.Fprintf(GinkgoWriter, "\n\tPost-success failures: %d\n", postFailures)
 		fmt.Fprintln(GinkgoWriter, "*********************************************")
 	})
 
@@ -88,9 +90,11 @@ var _ = Describe("Scale", func() {
 
 			results = routeMapper.GetResults()
 			failures = routeMapper.GetFailures()
+			postFailures = routeMapper.GetPostFailures()
 			p95, err := stats.Percentile(results, 95)
 			Expect(err).NotTo(HaveOccurred())
 
+			Expect(postFailures).To(Equal(0), "Expected no routes to succeed, then fail and never recover")
 			Expect(failures).To(Equal(0), "Expected no map-routes to fail but some did :(")
 			Expect(p95).To(BeNumerically("<=", 10))
 		})
