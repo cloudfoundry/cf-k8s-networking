@@ -5908,6 +5908,9 @@ spec:
           periodSeconds: 3
           timeoutSeconds: 5
         resources:
+          limits:
+            cpu: 2000m
+            memory: 5Gi
           requests:
             cpu: 500m
             memory: 2048Mi
