@@ -12,7 +12,7 @@ spec:
       containers:
       #@overlay/append
       - name: fluent-bit
-        image: cfrouting/fluent-bit
+        image: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image
         resources:
           limits:
             memory: 100Mi

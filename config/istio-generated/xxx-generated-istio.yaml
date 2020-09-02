@@ -5349,15 +5349,15 @@ metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
+        - Tag: latest
+          Type: resolved
+          URL: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image
+        URL: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image@sha256:5adb9afd29bf3ed14c19cc133e3af66d94b72adef62eff209ee199cbaffe2e03
+      - Metas:
         - Tag: 1.6.8
           Type: resolved
           URL: gcr.io/cf-routing/proxyv2:1.6.8
         URL: gcr.io/cf-routing/proxyv2@sha256:61bb3c9c18e7a13fd85c2644a75ac1e0e43dc19d218c9cfacfd7ebf0accf5e4e
-      - Metas:
-        - Tag: latest
-          Type: resolved
-          URL: cfrouting/fluent-bit
-        URL: index.docker.io/cfrouting/fluent-bit@sha256:e04d7985f1f8778952547bcc8c9dfeef0a9a078006ca28f6e9c4e5f455ef0eba
   labels:
     app: istio-ingressgateway
     cloudfoundry.org/istio_version: 1.6.8
@@ -5545,7 +5545,7 @@ spec:
         - mountPath: /etc/istio/ingressgateway-ca-certs
           name: ingressgateway-ca-certs
           readOnly: true
-      - image: index.docker.io/cfrouting/fluent-bit@sha256:e04d7985f1f8778952547bcc8c9dfeef0a9a078006ca28f6e9c4e5f455ef0eba
+      - image: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image@sha256:5adb9afd29bf3ed14c19cc133e3af66d94b72adef62eff209ee199cbaffe2e03
         name: fluent-bit
         resources:
           limits:
