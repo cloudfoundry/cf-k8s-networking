@@ -25,6 +25,16 @@ resources:
       paths:
         - ci
 
+  - name: cf-k8s-logging-fluent
+    type: git
+    icon: github-box
+    source:
+      branch: main
+      private_key: ((github_private_key.private_key))
+      uri: git@github.com:cloudfoundry/cf-k8s-logging-fluent.git
+      paths:
+        - fluent-bit
+
   - name: cf-k8s-networking-docker-images
     type: git
     icon: github-box
@@ -40,6 +50,14 @@ resources:
     icon: docker
     source:
       repository: gcr.io/cf-networking-images/cf-k8s-networking/kind-integration-test-env
+      username: _json_key
+      password: ((gcp_gcr_networking_images_service_account_key))
+
+  - name: fluent-bit-image
+    type: registry-image
+    icon: docker
+    source:
+      repository: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image
       username: _json_key
       password: ((gcp_gcr_networking_images_service_account_key))
 
@@ -107,6 +125,69 @@ jobs:
         params:
           build: cf-k8s-networking-docker-images/ci/dockerfiles/test
           tag_as_latest: true
+
+  - name: build-and-annotate-fluent-bit-image
+    plan:
+      - in_parallel:
+          - get: cf-k8s-networking-ci
+          - get: cf-k8s-logging-fluent
+            trigger: true
+      - task: build-fluent-bit-image
+        file: cf-k8s-networking-ci/ci/tasks/docker/build-oci-image.yml
+        privileged: true
+        input_mapping:
+          repository: cf-k8s-logging-fluent
+        params:
+          DOCKERFILE: fluent-bit/Dockerfile
+        output_mapping:
+          image: fluent-bit-image
+      - task: prepare-fluent-bit-source-code
+        # NOTE(ck,kds): In order to annotate images, we need the source code.
+        # Unfortunately, concourse git resources only allow you to pull a
+        # specific branch/version of code. Since the version of fluent-bit will
+        # change over time, and concourse doesn't allow to dynamically change
+        # resources, we must manually clone the source code, and check it out
+        # to the version we find in the fluent-bit dockerfile.
+        config:
+          platform: linux
+          image_resource:
+            type: docker-image
+            source:
+              repository: c2cnetworking/small-git
+          inputs:
+          - name: cf-k8s-logging-fluent
+          outputs:
+          - name: fluent-bit-at-specified-version
+          - name: fluent-bit-version
+          run:
+            path: /bin/bash
+            args:
+            - -cex
+            - |
+              export VERSION="$(\
+                cat cf-k8s-logging-fluent/fluent-bit/Dockerfile | \
+                grep FLB_VERSION | \
+                cut -d ' ' -f 3 | \
+                head -n1 \
+                )"
+
+              git clone https://github.com/fluent/fluent-bit.git ./fluent-bit-at-specified-version
+
+              pushd fluent-bit-at-specified-version > /dev/null
+                git checkout "v$VERSION"
+              popd
+              echo "v$VERSION" > fluent-bit-version/version
+      - task: annotate-fluent-bit-image
+        file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
+        input_mapping:
+          input-image-tar: fluent-bit-image
+          repository: fluent-bit-at-specified-version
+        output_mapping:
+          output-image: annotated-fluent-bit-image
+      - put: fluent-bit-image
+        params:
+          image: annotated-fluent-bit-image/image.tar
+          additional_tags: fluent-bit-version/version
 
   - name: build-httpbin-image
     plan:
