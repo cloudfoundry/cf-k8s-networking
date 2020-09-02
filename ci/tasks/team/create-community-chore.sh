@@ -18,3 +18,7 @@ curl -s -X PUT -H "X-TrackerToken: $TRACKER_TOKEN" -H "Content-Type: application
 echo $template_tasks | jq -c '(.[])' | xargs -n1 -I{} curl -s -X POST -H "X-TrackerToken: $TRACKER_TOKEN" -H "Content-Type: application/json" -d '{}' "https://www.pivotaltracker.com/services/v5/projects/$project_id/stories/$story_id/tasks" > /dev/null
 
 echo "Created Story id $story_id"
+
+if [[ $story_id == "null" ]]; then
+    exit 1
+fi
