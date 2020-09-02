@@ -260,7 +260,6 @@ jobs:
   - in_parallel:
     - get: cf-k8s-networking
     - get: cf-k8s-networking-istio-bump-branch
-      trigger: true
       passed:
       - deploy-and-test-new-istio-version
   - put: cf-k8s-networking
