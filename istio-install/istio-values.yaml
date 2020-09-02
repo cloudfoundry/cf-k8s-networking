@@ -63,9 +63,9 @@ spec:
         PILOT_DEBOUNCE_AFTER: 10s
         PILOT_DEBOUNCE_MAX: 30s
     telemetry:
-      enabled: false
+      enabled: true
       v2:
-        enabled: false
+        enabled: true
     sidecarInjectorWebhook:
       rewriteAppHTTPProbe: true
     meshConfig:
