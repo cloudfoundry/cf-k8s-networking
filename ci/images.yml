@@ -57,7 +57,7 @@ resources:
     type: registry-image
     icon: docker
     source:
-      repository: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image
+      repository: gcr.io/cf-networking-images/cf-k8s-networking/fluentbit
       username: _json_key
       password: ((gcp_gcr_networking_images_service_account_key))
 
@@ -129,6 +129,7 @@ jobs:
   - name: build-and-annotate-fluent-bit-image
     plan:
       - in_parallel:
+          - get: cf-k8s-networking
           - get: cf-k8s-networking-ci
           - get: cf-k8s-logging-fluent
             trigger: true
@@ -188,6 +189,16 @@ jobs:
         params:
           image: annotated-fluent-bit-image/image.tar
           additional_tags: fluent-bit-version/version
+      - task: add-updated-digest
+        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
+        input_mapping:
+          image-resource: fluent-bit-image
+        params:
+          COMPONENT_NAME: fluentbit
+      - put: cf-k8s-networking
+        params:
+          repository: cf-k8s-networking-modified
+          rebase: true
 
   - name: build-httpbin-image
     plan:

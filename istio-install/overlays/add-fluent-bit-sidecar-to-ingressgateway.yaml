@@ -1,4 +1,5 @@
 #@ load("@ytt:overlay", "overlay")
+#@ load("@ytt:data", "data")
 
 #@ deployment = overlay.subset({"kind": "Deployment", "metadata":{"name":"istio-ingressgateway"}})
 #@ daemonset = overlay.subset({"kind": "DaemonSet", "metadata":{"name":"istio-ingressgateway"}})
@@ -12,7 +13,7 @@ spec:
       containers:
       #@overlay/append
       - name: fluent-bit
-        image: gcr.io/cf-networking-images/cf-k8s-networking/fluent-bit-image
+        image: #@ data.values.fluentbit.image
         resources:
           limits:
             memory: 100Mi
