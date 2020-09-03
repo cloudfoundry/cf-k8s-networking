@@ -16,7 +16,7 @@ function deploy_apps() {
     org_name_prefix="scale-tests"
     space_name_prefix="scale-tests"
 
-    for n in {0..9}
+    for n in {0..0}
     do
       org_name="${org_name_prefix}-${n}"
       space_name="${space_name_prefix}-${n}"
@@ -24,7 +24,7 @@ function deploy_apps() {
       cf create-space -o "${org_name}" "${space_name}"
       cf target -o "${org_name}" -s "${space_name}"
 
-      for i in {0..9}
+      for i in {0..0}
       do
         name="bin-$((n * 10 + i))"
         echo $name
