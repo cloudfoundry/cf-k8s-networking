@@ -564,7 +564,7 @@ kind: ClusterRole
 metadata:
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istiod-istio-system
 rules:
@@ -725,7 +725,7 @@ kind: ClusterRole
 metadata:
   labels:
     app: istio-reader
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istio-reader-istio-system
 rules:
@@ -768,7 +768,7 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: istio-reader
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istio-reader-istio-system
 roleRef:
@@ -785,7 +785,7 @@ kind: ClusterRoleBinding
 metadata:
   labels:
     app: pilot
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istiod-pilot-istio-system
 roleRef:
@@ -802,7 +802,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app: istio-reader
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istio-reader-service-account
   namespace: istio-system
@@ -812,7 +812,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istiod-service-account
   namespace: istio-system
@@ -822,7 +822,7 @@ kind: ValidatingWebhookConfiguration
 metadata:
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: istiod
     release: istio
   name: istiod-istio-system
@@ -854,71 +854,12 @@ webhooks:
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
-  labels:
-    cloudfoundry.org/istio_version: 1.6.4
-    release: istio
-  name: istiooperators.install.istio.io
-spec:
-  additionalPrinterColumns:
-  - JSONPath: .spec.revision
-    description: Istio control plane revision
-    name: Revision
-    type: string
-  - JSONPath: .metadata.creationTimestamp
-    description: 'CreationTimestamp is a timestamp representing the server time when
-      this object was created. It is not guaranteed to be set in happens-before order
-      across separate operations. Clients may not set this value. It is represented
-      in RFC3339 form and is in UTC. Populated by the system. Read-only. Null for
-      lists. More info: https://git.k8s.io/community/contributors/devel/api-conventions.md#metadata'
-    name: Age
-    type: date
-  group: install.istio.io
-  names:
-    kind: IstioOperator
-    plural: istiooperators
-    shortNames:
-    - iop
-    singular: istiooperator
-  scope: Namespaced
-  subresources:
-    status: {}
-  validation:
-    openAPIV3Schema:
-      properties:
-        apiVersion:
-          description: 'APIVersion defines the versioned schema of this representation
-            of an object. Servers should convert recognized schemas to the latest
-            internal value, and may reject unrecognized values. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#resources'
-          type: string
-        kind:
-          description: 'Kind is a string value representing the REST resource this
-            object represents. Servers may infer this from the endpoint the client
-            submits requests to. Cannot be updated. In CamelCase. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
-          type: string
-        spec:
-          description: 'Specification of the desired state of the istio control plane
-            resource. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-          type: object
-        status:
-          description: 'Status describes each of istio control plane component status
-            at the current time. 0 means NONE, 1 means UPDATING, 2 means HEALTHY,
-            3 means ERROR, 4 means RECONCILING. More info: https://github.com/istio/api/blob/master/operator/v1alpha1/istio.operator.v1alpha1.pb.html
-            & https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status'
-          type: object
-  versions:
-  - name: v1alpha1
-    served: true
-    storage: true
----
-apiVersion: apiextensions.k8s.io/v1beta1
-kind: CustomResourceDefinition
-metadata:
   annotations:
     helm.sh/resource-policy: keep
   labels:
     app: istio-mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: httpapispecs.config.istio.io
@@ -1191,7 +1132,7 @@ metadata:
   labels:
     app: istio-mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: httpapispecbindings.config.istio.io
@@ -1288,7 +1229,7 @@ metadata:
   labels:
     app: istio-mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: quotaspecs.config.istio.io
@@ -1385,7 +1326,7 @@ metadata:
   labels:
     app: istio-mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: quotaspecbindings.config.istio.io
@@ -1469,7 +1410,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: destinationrules.networking.istio.io
@@ -2609,7 +2550,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: envoyfilters.networking.istio.io
@@ -2846,7 +2787,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: gateways.networking.istio.io
@@ -3001,7 +2942,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: serviceentries.networking.istio.io
@@ -3165,7 +3106,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: sidecars.networking.istio.io
@@ -3513,7 +3454,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: virtualservices.networking.istio.io
@@ -4328,7 +4269,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     release: istio
   name: workloadentries.networking.istio.io
@@ -4416,7 +4357,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: core
     package: istio.io.mixer
@@ -4496,7 +4437,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: mixer-handler
     package: handler
@@ -4706,7 +4647,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: mixer-instance
     package: instance
@@ -4771,7 +4712,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: core
     package: istio.io.mixer
@@ -4930,7 +4871,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: rbac
     release: istio
@@ -5020,7 +4961,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: rbac
     package: istio.io.mixer
@@ -5111,7 +5052,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: rbac
     package: istio.io.mixer
@@ -5225,7 +5166,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: rbac
     package: istio.io.mixer
@@ -5430,7 +5371,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: security
     release: istio
@@ -5633,7 +5574,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: security
     release: istio
@@ -5715,7 +5656,7 @@ metadata:
   labels:
     app: istio-pilot
     chart: istio
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     heritage: Tiller
     istio: security
     release: istio
@@ -5818,10 +5759,6 @@ spec:
     served: true
     storage: true
 ---
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> trying to disable telemetry and enable prometheus to track down resource usage
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -5830,11 +5767,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-<<<<<<< HEAD
-    cloudfoundry.org/istio_version: 1.6.4
-=======
     cloudfoundry.org/istio_version: 1.6.8
->>>>>>> trying to disable telemetry and enable prometheus to track down resource usage
     heritage: Tiller
     istio: mixer-adapter
     package: adapter
@@ -5865,11 +5798,7 @@ metadata:
   labels:
     app: mixer
     chart: istio
-<<<<<<< HEAD
-    cloudfoundry.org/istio_version: 1.6.4
-=======
     cloudfoundry.org/istio_version: 1.6.8
->>>>>>> trying to disable telemetry and enable prometheus to track down resource usage
     heritage: Tiller
     istio: mixer-template
     package: template
@@ -5892,10 +5821,6 @@ spec:
     served: true
     storage: true
 ---
-<<<<<<< HEAD
-=======
->>>>>>> wip work for large scale deployment
-=======
 apiVersion: apiextensions.k8s.io/v1beta1
 kind: CustomResourceDefinition
 metadata:
@@ -5955,13 +5880,12 @@ spec:
     served: true
     storage: true
 ---
->>>>>>> trying to disable telemetry and enable prometheus to track down resource usage
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
   labels:
     app: istio-ingressgateway
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway
@@ -5987,25 +5911,13 @@ metadata:
       - Metas: null
         URL: gcr.io/cf-networking-images/cf-k8s-networking/fluentbit@sha256:9d0f364a682b1903b1230d836d2270f86f29b2904ea5b2b8ee3ea9132a9ab9d7
       - Metas:
-<<<<<<< HEAD
-        - Tag: 1.6.4
-          Type: resolved
-          URL: gcr.io/cf-routing/proxyv2:1.6.4
-        URL: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
-=======
-        - Tag: latest
-          Type: resolved
-          URL: cfrouting/fluent-bit
-        URL: index.docker.io/cfrouting/fluent-bit@sha256:e04d7985f1f8778952547bcc8c9dfeef0a9a078006ca28f6e9c4e5f455ef0eba
-      - Metas:
         - Tag: 1.6.8
           Type: resolved
           URL: docker.io/istio/proxyv2:1.6.8
         URL: index.docker.io/istio/proxyv2@sha256:1d3a72f72814d9895cd6dbd450d6badefb353fe99f3f4a8860ec4968136c04e0
->>>>>>> Update Istio to 1.6.8
   labels:
     app: istio-ingressgateway
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway
@@ -6027,7 +5939,7 @@ spec:
       labels:
         app: istio-ingressgateway
         chart: gateways
-        cloudfoundry.org/istio_version: 1.6.4
+        cloudfoundry.org/istio_version: 1.6.8
         heritage: Tiller
         istio: ingressgateway
         release: istio
@@ -6135,11 +6047,7 @@ spec:
           value: Kubernetes
         - name: TERMINATION_DRAIN_DURATION_SECONDS
           value: "60"
-<<<<<<< HEAD
-        image: gcr.io/cf-routing/proxyv2@sha256:4e4d05059e65080b158a347bcfac67090968e96f302dea54c0efac9a16ef62f0
-=======
         image: index.docker.io/istio/proxyv2@sha256:1d3a72f72814d9895cd6dbd450d6badefb353fe99f3f4a8860ec4968136c04e0
->>>>>>> Update Istio to 1.6.8
         lifecycle:
           preStop:
             exec:
@@ -6268,7 +6176,7 @@ metadata:
     kapp.k14s.io/update-strategy: fallback-on-replace
   labels:
     app: istio-ingressgateway
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway
@@ -6285,7 +6193,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istio-ingressgateway-sds
   namespace: istio-system
@@ -6303,7 +6211,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     release: istio
   name: istio-ingressgateway-sds
   namespace: istio-system
@@ -6321,7 +6229,7 @@ metadata:
   annotations: null
   labels:
     app: istio-ingressgateway
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway
@@ -6351,7 +6259,7 @@ kind: ServiceAccount
 metadata:
   labels:
     app: istio-ingressgateway
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: ingressgateway
     release: istio
   name: istio-ingressgateway-service-account
@@ -6362,7 +6270,7 @@ kind: HorizontalPodAutoscaler
 metadata:
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
     release: istio
   name: istiod
@@ -6435,7 +6343,7 @@ data:
       tracing:
         zipkin:
           address: zipkin.istio-system:9411
-    disableMixerHttpReports: false
+    disableMixerHttpReports: true
     disablePolicyChecks: true
     enableAutoMtls: true
     enablePrometheusMerge: false
@@ -6452,7 +6360,7 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
     release: istio
   name: istio
@@ -6464,18 +6372,13 @@ metadata:
   annotations:
     kbld.k14s.io/images: |
       - Metas:
-        - Tag: 1.6.4
+        - Tag: 1.6.8
           Type: resolved
-<<<<<<< HEAD
-          URL: gcr.io/cf-routing/pilot:1.6.4
-        URL: gcr.io/cf-routing/pilot@sha256:0516ef03cc2fb03e0202c7d08e73ffc761caad6946b664bd9ad1814020462c09
-=======
           URL: docker.io/istio/pilot:1.6.8
         URL: index.docker.io/istio/pilot@sha256:178a30ae6f762ba40b09dfd09acbb3584fff835cd3027815d482c8dcfb308fdb
->>>>>>> Update Istio to 1.6.8
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: pilot
     istio.io/rev: default
     release: istio
@@ -6496,7 +6399,7 @@ spec:
         sidecar.istio.io/inject: "false"
       labels:
         app: istiod
-        cloudfoundry.org/istio_version: 1.6.4
+        cloudfoundry.org/istio_version: 1.6.8
         istio: pilot
         istio.io/rev: default
     spec:
@@ -6532,6 +6435,12 @@ spec:
             fieldRef:
               apiVersion: v1
               fieldPath: spec.serviceAccountName
+        - name: PILOT_DEBOUNCE_AFTER
+          value: 10s
+        - name: PILOT_DEBOUNCE_MAX
+          value: 30s
+        - name: PILOT_PUSH_THROTTLE
+          value: "1"
         - name: PILOT_TRACE_SAMPLING
           value: "1"
         - name: PILOT_ENABLE_PROTOCOL_SNIFFING_FOR_OUTBOUND
@@ -6548,11 +6457,7 @@ spec:
           value: Kubernetes
         - name: CENTRAL_ISTIOD
           value: "false"
-<<<<<<< HEAD
-        image: gcr.io/cf-routing/pilot@sha256:0516ef03cc2fb03e0202c7d08e73ffc761caad6946b664bd9ad1814020462c09
-=======
         image: index.docker.io/istio/pilot@sha256:178a30ae6f762ba40b09dfd09acbb3584fff835cd3027815d482c8dcfb308fdb
->>>>>>> Update Istio to 1.6.8
         name: discovery
         ports:
         - containerPort: 8080
@@ -6658,7 +6563,11 @@ data:
         - "-b"
         - "{{ annotation .ObjectMeta `traffic.sidecar.istio.io/includeInboundPorts` `*` }}"
         - "-d"
+        {{- if excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts` .Values.global.proxy.excludeInboundPorts) }}
         - "15090,15021,{{ excludeInboundPort (annotation .ObjectMeta `status.sidecar.istio.io/port` .Values.global.proxy.statusPort) (annotation .ObjectMeta `traffic.sidecar.istio.io/excludeInboundPorts` .Values.global.proxy.excludeInboundPorts) }}"
+        {{- else }}
+        - "15090,15021"
+        {{- end }}
         {{ if or (isset .ObjectMeta.Annotations `traffic.sidecar.istio.io/excludeOutboundPorts`) (ne (valueOrDefault .Values.global.proxy.excludeOutboundPorts "") "") -}}
         - "-o"
         - "{{ annotation .ObjectMeta `traffic.sidecar.istio.io/excludeOutboundPorts` .Values.global.proxy.excludeOutboundPorts }}"
@@ -7174,7 +7083,7 @@ data:
         "sts": {
           "servicePort": 0
         },
-        "tag": "1.6.4",
+        "tag": "1.6.8",
         "telemetryNamespace": "istio-system",
         "tracer": {
           "datadog": {
@@ -7219,7 +7128,7 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
     release: istio
   name: istio-sidecar-injector
@@ -7230,7 +7139,7 @@ kind: MutatingWebhookConfiguration
 metadata:
   labels:
     app: sidecar-injector
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
     release: istio
   name: istio-sidecar-injector
@@ -7263,7 +7172,7 @@ metadata:
     kapp.k14s.io/update-strategy: fallback-on-replace
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: pilot
     istio.io/rev: default
     release: istio
@@ -7281,7 +7190,7 @@ kind: Service
 metadata:
   labels:
     app: istiod
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio: pilot
     istio.io/rev: default
     release: istio
@@ -7298,10 +7207,6 @@ spec:
     targetPort: 15017
   - name: http-monitoring
     port: 15014
-  - name: dns
-    port: 53
-    protocol: UDP
-    targetPort: 15053
   - name: dns-tls
     port: 853
     protocol: TCP
@@ -7310,12 +7215,11 @@ spec:
     app: istiod
     istio: pilot
 ---
-<<<<<<< HEAD
 apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: metadata-exchange-1.4
   namespace: istio-system
@@ -7346,7 +7250,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: stats-filter-1.4
   namespace: istio-system
@@ -7442,7 +7346,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: metadata-exchange-1.5
   namespace: istio-system
@@ -7477,7 +7381,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: tcp-metadata-exchange-1.5
   namespace: istio-system
@@ -7532,7 +7436,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: stats-filter-1.5
   namespace: istio-system
@@ -7640,7 +7544,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: tcp-stats-filter-1.5
   namespace: istio-system
@@ -7741,7 +7645,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: metadata-exchange-1.6
   namespace: istio-system
@@ -7777,7 +7681,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: tcp-metadata-exchange-1.6
   namespace: istio-system
@@ -7835,7 +7739,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: stats-filter-1.6
   namespace: istio-system
@@ -7943,7 +7847,7 @@ apiVersion: networking.istio.io/v1alpha3
 kind: EnvoyFilter
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
     istio.io/rev: default
   name: tcp-stats-filter-1.6
   namespace: istio-system
@@ -8040,20 +7944,18 @@ spec:
                 runtime: envoy.wasm.runtime.null
                 vm_id: tcp_stats_outbound
 ---
-=======
->>>>>>> trying to disable telemetry and enable prometheus to track down resource usage
 apiVersion: v1
 kind: Namespace
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
   name: istio-system
 ---
 apiVersion: security.istio.io/v1beta1
 kind: PeerAuthentication
 metadata:
   labels:
-    cloudfoundry.org/istio_version: 1.6.4
+    cloudfoundry.org/istio_version: 1.6.8
   name: default
   namespace: istio-system
 spec:
