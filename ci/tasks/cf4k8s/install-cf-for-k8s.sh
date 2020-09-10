@@ -2,9 +2,9 @@
 
 set -euo pipefail
 
+source cf-k8s-networking-ci/ci/tasks/helpers.sh
+
 # ENV
-: "${CLUSTER_NAME:?}"
-: "${CF_DOMAIN:?}"
 : "${CLOUDSDK_COMPUTE_REGION:?}"
 : "${CLOUDSDK_COMPUTE_ZONE:?}"
 : "${GCP_SERVICE_ACCOUNT_KEY:?}"
@@ -85,6 +85,7 @@ function configure_dns() {
 }
 
 function main() {
+    initialize_gke_env_vars
     install_cf
     configure_dns
 }
