@@ -51,15 +51,12 @@ func (b *VirtualServiceBuilder) Build(routes *networkingv1alpha1.RouteList) ([]i
 	sortedFQDNs := sortFQDNs(routesForFQDN)
 
 	for _, fqdn := range sortedFQDNs {
-		destinations := destinationsForFQDN(fqdn, routesForFQDN)
-		if len(destinations) != 0 {
-			virtualService, err := b.fqdnToVirtualService(fqdn, routesForFQDN[fqdn])
-			if err != nil {
-				return []istionetworkingv1alpha3.VirtualService{}, err
-			}
-
-			resources = append(resources, virtualService)
+		virtualService, err := b.fqdnToVirtualService(fqdn, routesForFQDN[fqdn])
+		if err != nil {
+			return []istionetworkingv1alpha3.VirtualService{}, err
 		}
+
+		resources = append(resources, virtualService)
 	}
 
 	return resources, nil
@@ -96,13 +93,13 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []netwo
 	sortRoutes(routes)
 
 	for _, route := range routes {
+		vs.ObjectMeta.OwnerReferences = append(vs.ObjectMeta.OwnerReferences, routeToOwnerRef(&route))
+
 		if len(route.Spec.Destinations) != 0 {
 			istioDestinations, err := destinationsToHttpRouteDestinations(route, route.Spec.Destinations)
 			if err != nil {
 				return istionetworkingv1alpha3.VirtualService{}, err
 			}
-
-			vs.ObjectMeta.OwnerReferences = append(vs.ObjectMeta.OwnerReferences, routeToOwnerRef(&route))
 
 			istioRoute := istiov1alpha3.HTTPRoute{
 				Route: istioDestinations,

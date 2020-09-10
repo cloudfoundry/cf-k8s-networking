@@ -89,45 +89,47 @@ func constructVirtualService(params virtualServiceParams) istionetworkingv1alpha
 	}
 	vs.ObjectMeta.OwnerReferences = owners
 
-	https := []*istiov1alpha3.HTTPRoute{}
-	for _, http := range params.https {
-		httpRoute := istiov1alpha3.HTTPRoute{}
-		if http.matchPrefix != "" {
-			httpRoute.Match = []*istiov1alpha3.HTTPMatchRequest{
-				{
-					Uri: &istiov1alpha3.StringMatch{
-						MatchType: &istiov1alpha3.StringMatch_Prefix{
-							Prefix: http.matchPrefix,
+	if params.https != nil {
+		https := []*istiov1alpha3.HTTPRoute{}
+		for _, http := range params.https {
+			httpRoute := istiov1alpha3.HTTPRoute{}
+			if http.matchPrefix != "" {
+				httpRoute.Match = []*istiov1alpha3.HTTPMatchRequest{
+					{
+						Uri: &istiov1alpha3.StringMatch{
+							MatchType: &istiov1alpha3.StringMatch_Prefix{
+								Prefix: http.matchPrefix,
+							},
 						},
 					},
-				},
+				}
 			}
-		}
 
-		routes := []*istiov1alpha3.HTTPRouteDestination{}
-		for _, dest := range http.destinations {
-			routes = append(routes, &istiov1alpha3.HTTPRouteDestination{
-				Destination: &istiov1alpha3.Destination{Host: dest.host},
-				Headers: &istiov1alpha3.Headers{
-					Request: &istiov1alpha3.Headers_HeaderOperations{
-						Set: map[string]string{
-							"CF-App-Id":           dest.appGUID,
-							"CF-App-Process-Type": "process-type-1",
-							"CF-Space-Id":         dest.spaceGUID,
-							"CF-Organization-Id":  dest.orgGUID,
+			routes := []*istiov1alpha3.HTTPRouteDestination{}
+			for _, dest := range http.destinations {
+				routes = append(routes, &istiov1alpha3.HTTPRouteDestination{
+					Destination: &istiov1alpha3.Destination{Host: dest.host},
+					Headers: &istiov1alpha3.Headers{
+						Request: &istiov1alpha3.Headers_HeaderOperations{
+							Set: map[string]string{
+								"CF-App-Id":           dest.appGUID,
+								"CF-App-Process-Type": "process-type-1",
+								"CF-Space-Id":         dest.spaceGUID,
+								"CF-Organization-Id":  dest.orgGUID,
+							},
 						},
 					},
-				},
-				Weight: dest.weight,
-			})
+					Weight: dest.weight,
+				})
+			}
+
+			httpRoute.Route = routes
+
+			https = append(https, &httpRoute)
 		}
-
-		httpRoute.Route = routes
-
-		https = append(https, &httpRoute)
+		vs.Spec.VirtualService.Http = https
 	}
 
-	vs.Spec.VirtualService.Http = https
 	return vs
 }
 
@@ -753,7 +755,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("when a route has no destinations", func() {
-					It("does not create a VirtualService", func() {
+					It("creates a virtual services with no destination", func() {
 						routes = networkingv1alpha1.RouteList{
 							Items: []networkingv1alpha1.Route{
 								constructRoute(routeParams{
@@ -771,9 +773,22 @@ var _ = Describe("VirtualServiceBuilder", func() {
 							IstioGateways: []string{"some-gateway0", "some-gateway1"},
 						}
 
+						expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
+							constructVirtualService(virtualServiceParams{
+								fqdn: "test0.domain0.example.com",
+								owners: []ownerParams{
+									{
+										routeName: routes.Items[0].ObjectMeta.Name,
+										routeUID:  routes.Items[0].ObjectMeta.UID,
+									},
+								},
+								https: nil,
+							}),
+						}
+
 						virtualservice, err := builder.Build(&routes)
 						Expect(err).NotTo(HaveOccurred())
-						Expect(virtualservice).To(BeEmpty())
+						Expect(virtualservice).To(Equal(expectedVirtualServices))
 					})
 				})
 

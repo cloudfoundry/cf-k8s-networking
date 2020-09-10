@@ -173,8 +173,8 @@ var _ = Describe("Integration", func() {
 			yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
 		})
 
-		It("creates a virtualservice and a service", func() {
-			By("Verifying the Service")
+		It("handles the route", func() {
+			By("creating a service")
 			Eventually(kubectlGetServices).Should(ConsistOf(
 				service{
 					Metadata: metadata{
@@ -190,7 +190,7 @@ var _ = Describe("Integration", func() {
 				},
 			))
 
-			By("Verifying the VirtualService")
+			By("creating a virtualservice")
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
 					Spec: virtualServiceSpec{
@@ -213,6 +213,67 @@ var _ = Describe("Integration", func() {
 					},
 				},
 			))
+		})
+
+		It("handles removing a destination from the route correctly", func() {
+			// check that service and vs exists
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+			))
+
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http: []http{
+							http{
+								Match: []match{
+									match{
+										Uri: uri{Prefix: "/some/path"},
+									},
+								},
+								Route: []route{
+									route{
+										Destination: destination{Host: "s-destination-guid-1"},
+									},
+								},
+							},
+						},
+					},
+				},
+			))
+
+			yamlToApply = filepath.Join("fixtures", "single-route-with-no-destination.yaml")
+			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", yamlToApply)
+			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+			By("removing the destination from the virtualservice")
+			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+				virtualService{
+					Spec: virtualServiceSpec{
+						Gateways: []string{gateway},
+						Hosts:    []string{"hostname.apps.example.com"},
+						Http:     nil,
+					},
+				},
+			))
+
+			By("deleting the service associated with the destination")
+			resultList, err := kubectlGetServices()
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(len(resultList)).Should(Equal(0))
 		})
 	})
 

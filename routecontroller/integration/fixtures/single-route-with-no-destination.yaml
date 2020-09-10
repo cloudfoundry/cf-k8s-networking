@@ -1,0 +1,23 @@
+apiVersion: networking.cloudfoundry.org/v1alpha1
+kind: Route
+metadata:
+ name: cc-route-guid-1
+ annotations: {}
+ labels:
+   app.kubernetes.io/name: cc-route-guid
+   app.kubernetes.io/version: cloud-controller-api-version
+   app.kubernetes.io/managed-by: cloudfoundry
+   app.kubernetes.io/component: cf-networking
+   app.kubernetes.io/part-of: cloudfoundry
+   cloudfoundry.org/org_guid: cc-org-guid
+   cloudfoundry.org/space_guid: cc-space-guid
+   cloudfoundry.org/domain_guid: cc-domain-guid
+   cloudfoundry.org/route_guid: cc-route-guid
+spec:
+  host: hostname
+  path: /some/path
+  url: hostname.apps.example.com/some/path
+  domain:
+    name: apps.example.com
+    internal: false
+  destinations: []
