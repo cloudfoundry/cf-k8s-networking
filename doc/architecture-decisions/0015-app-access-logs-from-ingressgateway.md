@@ -50,8 +50,15 @@ information for a developer attempting to debug their app with `cf logs`.
 We also decided that the access log format would be JSON with the [following
 fields](https://docs.google.com/spreadsheets/d/1CuvoUEkiizVKvSZ2IaLya40sgMbm5at78CqxB8uUe80/edit#gid=0)
 
+The work to enable this was completed in [#173568724](https://www.pivotaltracker.com/story/show/173568724).
+
 ## Consequences
 
+- In order to enable this, we added fluent-bit sidecars to our ingressgateways.
+  Information on why we decided to add our own fluent-bit images can be found in
+  this [draft PR](https://github.com/cloudfoundry/cf-k8s-networking/pull/57).
+  The final iteration of this was merged in from [this
+  PR](https://github.com/cloudfoundry/cf-k8s-networking/pull/63)
 - Will need to do [some extra work](https://www.pivotaltracker.com/story/show/172732552)
 to get logs from the ingressgateway pods into the log stream corresponding to the destination app.
 See https://github.com/cloudfoundry/cf-k8s-logging/tree/master/examples/forwarder for more information.
