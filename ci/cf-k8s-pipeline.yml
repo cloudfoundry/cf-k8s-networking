@@ -5,230 +5,228 @@ resource_types:
   source:
     repository: frodenas/gcs-resource
 
-groups:
-- name: integrate
-  jobs:
-  - gke-deploy-and-test
-  - bump-rc
-  - deploy-good-acceptance
-  - ship-what
-  - ship-it
-- name: routecontroller
-  jobs:
-  - run-routecontroller-units
-  - run-routecontroller-integration-tests
-  - run-routecontroller-stress-tests
-  - publish-routecontroller-image
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
 
 resources:
-- name: cf-for-k8s
-  type: git
-  icon: github-box
+- name: networking-pull-requests-to-cf-for-k8s
+  type: pull-request
   source:
-    uri: git@github.com:cloudfoundry/cf-for-k8s
-    private_key: ((github_private_key.private_key))
-    branch: master
-    ignore_paths:
-      - ci/**
+    repository: cloudfoundry/cf-for-k8s
+    access_token: ((github_access_token))
+    labels:
+      - networking
 
-- name: routecontroller-stress-results
-  type: git
-  icon: github-box
-  source:
-    uri: git@github.com:cloudfoundry/cf-k8s-networking
-    private_key: ((github_private_key.private_key))
-    branch: routecontroller-stress-results
+# - name: cf-for-k8s
+#   type: git
+#   icon: github-box
+#   source:
+#     uri: git@github.com:cloudfoundry/cf-for-k8s
+#     private_key: ((github_private_key.private_key))
+#     branch: master
+#     ignore_paths:
+#       - ci/**
+
+# - name: routecontroller-stress-results
+#   type: git
+#   icon: github-box
+#   source:
+#     uri: git@github.com:cloudfoundry/cf-k8s-networking
+#     private_key: ((github_private_key.private_key))
+#     branch: routecontroller-stress-results
 
 - name: cf-k8s-networking
   type: git
   icon: github-box
   source:
-    branch: develop
+    branch: move-istio-to-cf-for-k8s
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
-- name: cf-k8s-networking-rc
-  type: git
-  icon: github-box
-  source:
-    branch: release-candidate
-    private_key: ((github_private_key.private_key))
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+# - name: cf-k8s-networking-rc
+#   type: git
+#   icon: github-box
+#   source:
+#     branch: release-candidate
+#     private_key: ((github_private_key.private_key))
+#     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
-- name: cf-k8s-networking-config
-  type: git
-  icon: github-box
-  source:
-    branch: develop
-    private_key: ((github_private_key.private_key))
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    ignore_paths:
-      - routecontroller
+# - name: cf-k8s-networking-config
+#   type: git
+#   icon: github-box
+#   source:
+#     branch: develop
+#     private_key: ((github_private_key.private_key))
+#     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+#     ignore_paths:
+#       - routecontroller
 
 - name: cf-k8s-networking-ci
   type: git
   icon: github-box
   source:
-    branch: develop
+    branch: move-istio-to-cf-for-k8s
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
       - ci
       - config
 
-- name: routecontroller
-  type: git
-  icon: github-box
-  source:
-    branch: develop
-    private_key: ((github_private_key.private_key))
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    paths:
-      - routecontroller
+# - name: routecontroller
+#   type: git
+#   icon: github-box
+#   source:
+#     branch: develop
+#     private_key: ((github_private_key.private_key))
+#     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+#     paths:
+#       - routecontroller
 
-- name: routecontroller-image
-  type: registry-image
-  icon: docker
-  source:
-    repository: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller
-    username: _json_key
-    password: ((gcp_gcr_networking_images_service_account_key))
+# - name: routecontroller-image
+#   type: registry-image
+#   icon: docker
+#   source:
+#     repository: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller
+#     username: _json_key
+#     password: ((gcp_gcr_networking_images_service_account_key))
 
-- name: concourse-dcind
-  type: git
-  source:
-    branch: master
-    uri: git@github.com:karlkfi/concourse-dcind.git
-    private_key: ((github_private_key.private_key))
+# - name: concourse-dcind
+#   type: git
+#   source:
+#     branch: master
+#     uri: git@github.com:karlkfi/concourse-dcind.git
+#     private_key: ((github_private_key.private_key))
 
-- name: version
-  type: semver
-  icon: counter
-  source:
-    driver: git
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    private_key: ((github_private_key.private_key))
-    branch: version
-    file: version
-    git_user: cf-networking@pivotal.io
+# - name: version
+#   type: semver
+#   icon: counter
+#   source:
+#     driver: git
+#     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+#     private_key: ((github_private_key.private_key))
+#     branch: version
+#     file: version
+#     git_user: cf-networking@pivotal.io
 
-- name: cf-k8s-networking-release
-  type: github-release
-  icon: github-box
-  source:
-    user: cloudfoundry
-    repository: cf-k8s-networking
-    drafts: true
-    access_token: ((github_access_token))
+# - name: cf-k8s-networking-release
+#   type: github-release
+#   icon: github-box
+#   source:
+#     user: cloudfoundry
+#     repository: cf-k8s-networking
+#     drafts: true
+#     access_token: ((github_access_token))
 
-- name: acceptance-install-values
-  type: gcs-resource
-  source:
-    bucket: cf-k8s-networking
-    json_key: ((shared_gcp_account_creds))
-    versioned_file: good-acceptance/cf-install-values.yml
+# - name: acceptance-install-values
+#   type: gcs-resource
+#   source:
+#     bucket: cf-k8s-networking
+#     json_key: ((shared_gcp_account_creds))
+#     versioned_file: good-acceptance/cf-install-values.yml
 
 jobs:
 # Build
-- name: run-routecontroller-units
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking
-        - get: routecontroller
-          trigger: true
-        - get: cf-k8s-networking-ci
-    - task: unit-tests
-      file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-units.yml
+# - name: run-routecontroller-units
+#   plan:
+#     - in_parallel:
+#         - get: cf-k8s-networking
+#         - get: routecontroller
+#           trigger: true
+#         - get: cf-k8s-networking-ci
+#     - task: unit-tests
+#       file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-units.yml
 
-- name: run-routecontroller-integration-tests
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking
-          tags: [overlay-storage-driver]
-        - get: routecontroller
-          passed: [run-routecontroller-units]
-          tags: [overlay-storage-driver]
-          trigger: true
-        - get: cf-k8s-networking-ci
-          tags: [overlay-storage-driver]
-        - get: concourse-dcind
-          tags: [overlay-storage-driver]
-    - task: integration-tests
-      privileged: true
-      tags: [overlay-storage-driver]
-      file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-integration-tests.yml
+# - name: run-routecontroller-integration-tests
+#   plan:
+#     - in_parallel:
+#         - get: cf-k8s-networking
+#           tags: [overlay-storage-driver]
+#         - get: routecontroller
+#           passed: [run-routecontroller-units]
+#           tags: [overlay-storage-driver]
+#           trigger: true
+#         - get: cf-k8s-networking-ci
+#           tags: [overlay-storage-driver]
+#         - get: concourse-dcind
+#           tags: [overlay-storage-driver]
+#     - task: integration-tests
+#       privileged: true
+#       tags: [overlay-storage-driver]
+#       file: cf-k8s-networking-ci/ci/tasks/tests/run-routecontroller-integration-tests.yml
 
-- name: run-routecontroller-stress-tests
-  serial: true
-  plan:
-    - in_parallel:
-        - get: routecontroller
-          passed: [run-routecontroller-units]
-          tags: [dedi-k8s-stress-vm]
-          trigger: true
-        - get: cf-k8s-networking-ci
-          tags: [dedi-k8s-stress-vm]
-        - get: concourse-dcind
-          tags: [dedi-k8s-stress-vm]
-        - get: routecontroller-stress-results
-          tags: [dedi-k8s-stress-vm]
-    - task: stress-tests
-      input_mapping:
-        cf-k8s-networking: routecontroller
-      privileged: true
-      tags: [dedi-k8s-stress-vm]
-      file: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.yml
-    - put: routecontroller-stress-results
-      params:
-        repository: routecontroller-stress-results-modified
-        rebase: true
+# - name: run-routecontroller-stress-tests
+#   serial: true
+#   plan:
+#     - in_parallel:
+#         - get: routecontroller
+#           passed: [run-routecontroller-units]
+#           tags: [dedi-k8s-stress-vm]
+#           trigger: true
+#         - get: cf-k8s-networking-ci
+#           tags: [dedi-k8s-stress-vm]
+#         - get: concourse-dcind
+#           tags: [dedi-k8s-stress-vm]
+#         - get: routecontroller-stress-results
+#           tags: [dedi-k8s-stress-vm]
+#     - task: stress-tests
+#       input_mapping:
+#         cf-k8s-networking: routecontroller
+#       privileged: true
+#       tags: [dedi-k8s-stress-vm]
+#       file: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.yml
+#     - put: routecontroller-stress-results
+#       params:
+#         repository: routecontroller-stress-results-modified
+#         rebase: true
 
-- name: publish-routecontroller-image
-  serial: true
-  serial_groups: [image-publishing]
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking
-        - get: routecontroller
-          passed: [run-routecontroller-integration-tests, run-routecontroller-stress-tests]
-          trigger: true
-        - get: cf-k8s-networking-ci
-    - in_parallel:
-      - task: build-tag-file
-        file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
-        input_mapping:
-          cf-k8s-networking: routecontroller
-      - task: build-routecontroller
-        privileged: true
-        file: cf-k8s-networking-ci/ci/tasks/docker/build-oci-image.yml
-        input_mapping:
-          repository: routecontroller
-        output_mapping:
-          image: routecontroller-image
-        params:
-          CONTEXT: routecontroller
-          DOCKERFILE: routecontroller/Dockerfile
-    - task: annotate
-      file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
-      input_mapping:
-        input-image-tar: routecontroller-image
-        repository: routecontroller
-      output_mapping:
-        output-image: routecontroller-annotated-image
-    - put: routecontroller-image
-      params:
-        image: routecontroller-annotated-image/image.tar
-        additional_tags: docker-info/tags
-    - task: add-updated-digest
-      file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
-      input_mapping:
-        image-resource: routecontroller-image
-      params:
-        COMPONENT_NAME: routecontroller
-    - put: cf-k8s-networking
-      params:
-        repository: cf-k8s-networking-modified
-        rebase: true
+# - name: publish-routecontroller-image
+#   serial: true
+#   serial_groups: [image-publishing]
+#   plan:
+#     - in_parallel:
+#         - get: cf-k8s-networking
+#         - get: routecontroller
+#           passed: [run-routecontroller-integration-tests, run-routecontroller-stress-tests]
+#           trigger: true
+#         - get: cf-k8s-networking-ci
+#     - in_parallel:
+#       - task: build-tag-file
+#         file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
+#         input_mapping:
+#           cf-k8s-networking: routecontroller
+#       - task: build-routecontroller
+#         privileged: true
+#         file: cf-k8s-networking-ci/ci/tasks/docker/build-oci-image.yml
+#         input_mapping:
+#           repository: routecontroller
+#         output_mapping:
+#           image: routecontroller-image
+#         params:
+#           CONTEXT: routecontroller
+#           DOCKERFILE: routecontroller/Dockerfile
+#     - task: annotate
+#       file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
+#       input_mapping:
+#         input-image-tar: routecontroller-image
+#         repository: routecontroller
+#       output_mapping:
+#         output-image: routecontroller-annotated-image
+#     - put: routecontroller-image
+#       params:
+#         image: routecontroller-annotated-image/image.tar
+#         additional_tags: docker-info/tags
+#     - task: add-updated-digest
+#       file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
+#       input_mapping:
+#         image-resource: routecontroller-image
+#       params:
+#         COMPONENT_NAME: routecontroller
+#     - put: cf-k8s-networking
+#       params:
+#         repository: cf-k8s-networking-modified
+#         rebase: true
 
 # Environment to run tests
 - name: gke-deploy-and-test
@@ -236,20 +234,39 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-for-k8s
-        - get: cf-k8s-networking-ci
-        - get: cf-k8s-networking
-          resource: cf-k8s-networking-config
+          resource: networking-pull-requests-to-cf-for-k8s
           trigger: true
+        - get: cf-k8s-networking-ci
+        - get: networking # TODO this is a hack, to work around our install-cf script
+          resource: cf-k8s-networking
+    - task: create-gke-env-metdata-from-pr
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-for-k8s-ci
+
+        inputs:
+          - name: cf-for-k8s
+        outputs:
+          - name: gke-env-metadata
+
+        run:
+          path: /bin/bash
+          args:
+          - -cex
+          - |
+            printf "ci-$(cat cf-for-k8s/.git/resource/head_name)" > gke-env-metadata/cluster_name
+            printf "ci-$(cat cf-for-k8s/.git/resource/head_name).routing.lol" > gke-env-metadata/cf_domain
+
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
       params:
-        CLUSTER_NAME: &ci-test-for-k8s-cluster-name ci-test
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
-        CF_DOMAIN: &ci-test-for-k8s-domain "ci-test.routing.lol"
-        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
     - task: run-smoke-test
@@ -259,99 +276,98 @@ jobs:
     - task: generate-integration-configs
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
     - task: networking-acceptance-gke-tests
+      input_mapping:
+        cf-k8s-networking: networking
       file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
       params:
-        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         INTEGRATION_CONFIG_FILE: "config.json"
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
-        CF_DOMAIN: *ci-test-for-k8s-domain
-        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
-- name: bump-rc
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking-config
-          passed: [gke-deploy-and-test]
-          trigger: true
-    - put: cf-k8s-networking-rc
-      params:
-        repository: cf-k8s-networking-config
+# - name: bump-rc
+#   plan:
+#     - in_parallel:
+#         - get: cf-k8s-networking-config
+#           passed: [gke-deploy-and-test]
+#           trigger: true
+#     - put: cf-k8s-networking-rc
+#       params:
+#         repository: cf-k8s-networking-config
 
-- name: deploy-good-acceptance
-  plan:
-    - in_parallel:
-      - get: cf-for-k8s
-      - get: cf-k8s-networking-ci
-      - get: cf-k8s-networking-rc
-        passed: [bump-rc]
-        trigger: true
-    - task: destroy-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
-      params:
-        CF_DOMAIN:  &acceptance-cluster-domain "good-acceptance.routing.lol"
-        CLUSTER_NAME: &acceptance-cluster-name "good-acceptance"
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-    - task: create-gke-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
-      params:
-        CLUSTER_NAME: *acceptance-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        EPHEMERAL_CLUSTER: false
-    - task: install-cf
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
-      input_mapping:
-        cf-k8s-networking: cf-k8s-networking-rc
-      params:
-        CF_DOMAIN: *acceptance-cluster-domain
-        CLUSTER_NAME: *acceptance-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
-    - task: run-smoke-test
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
-      params:
-        SMOKE_TEST_SKIP_SSL: true
-    - put: acceptance-install-values
-      params:
-        file: cf-install-values-out/cf-install-values.yml
+# - name: deploy-good-acceptance
+#   plan:
+#     - in_parallel:
+#       - get: cf-for-k8s
+#       - get: cf-k8s-networking-ci
+#       - get: cf-k8s-networking-rc
+#         passed: [bump-rc]
+#         trigger: true
+#     - task: destroy-cluster
+#       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+#       params:
+#         CF_DOMAIN:  &acceptance-cluster-domain "good-acceptance.routing.lol"
+#         CLUSTER_NAME: &acceptance-cluster-name "good-acceptance"
+#         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+#     - task: create-gke-cluster
+#       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+#       params:
+#         CLUSTER_NAME: *acceptance-cluster-name
+#         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+#         EPHEMERAL_CLUSTER: false
+#     - task: install-cf
+#       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+#       input_mapping:
+#         cf-k8s-networking: cf-k8s-networking-rc
+#       params:
+#         CF_DOMAIN: *acceptance-cluster-domain
+#         CLUSTER_NAME: *acceptance-cluster-name
+#         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+#         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+#     - task: run-smoke-test
+#       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+#       params:
+#         SMOKE_TEST_SKIP_SSL: true
+#     - put: acceptance-install-values
+#       params:
+#         file: cf-install-values-out/cf-install-values.yml
 
-- name: ship-what
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking-rc
-          passed: [bump-rc]
-          trigger: true
-        - get: cf-k8s-networking-ci
-        - get: version
-    - task: print-release-notes
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
-      input_mapping:
-        cf-k8s-networking: cf-k8s-networking-rc
+# - name: ship-what
+#   plan:
+#     - in_parallel:
+#         - get: cf-k8s-networking-rc
+#           passed: [bump-rc]
+#           trigger: true
+#         - get: cf-k8s-networking-ci
+#         - get: version
+#     - task: print-release-notes
+#       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
+#       input_mapping:
+#         cf-k8s-networking: cf-k8s-networking-rc
 
-- name: ship-it
-  plan:
-    - in_parallel:
-        - get: cf-k8s-networking-rc
-          passed: [ship-what]
-        - get: cf-k8s-networking-ci
-        - get: version
-    - put: cf-k8s-networking-rc
-      params:
-        repository: cf-k8s-networking-rc
-        tag: version/version
-        only_tag: true
-        tag_prefix: v
-    - task: create-release
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
-      input_mapping:
-        cf-k8s-networking: cf-k8s-networking-rc
-    - put: cf-k8s-networking-release
-      params:
-        name: release-text/name
-        tag: release-text/name
-        body: release-text/body.md
-    - put: version
-      params: {bump: minor}
+# - name: ship-it
+#   plan:
+#     - in_parallel:
+#         - get: cf-k8s-networking-rc
+#           passed: [ship-what]
+#         - get: cf-k8s-networking-ci
+#         - get: version
+#     - put: cf-k8s-networking-rc
+#       params:
+#         repository: cf-k8s-networking-rc
+#         tag: version/version
+#         only_tag: true
+#         tag_prefix: v
+#     - task: create-release
+#       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-github-release.yml
+#       input_mapping:
+#         cf-k8s-networking: cf-k8s-networking-rc
+#     - put: cf-k8s-networking-release
+#       params:
+#         name: release-text/name
+#         tag: release-text/name
+#         body: release-text/body.md
+#     - put: version
+#       params: {bump: minor}
