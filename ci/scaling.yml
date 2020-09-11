@@ -55,7 +55,7 @@ jobs:
         ENABLE_IP_ALIAS: true
         MACHINE_TYPE: "n1-standard-8"
         NUM_NODES: 34
-        REGIONAL_CLUSTER: &regional-cluster false
+        REGIONAL_CLUSTER: &regional-cluster true
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
@@ -70,7 +70,7 @@ jobs:
     - task: run-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.yml
       params:
-        NUMBER_OF_APPS: 20
+        NUMBER_OF_APPS: 1000
 
 - name: manually-delete-gke-cluster
   serial_groups: [scale-test]
