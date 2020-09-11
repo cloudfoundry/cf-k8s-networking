@@ -3,7 +3,7 @@
 #! Default values for cf-k8s-networking.
 #! This is a YTT-formatted file.
 
-istioVersion: 1.6.4
+istioVersion: 1.7.1
 systemNamespace: cf-system
 workloadsNamespace: cf-workloads
 
