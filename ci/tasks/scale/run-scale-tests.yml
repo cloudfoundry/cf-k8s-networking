@@ -13,4 +13,4 @@ run:
   path: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.sh
 
 params:
-  NUMBER_OF_APPS: 1000
+  NUMBER_OF_APPS:

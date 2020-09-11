@@ -67,6 +67,8 @@ jobs:
         REGIONAL_CLUSTER: *regional-cluster
     - task: pave-cf-for-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/pave-cf-for-scale-tests.yml
+      params:
+        NUMBER_OF_APPS: 1000
     - task: run-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.yml
       params:
