@@ -78,6 +78,7 @@ jobs:
       CLUSTER_NAME: &upgrade-cluster-name ci-upgrade-cf
       GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
       KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+      USE_LATEST_NETWORKING: false
   - put: cf-install-values
     params:
       file: cf-install-values-out/cf-install-values.yml

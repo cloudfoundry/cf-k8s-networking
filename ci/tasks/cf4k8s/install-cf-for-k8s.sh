@@ -11,12 +11,13 @@ set -euo pipefail
 : "${GCP_PROJECT:?}"
 : "${SHARED_DNS_ZONE_NAME:?}"
 : "${KAPP_TIMEOUT:?}"
+: "${USE_LATEST_NETWORKING:?}"
 
 
 function install_cf() {
     sleep 5
 
-    if [[ -d "./cf-k8s-networking" ]]; then
+    if [[ "${USE_LATEST_NETWORKING}" == "true" && -d "./cf-k8s-networking" ]]; then
         echo "Updating cf-for-k8s to use this version of cf-k8s-networking..."
         pushd cf-for-k8s
             vendir sync --directory config/networking/_ytt_lib/cf-k8s-networking=../cf-k8s-networking
