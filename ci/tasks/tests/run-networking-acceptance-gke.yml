@@ -9,6 +9,8 @@ inputs:
   - name: cf-k8s-networking
   - name: cf-k8s-networking-ci
   - name: integration-config
+  - name: gke-env-metadata
+    optional: true
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.sh
