@@ -18,18 +18,12 @@ const systemNamespace = "cf-system"
 const CurlSuccessfulExitCode = 0
 const CurlFailedToConnectHostExitCode = 7
 
-// Skipping this test temporarily. We have introduced NetworkPolicy that
-// disallows traffic from apps to system components, so the assumptions this
-// test is built on no longer hold. We need to find a way to test mtls
-// functionality without having traffic go from apps to a system component.
-// [#174475804](https://www.pivotaltracker.com/story/show/174475804)
-var _ = XDescribe("mTLS setup on a CF-k8s env", func() {
+var _ = Describe("mTLS setup on a CF-k8s env", func() {
 	const cfAppContainerName = "opi"
 	const proxyContainerName = "istio-proxy"
-	const systemComponentContainerName = "system-component"
-	const systemComponentServiceAccountName = "system-component-sa"
 
 	Context("when auto mTLS is enabled and the MeshPolicy is STRICT", func() {
+
 		Describe("for requests from app pod to system component pod", func() {
 			var (
 				appPodName       string
@@ -43,6 +37,14 @@ var _ = XDescribe("mTLS setup on a CF-k8s env", func() {
 				appPodName, err = getPodNameBySelector(workloadsNamespace, appPodSelector)
 				Expect(err).NotTo(HaveOccurred())
 				sysComponentAddr, err = getSvcHTTPAddrBySelector(systemNamespace, globals.SysComponentSelector)
+				Expect(err).NotTo(HaveOccurred())
+
+				err = applyAllowIngressFromAppsNetworkPolicy()
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			AfterEach(func() {
+				err := deleteAllowIngressFromAppsNetworkPolicy()
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -178,4 +180,16 @@ func getPodNameBySelector(namespace string, selector string) (string, error) {
 	}
 
 	return strings.Trim(string(output), "'"), nil
+}
+
+const networkpolicyPath = "./assets/allow-ingress-from-apps-network-policy.yaml"
+
+func applyAllowIngressFromAppsNetworkPolicy() error {
+	_, err := kubectl.Run("-n", "cf-system", "apply", "-f", networkpolicyPath)
+	return err
+}
+
+func deleteAllowIngressFromAppsNetworkPolicy() error {
+	_, err := kubectl.Run("-n", "cf-system", "delete", "-f", networkpolicyPath)
+	return err
 }
