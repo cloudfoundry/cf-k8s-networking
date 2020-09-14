@@ -11,8 +11,6 @@ inputs:
   - name: cf-for-k8s
   - name: cf-install-values
     optional: true
-  - name: gke-env-metadata
-    optional: true
 
 outputs:
   - name: env-metadata

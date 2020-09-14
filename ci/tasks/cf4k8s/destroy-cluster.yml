@@ -6,8 +6,6 @@ image_resource:
 
 inputs:
   - name: cf-k8s-networking-ci
-  - name: gke-env-metadata
-    optional: true
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.sh
