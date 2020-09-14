@@ -17,7 +17,7 @@ function prepare_cf_foundation() {
 function deploy_apps() {
     org_name_prefix="scale-tests"
     space_name_prefix="scale-tests"
-    number_of_org_spaces="$((NUMBER_OF_APPS / 100))"
+    number_of_org_spaces="$((NUMBER_OF_APPS / 10))"
     number_of_apps_per_org_space="$((NUMBER_OF_APPS / number_of_org_spaces))"
 
     for n in $(seq 0 ${number_of_org_spaces})
