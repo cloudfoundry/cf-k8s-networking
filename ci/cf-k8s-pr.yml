@@ -1,0 +1,115 @@
+---
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource
+
+resources:
+- name: networking-pull-requests-to-cf-for-k8s
+  type: pull-request
+  source:
+    repository: cloudfoundry/cf-for-k8s
+    access_token: ((github_access_token))
+    labels:
+      - networking
+
+- name: cf-k8s-networking
+  type: git
+  icon: github-box
+  source:
+    branch: move-istio-to-cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+
+- name: cf-k8s-networking-ci
+  type: git
+  icon: github-box
+  source:
+    branch: move-istio-to-cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - ci
+      - config
+
+jobs:
+# For PRs to cf-for-k8s, deploy the PR as is and run networking acceptance tests
+# and don't destroy the environment so PM's can do acceptance
+- name: deploy-and-test-pr
+  serial: true
+  plan:
+    - in_parallel:
+        - get: cf-for-k8s
+          resource: networking-pull-requests-to-cf-for-k8s
+          trigger: true
+        - get: cf-k8s-networking-ci
+        - get: networking # TODO this is a hack, to work around our install-cf script
+          resource: cf-k8s-networking
+    - task: create-gke-env-metdata-from-pr
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-for-k8s-ci
+        inputs:
+          - name: cf-for-k8s
+        outputs:
+          - name: gke-env-metadata
+        run:
+          path: /bin/bash
+          args:
+          - -cex
+          - |
+            printf "ci-$(cat cf-for-k8s/.git/resource/head_name)" > gke-env-metadata/cluster_name
+            printf "ci-$(cat cf-for-k8s/.git/resource/head_name).routing.lol" > gke-env-metadata/cf_domain
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    - task: store-cf-install-values
+      params:
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-for-k8s-ci
+        inputs:
+          - name: cf-install-values-out
+          - name: gke-env-metadata
+        params:
+          GCP_SERVICE_ACCOUNT_KEY:
+        run:
+          path: /bin/bash
+          args:
+          - -ce
+          - |
+            : "${GCP_SERVICE_ACCOUNT_KEY:?}"
+            gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
+            env_name="$(cat gke-env-metadata/cluster_name)"
+            file_name="cf-k8s-networking/environments/${env_name}.yml"
+            gsutil cp cf-install-values-out/cf-install-values.yml gs://${file_name}
+            echo "cf-values.yml file has been saved at (authentication required) https://storage.cloud.google.com/${file_name}"
+    - task: run-smoke-test
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+      params:
+        SMOKE_TEST_SKIP_SSL: true
+    - task: generate-integration-configs
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
+    - task: networking-acceptance-gke-tests
+      input_mapping:
+        cf-k8s-networking: networking
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
+      params:
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        INTEGRATION_CONFIG_FILE: "config.json"
+      # TODO: we might need a task to push the environment cf-values
+      # file somewhere discoverable for the PMs
