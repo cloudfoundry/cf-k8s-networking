@@ -55,3 +55,13 @@ function target_k8s_cluster() {
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}"  1>/dev/null 2>&1
     gcloud container clusters get-credentials ${CLUSTER_NAME} --region="${GCP_REGION}" 1>/dev/null 2>&1
 }
+
+function initialize_gke_env_vars() {
+  if [ -f "gke-env-metadata/cluster_name" ]; then
+    export CLUSTER_NAME="$(cat gke-env-metadata/cluster_name)"
+  fi
+  if [ -f "gke-env-metadata/cf_domain" ]; then
+    export CF_DOMAIN="$(cat gke-env-metadata/cf_domain)"
+  fi
+  # TODO initialize other env vars if necessary
+}

@@ -2,8 +2,9 @@
 
 set -euo pipefail
 
+source cf-k8s-networking-ci/ci/tasks/helpers.sh
+
 # ENV
-: "${CLUSTER_NAME:?}"
 : "${GCP_SERVICE_ACCOUNT_KEY:?}"
 
 : "${CLOUDSDK_COMPUTE_REGION:?}"
@@ -43,6 +44,7 @@ function create_cluster() {
 }
 
 function main() {
+    initialize_gke_env_vars
     create_cluster
 }
 

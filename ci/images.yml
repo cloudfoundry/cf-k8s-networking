@@ -249,14 +249,15 @@ jobs:
         params:
           image: upgrade-sidecars-annotated-image/image.tar
           additional_tags: docker-info/tags
-      - task: add-updated-digest
-        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
-        input_mapping:
-          image-resource: upgrade-sidecars-image
-        params:
-          COMPONENT_NAME: upgrade-sidecars
-      - put: cf-k8s-networking
-        params:
-          repository: cf-k8s-networking-modified
-          rebase: true
+      # TODO: since this now lives in cf-for-k8s we need update that and create a PR there
+      # - task: add-updated-digest
+      #   file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
+      #   input_mapping:
+      #     image-resource: upgrade-sidecars-image
+      #   params:
+      #     COMPONENT_NAME: upgrade-sidecars
+      # - put: cf-k8s-networking
+      #   params:
+      #     repository: cf-k8s-networking-modified
+      #     rebase: true
 
