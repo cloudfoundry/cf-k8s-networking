@@ -103,8 +103,7 @@ var _ = Describe("Scale", func() {
 
 func forEachAppInSpace(apps, appsPerSpace int, f func(int)) {
 	numOrgsSpaces := int(math.Ceil(float64(apps) / float64(appsPerSpace)))
-	fmt.Fprintln("########### Apps: %d, AppsPerSpace: %d, NumOrgSpaces: %d ##############",
-      apps, appsPerSpace, numOrgsSpaces)
+	fmt.Fprintln("########### Apps: %d, AppsPerSpace: %d, NumOrgSpaces: %d ##############", apps, appsPerSpace, numOrgsSpaces)
 	for n := 0; n < numOrgsSpaces; n++ {
 		fmt.Fprintln(GinkgoWriter, "Targeting org and space ", n)
 		session := cf.Cf("target", "-o", fmt.Sprintf("%s-%d", orgNamePrefix, n), "-s", fmt.Sprintf("%s-%d", spaceNamePrefix, n))

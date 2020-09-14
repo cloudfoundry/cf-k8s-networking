@@ -42,5 +42,7 @@ var _ = BeforeSuite(func() {
 	numApps, err = strconv.Atoi(numAppsStr)
 	Expect(err).NotTo(HaveOccurred(), "NUMBER_OF_APPS environment variable malformed")
 
+	// don't change this without also changing pave-cf-for-scale-tests.sh
+	// must be power of 10 (1, 100, 1000, etc)
 	numAppsPerSpace = 10
 })
