@@ -1,0 +1,15 @@
+platform: linux
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-for-k8s-ci
+
+inputs:
+  - name: cf-k8s-networking-ci
+  - name: istio-release
+
+run:
+  path: cf-k8s-networking-ci/ci/tasks/team/create-istio-bump-story.sh
+
+params:
+  TRACKER_TOKEN:
