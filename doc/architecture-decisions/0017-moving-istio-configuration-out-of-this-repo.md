@@ -8,7 +8,7 @@ Accepted
 
 ## Context
 
-This ADR reverts the decision made in [ADR # 7. Maintain Generated
+This ADR partially reverts the decision made in [ADR # 7. Maintain Generated
 Istio](./0007-maintain-generated-istio.md).
 
 The networking config and related Istio config is spread widely throughout both
@@ -20,15 +20,30 @@ in the cf-for-k8s repo), and so on complicated.
 
 ## Decision
 
-Relint and Networking came to a consensus to do move Istio configuration to
-cf-for-k8s repo so we reduce the overhead of having incompatibility between
-cf-k8s-networking and cf-for-k8s.
+We will move Istio configuration to cf-for-k8s repo to reduce the overhead of
+having incompatibility between cf-k8s-networking and cf-for-k8s. The CF K8s
+Networking team will remain responsible for the Istio config in the
+cf-for-k8s repo. We are going to keep the network acceptance tests (NATs) in
+this repo and run in our
+[Concourse CI](https://networking.ci.cf-app.com/teams/cf-k8s/pipelines/cf-k8s-pipeline).
 
-* move Istio config generation and overlays folder `istio-install`
+More details on this decision:
+
+* move Istio config generation and overlays folder `istio-install` to
+  [cf-for-k8s/build/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/master/build/istio)
 * move Istio generated and other networking config folders `config/istio`,
-  `config/istio-generated`
+  `config/istio-generated` to [cf-for-k8s/config/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/master/config/istio)
+* overlays directly related to Istio installation should be created in
+  cf-for-k8s/build/istio
+* Istio values should not be created in cf-for-k8s values config but via
+  starlark functions in [cf-for-k8s/config/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/master/config/istio), e.g. for `istio_version` value:
+  ```
+  #@ def build_version():
+  #@   return "1.6.4"
+  #@ end
+  ```
 * when contributing to networking in cf-for-k8s open PR and tag it with
-  `networking` tag
+  `networking` tag to differentiate those PRs in our CI.
 * create CI job to run acceptance tests upon new networking PRs in cf-for-k8s
 * update the documentation to reflect the change
 * update CI jobs depending on Istio config in this repo (such istio-upgrade,
