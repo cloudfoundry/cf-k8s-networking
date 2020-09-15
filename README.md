@@ -34,6 +34,7 @@ CF-K8s-Networking](doc/assets/routecontroller-data-flow-diagram.png)
     * (Eventually) app identity certificates using [SPIFFE](https://spiffe.io/) issued by Istio Citadel
   * Istio should be treated as an "implementation detail" of the platform and
     our reliance on it is subject to change
+  * Istio config is located in [cf-for-k8s](https://github.com/cloudfoundry/cf-for-k8s) and it's managed by the cf-k8s-networking team.
 
 ## Contributing
 For information about how to contribute, develop against our codebase, and run

@@ -56,9 +56,7 @@ using Docker.
 
 ### Running Tests
 When contributing to this project you should, at a minimum, be running the
-`routecontroller` unit and integration tests. If you've made changes to the
-Istio installation or other Kubernetes networking config, we also recommend
-running the Networking Acceptance Tests.
+`routecontroller` unit and integration tests. We also recommend running the Networking Acceptance Tests.
 
 #### RouteController Unit and Integration Tests
 1. `cd cf-k8s-networking/routecontroller`
@@ -66,20 +64,9 @@ running the Networking Acceptance Tests.
 1. `./scripts/integration`
 
 #### Networking Acceptance Tests
-To run the acceptance tests, you must have a kubernetes cluster provisioned.
-1. `cd cf-k8s-networking/test/acceptance/bin`
-2. Create a file called `config.json` and fill in the information below with
-   your cluster's configuration:
-```json
-{
- "kubeconfig_path": "<kubeconfig_path>",
-  "api": "api.<cluster_name>.routing.lol",
-  "admin_user": "admin",
-  "apps_domain": "apps.<cluster_name>.routing.lol",
-  "admin_password": "<admin_password>"
-}
-```
-3. Run `./test_local config.json`
+To run the acceptance tests, you must have a Kubernetes cluster provisioned.
+Follow the steps in [./test/acceptance/](./test/acceptance/README.md) to run
+these tests.
 
 ### Other Tests
 We have a few additional test suites that run in our CI.
@@ -101,8 +88,7 @@ CF-K8s-Networking is a set of components meant to be integrated into a
 To deploy your local changes to `cf-k8s-networking` with `cf-for-k8s`, you can
 follow these steps:
 
-1. `cd cf-for-k8s`
-2. `vendir sync --directory
-   config/_ytt_lib/github.com/cloudfoundry/cf-k8s-networking=$PATH_TO_LOCAL_CF_K8S_NETWORKING`
-3. Follow docs to install
+1. Run `./scripts/vendir-sync-local` which will run `vendir sync` in
+   `cf-for-k8s` with override to use the local cf-k8s-networking config.
+1. Follow docs to install
    [`cf-for-k8s`](https://github.com/cloudfoundry/cf-for-k8s/blob/master/docs/deploy.md)

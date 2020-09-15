@@ -1,4 +1,4 @@
-# Networking Acceptance Tests 
+# Networking Acceptance Tests
 
 ## Requirements
 
