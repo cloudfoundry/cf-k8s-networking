@@ -37,7 +37,6 @@ jobs:
 # For PRs to cf-for-k8s, deploy the PR as is and run networking acceptance tests
 # and don't destroy the environment so PM's can do acceptance
 - name: deploy-and-test-pr
-  serial: true
   plan:
     - in_parallel:
         - get: cf-for-k8s
