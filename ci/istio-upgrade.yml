@@ -52,13 +52,13 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
-- name: cf-k8s-networking-istio-bump-branch
+- name: cf-for-k8s-istio-bump-branch
   type: git
   icon: github-box
   source:
-    branch: istio-patch-bump
+    branch: istio-version-bump
     private_key: ((github_private_key.private_key))
-    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    uri: git@github.com:cloudfoundry/cf-for-k8s.git
 
 - name: cf-for-k8s
   type: git
@@ -163,7 +163,7 @@ jobs:
   plan:
   - in_parallel:
     - get: cf-k8s-networking-ci
-    - get: cf-k8s-networking
+    - get: cf-for-k8s
     - get: istio-release
       trigger: true
       passed:
@@ -177,9 +177,9 @@ jobs:
           repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
       inputs:
       - name: istio-release
-      - name: cf-k8s-networking
+      - name: cf-for-k8s
       outputs:
-      - name: cf-k8s-networking
+      - name: cf-for-k8s
       run:
         path: /bin/bash
         args:
@@ -193,19 +193,19 @@ jobs:
           ISTIO_VERSION="$(cat istio-release/tag)"
 
           sed -i \
-            "s/istioVersion.*\$/istioVersion: $ISTIO_VERSION/" \
-            cf-k8s-networking/config/values.yaml
+            "s/istio_version.*\$/istio_version: $ISTIO_VERSION/" \
+            cf-for-k8s/build/istio/values.yaml
 
-          cf-k8s-networking/istio-install/build.sh
+          cf-for-k8s/build/istio/build.sh
 
-          pushd cf-k8s-networking > /dev/null
+          pushd cf-for-k8s > /dev/null
             git config --global user.name "CF Networking Team CI Bot"
             git config --global user.email "CF-Networking@pivotal.io"
             git commit -a -m "Bump Istio to ${ISTIO_VERSION}"
           popd
-  - put: cf-k8s-networking-istio-bump-branch
+  - put: cf-for-k8s-istio-bump-branch
     params:
-      repository: cf-k8s-networking
+      repository: cf-for-k8s
       tag_prefix: istio-bump-to-
       tag: istio-release/tag
       force: true
@@ -217,12 +217,12 @@ jobs:
   plan:
   - in_parallel:
     - get: cf-for-k8s
-    - get: cf-k8s-networking-ci
-    - get: cf-k8s-networking
-      resource: cf-k8s-networking-istio-bump-branch
+      resource: cf-for-k8s-istio-bump-branch
       trigger: true
       passed:
       - generate-new-istio-config
+    - get: cf-k8s-networking-ci
+    - get: cf-k8s-networking
   - task: create-gke-cluster
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
     params:
@@ -254,15 +254,14 @@ jobs:
       CLUSTER_NAME: *ci-test-for-k8s-cluster-name
       GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
-- name: push-to-develop
+- name: push-tracker-story
   serial_groups: ['bump-istio']
   plan:
   - in_parallel:
-    - get: cf-k8s-networking
-    - get: cf-k8s-networking-istio-bump-branch
-      passed:
-      - deploy-and-test-new-istio-version
-  - put: cf-k8s-networking
+    - get: cf-k8s-networking-ci
+    - get: istio-release
+      trigger: true
+  - task: create-tracker-story
+    file: cf-k8s-networking-ci/ci/tasks/team/create-istio-bump-story.yml
     params:
-      repository: cf-k8s-networking-istio-bump-branch
-      rebase: true
+      TRACKER_TOKEN: ((tracker_api_token))
