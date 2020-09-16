@@ -119,6 +119,11 @@ resources:
       private_key: ((github_private_key.private_key))
       branch: update-istio-fluentbit
 
+  - name: dockerhub-retain-timer
+    type: time
+    source:
+      interval: 5months
+
 jobs:
   - name: build-k8s-deploy-image
     plan:
@@ -321,8 +326,11 @@ jobs:
 
   - name: build-httpbin-image
     plan:
-      - get: httpbin-repo
-        trigger: true
+      - in_parallel:
+        - get: httpbin-repo
+          trigger: true
+        - get: dockerhub-retain-timer
+          trigger: true
       - put: httpbin-image
         params:
           build: httpbin-repo
@@ -330,8 +338,11 @@ jobs:
 
   - name: build-proxy-image
     plan:
-      - get: proxy-repo
-        trigger: true
+      - in_parallel:
+        - get: proxy-repo
+          trigger: true
+        - get: dockerhub-retain-timer
+          trigger: true
       - put: proxy-image
         params:
           build: proxy-repo
