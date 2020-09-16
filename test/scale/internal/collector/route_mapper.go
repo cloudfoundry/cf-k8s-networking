@@ -52,7 +52,7 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 
 			if resp.StatusCode != http.StatusOK {
 				lastFailure = time.Now().Unix()
-				if succeeded {
+				if succeeded && !postFailed {
 					postFailed = true
 					body, err := ioutil.ReadAll(resp.Body)
 					if err != nil {
@@ -68,19 +68,25 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 					// 					routeCheck := session.Out.Contents()
 
 					fmt.Fprintln(GinkgoWriter,
-						"Got post-success error for", j,
-						"route:", routeToMap,
+						"Got post-success error at", j,
+						"seconds on route:", routeToMap,
 						"status code:", resp.StatusCode,
 						"response body:", string(body),
 						// "app guid:", string(appGuid),
 						// "route check:", string(routeCheck),
 					)
 				}
-			} else {
+			} else { // got a 200
 				if !succeeded {
-					fmt.Fprintln(GinkgoWriter, "Success for number", j, "route:", routeToMap)
+					fmt.Fprintln(GinkgoWriter, "First success after", j, "seconds on route:", routeToMap)
 					succeeded = true
 					postFailed = false
+				} else if postFailed {
+					fmt.Fprintln(GinkgoWriter,
+						"Got post-error success at", j,
+						"seconds on route:", routeToMap,
+					)
+					postFailed = false // ignore transient errors
 				}
 			}
 			time.Sleep(1 * time.Second)
@@ -93,7 +99,7 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		}
 
 		if postFailed {
-			fmt.Fprintln(GinkgoWriter, routeToMap, "became healthy but then became unhealthy problem/failure")
+			fmt.Fprintln(GinkgoWriter, routeToMap, "became healthy but then became unhealthy and did not recover problem/failure")
 			r.addPostFailure()
 		}
 
