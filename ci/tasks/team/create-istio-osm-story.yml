@@ -9,7 +9,7 @@ inputs:
   - name: istio-release
 
 run:
-  path: cf-k8s-networking-ci/ci/tasks/team/create-istio-bump-story.sh
+  path: cf-k8s-networking-ci/ci/tasks/team/create-istio-osm-story.sh
 
 params:
   TRACKER_TOKEN:
