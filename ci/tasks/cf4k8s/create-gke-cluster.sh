@@ -14,21 +14,26 @@ source cf-k8s-networking-ci/ci/tasks/helpers.sh
 : "${MACHINE_TYPE:?}"
 : "${NUM_NODES:?}"
 : "${EPHEMERAL_CLUSTER:?}"
+: "${REGIONAL_CLUSTER:?}"
 
 function latest_cluster_version() {
-  gcloud container get-server-config --zone us-west1-a 2>/dev/null | yq .validMasterVersions[0] -r
+  gcloud container get-server-config --region $CLOUDSDK_COMPUTE_REGION 2>/dev/null | yq .validMasterVersions[0] -r
 }
 
 function create_cluster() {
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
+    additional_args=()
 
-    if gcloud container clusters describe ${CLUSTER_NAME} > /dev/null; then
-        echo "${CLUSTER_NAME} already exists! Destroying..."
-        gcloud container clusters delete ${CLUSTER_NAME} --quiet
+    if [ "${REGIONAL_CLUSTER}" = true ]; then
+        additional_args+=("--region")
+        additional_args+=("${CLOUDSDK_COMPUTE_REGION}")
     fi
 
+    if gcloud container clusters describe ${CLUSTER_NAME} "${additional_args[@]}" > /dev/null; then
+        echo "${CLUSTER_NAME} already exists! Destroying..."
+        gcloud container clusters delete ${CLUSTER_NAME} --quiet "${additional_args[@]}"
+    fi
 
-    additional_args=()
     if [ "${ENABLE_IP_ALIAS}" = true ]; then
         additional_args+=("--enable-ip-alias")
     fi

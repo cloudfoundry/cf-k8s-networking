@@ -26,8 +26,13 @@ function install_cf() {
 
     export KUBECONFIG=kube-config.yml
 
-    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
-    gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1
+    if [ "${REGIONAL_CLUSTER}" = true ]; then
+        # unset zone since we are targetting a regional cluster
+        unset CLOUDSDK_COMPUTE_ZONE
+    fi
+
+    gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}"
+    gcloud container clusters get-credentials "${CLUSTER_NAME}"
 
     if [[ ! -d "./cf-install-values" ]]; then
         echo "Generating install values..."
@@ -40,8 +45,8 @@ function install_cf() {
 
     echo "Installing CF..."
     if [[ "${USE_NODEPORT_SERVICE}" == "true" ]]; then
-        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml) \
-             --wait-timeout ${KAPP_TIMEOUT}
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml) \
+            -y --wait-timeout ${KAPP_TIMEOUT}
     else
         kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
              --wait-timeout ${KAPP_TIMEOUT}

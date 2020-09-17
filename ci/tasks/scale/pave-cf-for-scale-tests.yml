@@ -10,3 +10,6 @@ inputs:
 
 run:
   path: cf-k8s-networking-ci/ci/tasks/scale/pave-cf-for-scale-tests.sh
+
+params:
+  NUMBER_OF_APPS:
