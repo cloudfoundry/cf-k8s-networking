@@ -1,0 +1,19 @@
+---
+platform: linux
+
+image_resource:
+  type: docker-image
+  source:
+    repository: relintdockerhubpushbot/cf-for-k8s-ci
+
+inputs:
+- name: cf-k8s-networking
+- name: cf-k8s-networking-ci
+- name: env-metadata
+- name: cf-acceptance-tests
+
+run:
+  path: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-cats.sh
+
+params:
+  SKIP_REGEXP: # passed to ginkgo
