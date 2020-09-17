@@ -15,6 +15,7 @@ CF_DOMAIN=${CF_DOMAIN:-$CLUSTER_NAME.routing.lol}
 
 function main() {
   create_and_target_huge_cluster
+  credhub_get_gcp_service_account_key
   deploy_cf_for_k8s
   configure_dns
   target_cf
