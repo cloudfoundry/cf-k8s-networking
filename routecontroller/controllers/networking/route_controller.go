@@ -22,6 +22,7 @@ import (
 
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
+	"github.com/prometheus/common/log"
 	"k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
@@ -29,6 +30,7 @@ import (
 
 	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
+	hpv1 "github.com/projectcontour/contour/apis/projectcontour/v1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -50,6 +52,8 @@ const finalizerName string = "routes.networking.cloudfoundry.org"
 
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes,verbs=get;list;watch
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
+// +kubebuilder:rbac:groups=projectcontour.io/v1,resources=httproxy,verbs=get;update;patch
+// +kubebuilder:rbac:groups=projectcontour.io/v1,resources=httproxy/status,verbs=get;update;patch
 
 func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	ctx := context.Background()
@@ -94,6 +98,11 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 	}
 
 	err = r.reconcileVirtualServices(req, routes, log, ctx)
+	if err != nil {
+		return ctrl.Result{}, err
+	}
+
+	err = r.reconcileHTTPProxies(req, routes, log, ctx)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -158,6 +167,31 @@ func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *net
 	return nil
 }
 
+func (r *RouteReconciler) reconcileHTTPProxies(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
+	hpb := resourcebuilders.HTTPProxyBuilder{}
+	desiredHTTPProxies, err := hpb.Build(routes)
+	if err != nil {
+		return err
+	}
+
+	for _, desiredHTTPProxy := range desiredHTTPProxies {
+		httpProxy := &hpv1.HTTPProxy{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      desiredHTTPProxy.ObjectMeta.Name,
+				Namespace: desiredHTTPProxy.ObjectMeta.Namespace,
+			},
+		}
+		mutateFn := hpb.BuildMutateFunction(httpProxy, &desiredHTTPProxy)
+		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, httpProxy, mutateFn)
+		if err != nil {
+			return err
+		}
+		log.Info(fmt.Sprintf("HTTProxy %s/%s has been %s", httpProxy.Namespace, httpProxy.Name, result))
+	}
+
+	return nil
+}
+
 func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *networkingv1alpha1.Route, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
 	actualServicesForRoute := &corev1.ServiceList{}
 	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
@@ -172,22 +206,17 @@ func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *netw
 
 	routes.Items = removeRouteFromRouteList(route, routes)
 	if len(routes.Items) == 0 {
-		vs := &istionetworkingv1alpha3.VirtualService{}
-		vsName := resourcebuilders.VirtualServiceName(route.FQDN())
-		namespacedVSName := types.NamespacedName{Namespace: req.Namespace, Name: vsName}
-		if err := r.Get(ctx, namespacedVSName, vs); err != nil {
-			if apierrors.IsNotFound(err) {
-				log.Info("VirtualService no longer exists")
-			}
-		} else {
-			err := r.Delete(ctx, vs)
-			if err != nil {
-				return err
-			}
-			log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
+		if err := r.cleanupVirtualService(ctx, route, req.Namespace); err != nil {
+			return err
+		}
+		if err := r.cleanupHTTPProxy(ctx, route, req.Namespace); err != nil {
+			return err
 		}
 	} else {
 		if err := r.reconcileVirtualServices(req, routes, log, ctx); err != nil {
+			return err
+		}
+		if err := r.reconcileHTTPProxies(req, routes, log, ctx); err != nil {
 			return err
 		}
 	}
@@ -195,6 +224,42 @@ func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *netw
 	controllerutil.RemoveFinalizer(route, finalizerName)
 	if err := r.Update(context.Background(), route); err != nil {
 		return err
+	}
+
+	return nil
+}
+
+func (r *RouteReconciler) cleanupVirtualService(ctx context.Context, route *networkingv1alpha1.Route, namespace string) error {
+	vs := &istionetworkingv1alpha3.VirtualService{}
+	vsName := resourcebuilders.VirtualServiceName(route.FQDN())
+	namespacedVSName := types.NamespacedName{Namespace: namespace, Name: vsName}
+	if err := r.Get(ctx, namespacedVSName, vs); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("VirtualService no longer exists")
+		}
+	} else {
+		if err := r.Delete(ctx, vs); err != nil {
+			return err
+		}
+		log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
+	}
+
+	return nil
+}
+
+func (r *RouteReconciler) cleanupHTTPProxy(ctx context.Context, route *networkingv1alpha1.Route, namespace string) error {
+	hp := &hpv1.HTTPProxy{}
+	hpName := resourcebuilders.HTTPProxyName(route.FQDN())
+	namespacedHPName := types.NamespacedName{Namespace: namespace, Name: hpName}
+	if err := r.Get(ctx, namespacedHPName, hp); err != nil {
+		if apierrors.IsNotFound(err) {
+			log.Info("HTTPProxy no longer exists")
+		}
+	} else {
+		if err := r.Delete(ctx, hp); err != nil {
+			return err
+		}
+		log.Info(fmt.Sprintf("HTTPProxy %s/%s has been deleted", hp.Namespace, hp.Name))
 	}
 
 	return nil
@@ -231,7 +296,9 @@ func (r *RouteReconciler) deleteServiceList(services []corev1.Service, log logr.
 }
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	err := mgr.GetFieldIndexer().IndexField(&networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
+	ctx := context.Background()
+
+	err := mgr.GetFieldIndexer().IndexField(ctx, &networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
 		route := rawObj.(*networkingv1alpha1.Route)
 		return []string{route.FQDN()}
 	})
@@ -239,7 +306,7 @@ func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	err = mgr.GetFieldIndexer().IndexField(&corev1.Service{}, serviceOwnerKey, func(rawObj runtime.Object) []string {
+	err = mgr.GetFieldIndexer().IndexField(ctx, &corev1.Service{}, serviceOwnerKey, func(rawObj runtime.Object) []string {
 		service := rawObj.(*corev1.Service)
 		if len(service.ObjectMeta.OwnerReferences) == 0 {
 			return []string{}
