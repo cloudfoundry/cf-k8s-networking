@@ -20,6 +20,8 @@ test_config_path="$1"
 export KUBECONFIG=$kube_config_path
 kubectl cluster-info
 
+export CGO_ENABLED=1
+
 CONFIG="${test_config_path}" ginkgo \
   -trace \
   -progress \
