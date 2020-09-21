@@ -27,7 +27,7 @@ k8s:
       cpu: "2"
       memory: 2Gi
 
-#@overlay/match by=overlay.subset({"pilot"}),expects=1
+#@overlay/match by=overlay.subset("pilot"),expects=1
 k8s:
   #@overlay/match missing_ok=True
   replicaCount: 10
