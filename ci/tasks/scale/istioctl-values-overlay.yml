@@ -2,45 +2,45 @@
 
 #@overlay/match by=overlay.subset({"kind": "IstioOperator", "spec":"components"}),expects=1
 ---
-ingressGateways:
-  #@overlay/match by="name", expects=1
-  - name: istio-ingressgateway
+components:
+  ingressGateways:
+    #@overlay/match by="name", expects=1
+    - name: istio-ingressgateway
+      k8s:
+        #@overlay/match expects=0
+        overlays:
+        - kind: Deployment
+          name: istio-ingressgateway
+          patches:
+            - path: spec.replicas
+              value: 10
+        #@overlay/replace
+        hpaSpec:
+          minReplicas: 10
+          maxReplicas: 10
+        service:
+          #@overlay/match missing_ok=True
+          type: LoadBalancer
+        #@overlay/match missing_ok=True
+        resources:
+          limits:
+            cpu: "4"
+            memory: 2Gi
+          requests:
+            cpu: "2"
+            memory: 2Gi
+  pilot:
     k8s:
+      #@overlay/match missing_ok=True
+      replicaCount: 10
       #@overlay/match expects=0
       overlays:
-      - kind: Deployment
-        name: istio-ingressgateway
-        patches:
-          - path: spec.replicas
-            value: 10
+        - kind: Deployment
+          name: istiod
+          patches:
+            - path: spec.replicas
+              value: 10
       #@overlay/replace
       hpaSpec:
         minReplicas: 10
         maxReplicas: 10
-      service:
-        #@overlay/match missing_ok=True
-        type: LoadBalancer
-      #@overlay/match missing_ok=True
-      resources:
-        limits:
-          cpu: "4"
-          memory: 2Gi
-        requests:
-          cpu: "2"
-          memory: 2Gi
-pilot:
-  k8s:
-    #@overlay/match missing_ok=True
-    replicaCount: 10
-    #@overlay/match expects=0
-    overlays:
-      - kind: Deployment
-        name: istiod
-        patches:
-          - path: spec.replicas
-            value: 10
-    #@overlay/replace
-    hpaSpec:
-      minReplicas: 10
-      maxReplicas: 10
-
