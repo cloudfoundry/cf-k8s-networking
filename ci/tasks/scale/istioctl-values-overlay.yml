@@ -1,9 +1,10 @@
 #@ load("@ytt:overlay", "overlay")
 
-#@overlay/match by=overlay.subset({"kind": "IstioOperator", "spec":"components"}),expects=1
+#@overlay/match by=overlay.subset({"kind": "IstioOperator"}),expects=1
 ---
-components:
-  ingressGateways:
+spec:
+  components:
+    ingressGateways:
     #@overlay/match by="name", expects=1
     - name: istio-ingressgateway
       k8s:
@@ -12,8 +13,8 @@ components:
         - kind: Deployment
           name: istio-ingressgateway
           patches:
-            - path: spec.replicas
-              value: 10
+          - path: spec.replicas
+            value: 10
         #@overlay/replace
         hpaSpec:
           minReplicas: 10
@@ -29,18 +30,18 @@ components:
           requests:
             cpu: "2"
             memory: 2Gi
-  pilot:
-    k8s:
-      #@overlay/match missing_ok=True
-      replicaCount: 10
-      #@overlay/match expects=0
-      overlays:
+    pilot:
+      k8s:
+        #@overlay/match missing_ok=True
+        replicaCount: 10
+        #@overlay/match expects=0
+        overlays:
         - kind: Deployment
           name: istiod
           patches:
-            - path: spec.replicas
-              value: 10
-      #@overlay/replace
-      hpaSpec:
-        minReplicas: 10
-        maxReplicas: 10
+          - path: spec.replicas
+            value: 10
+        #@overlay/replace
+        hpaSpec:
+          minReplicas: 10
+          maxReplicas: 10
