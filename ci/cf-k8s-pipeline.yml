@@ -39,6 +39,16 @@ resources:
     ignore_paths:
       - ci/**
 
+- name: cf-for-k8s-ci
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    paths:
+      - ci/**
+
 - name: routecontroller-stress-results
   type: git
   icon: github-box
@@ -261,10 +271,9 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
     - task: run-smoke-test
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
       params:
         SMOKE_TEST_SKIP_SSL: true
-        FLAKE_ATTEMPTS: 3
     - task: generate-integration-configs
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
     - task: networking-acceptance-gke-tests
@@ -285,6 +294,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-for-k8s
+        - get: cf-for-k8s-ci
         - get: cf-acceptance-tests
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
@@ -303,15 +313,14 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
     - task: run-smoke-test
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
       params:
         SMOKE_TEST_SKIP_SSL: true
-        FLAKE_ATTEMPTS: 3
     - task: run-cats
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-cats.yml
+      file: cf-for-k8s-ci/ci/tasks/run-cats/task.yml
       params:
+        INCLUDE_ROUTING: true
         SKIP_REGEXP:
-        # SKIP_REGEXP: "Routing Transparency"
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
