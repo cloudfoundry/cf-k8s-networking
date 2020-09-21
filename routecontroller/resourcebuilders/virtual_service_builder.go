@@ -94,6 +94,7 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []netwo
 
 	for _, route := range routes {
 		vs.ObjectMeta.OwnerReferences = append(vs.ObjectMeta.OwnerReferences, routeToOwnerRef(&route))
+		istioRoute := istiov1alpha3.HTTPRoute{}
 
 		if len(route.Spec.Destinations) != 0 {
 			istioDestinations, err := destinationsToHttpRouteDestinations(route, route.Spec.Destinations)
@@ -101,22 +102,24 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []netwo
 				return istionetworkingv1alpha3.VirtualService{}, err
 			}
 
-			istioRoute := istiov1alpha3.HTTPRoute{
-				Route: istioDestinations,
-			}
-			if route.Spec.Path != "" {
-				istioRoute.Match = []*istiov1alpha3.HTTPMatchRequest{
-					{
-						Uri: &istiov1alpha3.StringMatch{
-							MatchType: &istiov1alpha3.StringMatch_Prefix{
-								Prefix: route.Spec.Path,
-							},
+			istioRoute.Route = istioDestinations
+		} else {
+			istioRoute.Route = httpRouteDestinationPlaceholder()
+		}
+
+		if route.Spec.Path != "" {
+			istioRoute.Match = []*istiov1alpha3.HTTPMatchRequest{
+				{
+					Uri: &istiov1alpha3.StringMatch{
+						MatchType: &istiov1alpha3.StringMatch_Prefix{
+							Prefix: route.Spec.Path,
 						},
 					},
-				}
+				},
 			}
-			vs.Spec.Http = append(vs.Spec.Http, &istioRoute)
 		}
+
+		vs.Spec.Http = append(vs.Spec.Http, &istioRoute)
 	}
 
 	return vs, nil
@@ -187,6 +190,18 @@ func cloneLabels(template map[string]string) map[string]string {
 		labels[k] = v
 	}
 	return labels
+}
+
+func httpRouteDestinationPlaceholder() []*istiov1alpha3.HTTPRouteDestination {
+	const PLACEHOLDER_NON_EXISTING_DESTINATION = "no-destinations"
+
+	return []*istiov1alpha3.HTTPRouteDestination{
+		&istiov1alpha3.HTTPRouteDestination{
+			Destination: &istiov1alpha3.Destination{
+				Host: PLACEHOLDER_NON_EXISTING_DESTINATION,
+			},
+		},
+	}
 }
 
 func destinationsToHttpRouteDestinations(route networkingv1alpha1.Route, destinations []networkingv1alpha1.RouteDestination) ([]*istiov1alpha3.HTTPRouteDestination, error) {

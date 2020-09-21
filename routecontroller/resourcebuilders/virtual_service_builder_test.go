@@ -32,11 +32,12 @@ type ownerParams struct {
 }
 
 type destParams struct {
-	host      string
-	appGUID   string
-	spaceGUID string
-	orgGUID   string
-	weight    int32
+	host         string
+	appGUID      string
+	spaceGUID    string
+	orgGUID      string
+	weight       int32
+	noHeadersSet bool
 }
 
 type routeParams struct {
@@ -107,9 +108,13 @@ func constructVirtualService(params virtualServiceParams) istionetworkingv1alpha
 
 			routes := []*istiov1alpha3.HTTPRouteDestination{}
 			for _, dest := range http.destinations {
-				routes = append(routes, &istiov1alpha3.HTTPRouteDestination{
+				route := &istiov1alpha3.HTTPRouteDestination{
 					Destination: &istiov1alpha3.Destination{Host: dest.host},
-					Headers: &istiov1alpha3.Headers{
+					Weight:      dest.weight,
+				}
+
+				if !dest.noHeadersSet {
+					route.Headers = &istiov1alpha3.Headers{
 						Request: &istiov1alpha3.Headers_HeaderOperations{
 							Set: map[string]string{
 								"CF-App-Id":           dest.appGUID,
@@ -118,9 +123,10 @@ func constructVirtualService(params virtualServiceParams) istionetworkingv1alpha
 								"CF-Organization-Id":  dest.orgGUID,
 							},
 						},
-					},
-					Weight: dest.weight,
-				})
+					}
+				}
+
+				routes = append(routes, route)
 			}
 
 			httpRoute.Route = routes
@@ -591,7 +597,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("and one of the routes has no destinations", func() {
-					It("ignores the route without destinations", func() {
+					It("sets a placeholder destination to that route", func() {
 						routes = networkingv1alpha1.RouteList{
 							Items: []networkingv1alpha1.Route{
 								constructRoute(routeParams{
@@ -629,7 +635,9 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 						virtualservice := k8sResources[0]
 						Expect(virtualservice.Spec.Hosts[0]).To(Equal("test0.domain0.example.com"))
-						Expect(virtualservice.Spec.Http[0].Match[0].Uri.MatchType).To(BeEquivalentTo(&istiov1alpha3.StringMatch_Prefix{Prefix: "/path0"}))
+						Expect(virtualservice.Spec.Http[0].Route[0].Destination.Host).To(Equal("no-destinations"))
+						Expect(virtualservice.Spec.Http[0].Match[0].Uri.MatchType).To(BeEquivalentTo(&istiov1alpha3.StringMatch_Prefix{Prefix: "/path0/deeper"}))
+						Expect(virtualservice.Spec.Http[1].Match[0].Uri.MatchType).To(BeEquivalentTo(&istiov1alpha3.StringMatch_Prefix{Prefix: "/path0"}))
 					})
 				})
 
@@ -755,7 +763,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				})
 
 				Context("when a route has no destinations", func() {
-					It("creates a virtual services with no destination", func() {
+					It("creates a virtual services with a placeholder destination", func() {
 						routes = networkingv1alpha1.RouteList{
 							Items: []networkingv1alpha1.Route{
 								constructRoute(routeParams{
@@ -782,7 +790,17 @@ var _ = Describe("VirtualServiceBuilder", func() {
 										routeUID:  routes.Items[0].ObjectMeta.UID,
 									},
 								},
-								https: nil,
+								https: []httpParams{
+									{
+										destinations: []destParams{
+											{
+												host:         "no-destinations",
+												noHeadersSet: true,
+											},
+										},
+										matchPrefix: "/path0",
+									},
+								},
 							}),
 						}
 

@@ -265,7 +265,10 @@ var _ = Describe("Integration", func() {
 					Spec: virtualServiceSpec{
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
-						Http:     nil,
+						Http: []http{{
+							Match: []match{{Uri: uri{Prefix: "/some/path"}}},
+							Route: []route{{Destination: destination{Host: "no-destinations"}}},
+						}},
 					},
 				},
 			))
