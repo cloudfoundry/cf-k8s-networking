@@ -1,6 +1,6 @@
 #@ load("@ytt:overlay", "overlay")
 
-#@overlay/match by=overlay.subset({"kind": "IstioOperator", "spec":{"components"}}),expects=1
+#@overlay/match by=overlay.subset({"kind": "IstioOperator", "spec":"components"}),expects=1
 ---
 #@overlay/match by=overlay.subset({"ingressGateways":{"name": "istio-ingressgateway"}}),expects=1
 k8s:
