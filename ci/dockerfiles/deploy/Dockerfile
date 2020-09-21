@@ -4,4 +4,5 @@ MAINTAINER https://github.com/cloudfoundry/cf-k8s-networking
 RUN apk add --update-cache && \
   apk add --update alpine-sdk && \
   apk add libffi-dev openssl-dev && \
+  apk add linux-headers && \
   apk --no-cache --update add build-base
