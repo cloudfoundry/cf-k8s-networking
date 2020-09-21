@@ -320,7 +320,9 @@ jobs:
     - task: run-cats
       file: cf-for-k8s-ci/ci/tasks/run-cats/task.yml
       params:
-        INCLUDE_ROUTING: true
+        INCLUDE_APPS: true
+        # include ROUTING after merging https://github.com/cloudfoundry/cf-acceptance-tests/pull/436
+        # INCLUDE_ROUTING: true
         SKIP_REGEXP:
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
