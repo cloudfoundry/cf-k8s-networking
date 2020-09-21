@@ -7,7 +7,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: scale-istio-1.6.9
+    branch: ig-deployment-or-daemonset
     ignore_paths:
       - ci/**
 
@@ -47,17 +47,22 @@ jobs:
         - get: cf-for-k8s
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
-    - task: create-gke-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
-      params:
-        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        ENABLE_IP_ALIAS: true
-        MACHINE_TYPE: "n1-standard-8"
-        NUM_NODES: 34
-        REGIONAL_CLUSTER: &regional-cluster true
+    - in_parallel:
+        - task: create-gke-cluster
+          file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+          params:
+            CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+            GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+            ENABLE_IP_ALIAS: true
+            MACHINE_TYPE: "n1-standard-8"
+            NUM_NODES: 34
+            REGIONAL_CLUSTER: &regional-cluster true
+        - task: scale-up-istio
+          file: cf-k8s-networking-ci/ci/tasks/scale/scale-up-istio.yml
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      input_mapping:
+        cf-for-k8s: cf-for-k8s-scaled
       params:
         CF_DOMAIN: &scale-testing-domain "ci-scale-testing.routing.lol"
         CLUSTER_NAME: *scale-testing-cluster-name
