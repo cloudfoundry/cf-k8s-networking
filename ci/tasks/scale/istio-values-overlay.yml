@@ -1,4 +1,0 @@
-#@ load("@ytt:overlay", "overlay")
-
-#@overlay/replace
-istio_version: 1.6.9
