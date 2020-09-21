@@ -3,7 +3,7 @@
 #@overlay/match by=overlay.subset({"kind": "IstioOperator", "spec":"components"}),expects=1
 ---
 ingressGateways:
-  #@overlay/match by=name, expects=1
+  #@overlay/match by="name", expects=1
   - name: istio-ingressgateway
     k8s:
       #@overlay/match expects=0
