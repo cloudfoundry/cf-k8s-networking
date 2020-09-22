@@ -64,9 +64,8 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE malformed")
 
 	cfAppDomain := getEnvOrUseDefault("CF_APP_DOMAIN", "apps.ci-upgrade-cf.routing.lol")
-	fmt.Printf("CF APP DOMAIN IN SUITE IS %s!!!!!!!!!!!!!!!!!!!!!!!!!!!\n", cfAppDomain)
 
-	getEnvOrUseDefault("CONTROL_PLANE_APP_NAME", "upgrade-control-plane-sli")
+	controlPlaneAppName := getEnvOrUseDefault("CONTROL_PLANE_APP_NAME", "upgrade-control-plane-sli")
 
 	dataPlaneAppName := getEnvOrUseDefault("DATA_PLANE_APP_NAME", "upgrade-data-plane-sli")
 
