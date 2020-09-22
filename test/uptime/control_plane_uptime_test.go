@@ -56,6 +56,9 @@ var _ = Describe("Control Plane Uptime", func() {
 				}
 
 				routeHost := fmt.Sprintf("host-%d", count)
+				fmt.Println("========= Printing variables ===============")
+				fmt.Printf("AppName: %s, AppDomain %s, hostname %s\n", controlPlaneAppName, cfAppDomain, routeHost)
+				fmt.Println("========= End of Printing variables ===============")
 				cf.Cf("map-route", controlPlaneAppName, cfAppDomain, "--hostname", routeHost)
 
 				route := fmt.Sprintf("http://%s.%s", routeHost, cfAppDomain)
