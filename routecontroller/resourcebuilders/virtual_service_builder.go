@@ -103,6 +103,8 @@ func (b *VirtualServiceBuilder) fqdnToVirtualService(fqdn string, routes []netwo
 			}
 
 			istioRoute.Route = istioDestinations
+			// } else if len(routes) > 1 {
+			// 	continue
 		} else {
 			istioRoute.Route = httpRouteDestinationPlaceholder()
 		}
