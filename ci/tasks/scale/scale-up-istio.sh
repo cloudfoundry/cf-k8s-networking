@@ -17,7 +17,8 @@ rm cf-for-k8s-scaled/build/istio/overlays/ingressgateway-daemonset.yaml
 
 # remove the overlay that scales pilot replicas to 1
 # we don't use the hpas for this pipeline, but it's easier to just delete the whole file.
-rm cf-for-k8s-scaled/config/istio/remove-hpas-and-scale-istiod.yml
+# TODO: removing this while we revert to a working version of cf-for-k8s. The working version doesn't include this overlay. See this comment for details: https://www.pivotaltracker.com/story/show/171678788/comments/218182506
+# rm cf-for-k8s-scaled/config/istio/remove-hpas-and-scale-istiod.yml
 
 # generate new XXX files
 cf-for-k8s-scaled/build/istio/build.sh
