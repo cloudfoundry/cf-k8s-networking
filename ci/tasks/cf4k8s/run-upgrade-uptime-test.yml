@@ -15,7 +15,7 @@ run:
 
 params:
   # Required for performing the test
-  CF_APP_DOMAIN:
+  CF_APP_DOMAIN: "apps.ci-upgrade-cf.routing.lol"
   DATA_PLANE_APP_NAME:
   CONTROL_PLANE_APP_NAME:
 
