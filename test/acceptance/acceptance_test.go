@@ -53,6 +53,7 @@ func TestAcceptance(t *testing.T) {
 		TestSetup = workflowhelpers.NewTestSuiteSetup(config)
 		TestSetup.Setup()
 		workflowhelpers.AsUser(TestSetup.AdminUserContext(), time.Minute, func() {
+			Eventually(cf.Cf("--version")).Should(gexec.Exit(0))
 			Eventually(cf.Cf("enable-feature-flag", "diego_docker")).Should(gexec.Exit(0))
 		})
 
