@@ -60,6 +60,16 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-for-k8s.git
 
+- name: cf-for-k8s-ci
+  type: git
+  icon: github-box
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    paths:
+      - ci/**
+
 - name: cf-for-k8s
   type: git
   icon: github-box
@@ -222,6 +232,7 @@ jobs:
       passed:
       - generate-new-istio-config
     - get: cf-k8s-networking-ci
+    - get: cf-for-k8s-ci
     - get: cf-k8s-networking
   - task: create-gke-cluster
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
@@ -236,7 +247,7 @@ jobs:
       GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
       KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
   - task: run-smoke-test
-    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+    file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
     params:
       SMOKE_TEST_SKIP_SSL: true
   - task: generate-integration-configs
