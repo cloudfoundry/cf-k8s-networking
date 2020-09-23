@@ -116,7 +116,6 @@ jobs:
       passed: [ push-apps ]
       trigger: true
   - in_parallel:
-      # fail_fast: true
       steps:
       - task: install-cf
         file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
