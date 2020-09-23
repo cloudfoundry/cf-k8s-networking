@@ -24,7 +24,7 @@ var _ = Describe("Control Plane Uptime", func() {
 			PollInterval: 1 * time.Second,
 		}
 		requestCollector = &collector.Request{
-			DataPlaneSLOMaxRequestLatency:                  dataPlaneSLOMaxRequestLatency,
+			DataPlaneSLOMaxRequestLatency:                  controlPlaneSLODataPlaneMaxRequestLatency,
 			ControlPlaneSLODataPlaneAvailabilityPercentage: controlPlaneSLODataPlaneAvailabilityPercentage,
 			Client: httpClient,
 		}
@@ -70,7 +70,7 @@ var _ = Describe("Control Plane Uptime", func() {
 			results := requestCollector.GetResults()
 			results.PrintResults()
 
-			Expect(results.SuccessPercentage()).To(BeNumerically(">=", dataPlaneSLOPercentage))
+			Expect(results.SuccessPercentage()).To(BeNumerically(">=", controlPlaneSLOPercentage))
 			Expect(true).To(BeTrue())
 		})
 	})

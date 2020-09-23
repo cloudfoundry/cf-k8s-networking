@@ -23,9 +23,11 @@ var (
 	dataPlaneSLOMaxRequestLatency                  time.Duration
 	dataPlaneSLOPercentage                         float64
 	dataPlaneAppName                               string
+	controlPlaneSLOPercentage                      float64
 	controlPlaneSLORoutePropagationTime            time.Duration
 	controlPlaneSLOSampleCaptureTime               time.Duration
 	controlPlaneSLODataPlaneAvailabilityPercentage float64
+	controlPlaneSLODataPlaneMaxRequestLatency      time.Duration
 	cfAppDomain                                    string
 	controlPlaneAppName                            string
 	httpClient                                     http.Client
@@ -54,6 +56,9 @@ var _ = BeforeSuite(func() {
 	dataPlaneSLOPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("DATA_PLANE_SLO_PERCENTAGE", "0.95"), FLOAT_BIT_SIZE)
 	Expect(err).NotTo(HaveOccurred(), "DATA_PLANE_SLO_PERCENTAGE malformed")
 
+	controlPlaneSLOPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("CONTROL_PLANE_SLO_PERCENTAGE", "0.95"), FLOAT_BIT_SIZE)
+	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_PERCENTAGE malformed")
+
 	controlPlaneSLORoutePropagationTime, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME", "10s"))
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME malformed")
 
@@ -62,6 +67,9 @@ var _ = BeforeSuite(func() {
 
 	controlPlaneSLODataPlaneAvailabilityPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE", "0.99"), FLOAT_BIT_SIZE)
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE malformed")
+
+	controlPlaneSLODataPlaneMaxRequestLatency, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_DATA_PLANE_MAX_REQUEST_LATENCY", "200ms"))
+	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_DATA_PLANE_MAX_REQUEST_LATENCY malformed")
 
 	cfAppDomain = getEnvOrUseDefault("CF_APP_DOMAIN", "apps.ci-upgrade-cf.routing.lol")
 
