@@ -65,7 +65,7 @@ var _ = BeforeSuite(func() {
 
 	cfAppDomain := getEnvOrUseDefault("CF_APP_DOMAIN", "apps.ci-upgrade-cf.routing.lol")
 
-	controlPlaneAppName := getEnvOrUseDefault("CONTROL_PLANE_APP_NAME", "upgrade-control-plane-sli")
+	getEnvOrUseDefault("CONTROL_PLANE_APP_NAME", "upgrade-control-plane-sli")
 
 	dataPlaneAppName := getEnvOrUseDefault("DATA_PLANE_APP_NAME", "upgrade-data-plane-sli")
 
