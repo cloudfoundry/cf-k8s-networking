@@ -63,9 +63,9 @@ var _ = BeforeSuite(func() {
 	controlPlaneSLODataPlaneAvailabilityPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE", "0.99"), FLOAT_BIT_SIZE)
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE malformed")
 
-	cfAppDomain := getEnvOrUseDefault("CF_APP_DOMAIN", "apps.ci-upgrade-cf.routing.lol")
+	cfAppDomain = getEnvOrUseDefault("CF_APP_DOMAIN", "apps.ci-upgrade-cf.routing.lol")
 
-	getEnvOrUseDefault("CONTROL_PLANE_APP_NAME", "upgrade-control-plane-sli")
+	controlPlaneAppName = getEnvOrUseDefault("CONTROL_PLANE_APP_NAME", "upgrade-control-plane-sli")
 
 	dataPlaneAppName := getEnvOrUseDefault("DATA_PLANE_APP_NAME", "upgrade-data-plane-sli")
 
