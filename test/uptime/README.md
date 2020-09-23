@@ -5,14 +5,11 @@
 UPGRADE_DISCOVERY_TIMEOUT is the amount of time given to discover an upgrade is
 happening using `kapp app-change ls -a cf`.
 
-CF_APP_DOMAIN is the app domain. This is currently used to map new routes to
-test control plane uptime.
-
 ## Data Plane Service Level Measurements
 
 Our SLO is defined as:
 
-X% of GET Requests to a Route succeed in less than Y milliseconds.
+95% (X) of GET Requests to a Route succeed in less than 100 (Y) milliseconds.
 
 The SLI used to measure our SLO is request latency.
 
@@ -20,6 +17,13 @@ Request Latency is measured by the following:
 
 Given an app 'A' deployed on the platform with route 'r', the SLI times how long it
 takes to make an HTTP Get Request to 'r' for 'A' and receive a response.
+
+### Description
+CF_APP_DOMAIN is the app domain. This is currently used to map new routes to
+test control plane uptime.
+
+DATA_PLANE_APP_NAME: Name of the app.
+
 
 ### Configuration
 
@@ -31,30 +35,34 @@ r: DATA_PLANE_SLI_APP_ROUTE_URL
 
 Our SLO is defined as:
 
-X% of routes that get mapped become available in less than Y seconds.
+95% (X) of routes that get mapped become available in less than 15 (Y) seconds.
 
-Available is defined as Z% of GET Requests to a newly mapped Route succeed in
-less than W milliseconds after Y seconds and up to U seconds.
+1. Every 5 seconds, map a route
+2. Sleep for propagation time (Y)
+3. Send requests to route for 30 seconds (U), record their latency and response
+   code
+4. If greater than 95% (Z) of those requests had a non-200 response code, or
+   exceeded the latency SLO (W), consider that route to be a failure
+5. If greater than 95% (X) of routes are failures, fail the test
 
-The SLI used to measure our SLO is route propagation latency.
+### Description
+CONTROL_PLANE_SLO_PERCENTAGE (X): Percentage of routes that we expect to get mapped
+and become available in less than number of seconds defined by
+`CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME`. Defaults to 95%.
 
-Route Propagation latency is measured by the following:
+CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME (Y): Time we wait before seeing if
+a route is live, defaults to 15 seconds.
 
-Given an app 'A' deployed on the platform, the SLI times how long it
-takes to make a route available. This is done as follows:
+CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE (Z): Percentage of routes
+that succeed in less than the number of seconds defined by
+`CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE`. Defaults to 95%.
 
-1. Over the course of the upgrade, map a route at an interval.
-2. After Y seconds, make GET requests to the route for U seconds and record request latency,
-   and if it was a successful response (e.g 200 status code).
-3. For those requests, the percentage of successful requests whose
-   request latency is under W should be greater than Z.
+CONTROL_PLANE_SLO_DATA_PLANE_MAX_REQUEST_LATENCY (W): Max response time from
+mapped route, defaults to 200ms.
 
-### Configuration
+CONTROL_PLANE_SLO_SAMPLE_CAPTURE_TIME (U): How often we send a request to a
+route. Defaults to 10 seconds.
 
-X: CONTROL_PLANE_SLO_PERCENTAGE
-Y: CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME
-Z: CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE
-W: CONTROL_PLANE_SLO_DATA_PLANE_MAX_REQUEST_LATENCY
-U: CONTROL_PLANE_SLO_SAMPLE_CAPTURE_TIME
+CONTROL_PLANE_APP_NAME: Name of the app to map routes to. Defaults to
+`upgrade-control-plane-sli`.
 
-CONTROL_PLANE_APP_NAME is the name of the app to map routes to.

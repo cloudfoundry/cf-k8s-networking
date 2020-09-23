@@ -50,7 +50,7 @@ var _ = BeforeSuite(func() {
 	upgradeDiscoveryTimeout, err = time.ParseDuration(getEnvOrUseDefault("UPGRADE_DISCOVERY_TIMEOUT", "1m"))
 	Expect(err).NotTo(HaveOccurred(), "UPGRADE_DISCOVERY_TIMEOUT malformed")
 
-	dataPlaneSLOMaxRequestLatency, err = time.ParseDuration(getEnvOrUseDefault("DATA_PLANE_SLO_MAX_REQUEST_LATENCY", "300ms"))
+	dataPlaneSLOMaxRequestLatency, err = time.ParseDuration(getEnvOrUseDefault("DATA_PLANE_SLO_MAX_REQUEST_LATENCY", "100ms"))
 	Expect(err).NotTo(HaveOccurred(), "DATA_PLANE_SLO_MAX_REQUEST_LATENCY malformed")
 
 	dataPlaneSLOPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("DATA_PLANE_SLO_PERCENTAGE", "0.95"), FLOAT_BIT_SIZE)
@@ -59,13 +59,13 @@ var _ = BeforeSuite(func() {
 	controlPlaneSLOPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("CONTROL_PLANE_SLO_PERCENTAGE", "0.95"), FLOAT_BIT_SIZE)
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_PERCENTAGE malformed")
 
-	controlPlaneSLORoutePropagationTime, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME", "10s"))
+	controlPlaneSLORoutePropagationTime, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME", "15s"))
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_MAX_ROUTE_PROPAGATION_TIME malformed")
 
 	controlPlaneSLOSampleCaptureTime, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_SAMPLE_CAPTURE_TIME", "10s"))
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_SAMPLE_CAPTURE_TIME malformed")
 
-	controlPlaneSLODataPlaneAvailabilityPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE", "0.99"), FLOAT_BIT_SIZE)
+	controlPlaneSLODataPlaneAvailabilityPercentage, err = strconv.ParseFloat(getEnvOrUseDefault("CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE", "0.95"), FLOAT_BIT_SIZE)
 	Expect(err).NotTo(HaveOccurred(), "CONTROL_PLANE_SLO_DATA_PLANE_AVAILABILITY_PERCENTAGE malformed")
 
 	controlPlaneSLODataPlaneMaxRequestLatency, err = time.ParseDuration(getEnvOrUseDefault("CONTROL_PLANE_SLO_DATA_PLANE_MAX_REQUEST_LATENCY", "200ms"))
