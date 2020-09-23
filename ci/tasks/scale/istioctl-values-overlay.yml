@@ -1,5 +1,7 @@
 #@ load("@ytt:overlay", "overlay")
 
+#! If this file needs to change, you should also change the doc in cf-for-k8s about scaling networking components. It should be in cf-for-k8s/docs/platform_operators/
+
 #@overlay/match by=overlay.subset({"kind": "IstioOperator"}),expects=1
 ---
 spec:
