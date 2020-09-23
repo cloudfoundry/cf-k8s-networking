@@ -43,7 +43,7 @@ func (r *RouteMapper) MapRoute(appName, domain, routeToDelete, routeToMap string
 		lastFailure := time.Now().Unix()
 		succeeded := false
 		postFailed := false
-		for j := 0; j < 60; j++ {
+		for j := 0; j < 120; j++ {
 			url := fmt.Sprintf("https://%s.%s/", routeToMap, domain)
 			resp, err := r.Client.Get(url)
 			if err != nil {
