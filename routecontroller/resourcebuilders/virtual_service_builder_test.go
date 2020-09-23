@@ -635,8 +635,6 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 						virtualservice := k8sResources[0]
 						Expect(virtualservice.Spec.Hosts[0]).To(Equal("test0.domain0.example.com"))
-						// Expect(virtualservice.Spec.Http[0].Route[0].Destination.Host).To(Equal("no-destinations"))
-						// Expect(virtualservice.Spec.Http[0].Match[0].Uri.MatchType).To(BeEquivalentTo(&istiov1alpha3.StringMatch_Prefix{Prefix: "/path0/deeper"}))
 						Expect(virtualservice.Spec.Http[0].Match[0].Uri.MatchType).To(BeEquivalentTo(&istiov1alpha3.StringMatch_Prefix{Prefix: "/path0"}))
 					})
 				})
