@@ -22,6 +22,16 @@ resources:
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
 
+- name: cf-for-k8s-ci
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: master
+    paths:
+      - ci/**
+
 - name: cf-k8s-networking-ci
   type: git
   icon: github
@@ -39,6 +49,7 @@ jobs:
 - name: deploy-and-test-pr
   plan:
     - in_parallel:
+        - get: cf-for-k8s-ci
         - get: cf-for-k8s
           resource: networking-pull-requests-to-cf-for-k8s
           trigger: true
@@ -98,7 +109,7 @@ jobs:
             gsutil cp cf-install-values-out/cf-install-values.yml gs://${file_name}
             echo "cf-values.yml file has been saved at (authentication required) https://storage.cloud.google.com/${file_name}"
     - task: run-smoke-test
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/run-smoke-test.yml
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
       params:
         SMOKE_TEST_SKIP_SSL: true
     - task: generate-integration-configs
