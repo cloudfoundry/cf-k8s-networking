@@ -154,6 +154,10 @@ jobs:
           - name: cf-for-k8s
         outputs:
           - name: gke-env-metadata
+        params:
+          # if branch name matches one of these without "ci-" prefix it won't
+          # be deleted
+          CLUSTERS_DENYLIST: "ci-test cf-scale-testing-cluster ci-cats"
         run:
           path: /bin/bash
           args:
@@ -164,7 +168,14 @@ jobs:
             # Merge pull request #PR_NUMBER from cloudfoundry/BRANCH_NAME
             branch="$(< cf-for-k8s/.git/commit_message grep -o -Pe 'cloudfoundry/[^\s]+' | cut -d/ -f2)"
 
-            printf "ci-%s" "${branch}" > gke-env-metadata/cluster_name
+            cluster_name="$(printf "ci-%s" "${branch}")"
+
+            if [[ "$(echo "${CLUSTERS_DENYLIST}" | grep -o "${cluster_name}")" != "" ]]; then
+              echo "Cluster name \"${cluster_name}\" is in deny list, ignoring..."
+              exit
+            fi
+
+            echo -n "${cluster_name}" > gke-env-metadata/cluster_name
             printf "ci-%s.routing.lol" "${branch}" > gke-env-metadata/cf_domain
     # if branch name corrensponds to a cluster it will be deleted, otherwise
     # the task will just pass and succeed
