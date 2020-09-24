@@ -43,6 +43,17 @@ resources:
       - ci
       - config
 
+- name: cf-for-k8s-merges
+  type: git
+  icon: github
+  source:
+    branch: develop
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-for-k8s.git
+    commit_filter:
+      include:
+        - "Merge pull request"
+
 jobs:
 # For PRs to cf-for-k8s, deploy the PR as is and run networking acceptance tests
 # and don't destroy the environment so PM's can do acceptance
@@ -72,8 +83,8 @@ jobs:
           args:
           - -cex
           - |
-            printf "ci-$(cat cf-for-k8s/.git/resource/head_name)" > gke-env-metadata/cluster_name
-            printf "ci-$(cat cf-for-k8s/.git/resource/head_name).routing.lol" > gke-env-metadata/cf_domain
+            printf "ci-%s" "$(cat cf-for-k8s/.git/resource/head_name)" > gke-env-metadata/cluster_name
+            printf "ci-%s.routing.lol" "$(cat cf-for-k8s/.git/resource/head_name)" > gke-env-metadata/cf_domain
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
       params:
@@ -123,3 +134,40 @@ jobs:
         INTEGRATION_CONFIG_FILE: "config.json"
       # TODO: we might need a task to push the environment cf-values
       # file somewhere discoverable for the PMs
+
+- name: destroy-cluster
+  plan:
+    - in_parallel:
+        - get: cf-for-k8s
+          resource: cf-for-k8s-merges
+          trigger: true
+        - get: cf-k8s-networking-ci
+    - task: create-gke-env-metadata
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
+        inputs:
+          - name: cf-for-k8s
+        outputs:
+          - name: gke-env-metadata
+        run:
+          path: /bin/bash
+          args:
+          - -c
+          - |
+            # Parse branch name from the commit message
+            # The commit message looks like this:
+            # Merge pull request #PR_NUMBER from cloudfoundry/BRANCH_NAME
+            branch="$(< cf-for-k8s/.git/commit_message grep -o -Pe 'cloudfoundry/[^\s]+' | cut -d/ -f2)"
+
+            printf "ci-%s" "${branch}" > gke-env-metadata/cluster_name
+            printf "ci-%s.routing.lol" "${branch}" > gke-env-metadata/cf_domain
+    # if branch name corrensponds to a cluster it will be deleted, otherwise
+    # the task will just pass and succeed
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
