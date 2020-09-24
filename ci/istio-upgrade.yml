@@ -6,7 +6,7 @@ resources:
   source:
     owner: istio
     repository: istio
-    tag_filter: '1\.6\..*'
+    tag_filter: '1\.7\..*'
     access_token: ((github_access_token))
 
 - name: istio-proxyv2-image
@@ -266,7 +266,6 @@ jobs:
       GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: push-tracker-stories
-  serial_groups: ['bump-istio']
   plan:
   - in_parallel:
     - get: cf-k8s-networking-ci
