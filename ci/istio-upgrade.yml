@@ -195,6 +195,8 @@ jobs:
         args:
         - -cex
         - |
+          set -euo pipefail
+
           pushd istio-release > /dev/null
             tar -xzvf istioctl-*-linux-amd64.tar.gz
             mv istioctl /usr/local/bin
@@ -206,7 +208,13 @@ jobs:
             "s/istio_version.*\$/istio_version: $ISTIO_VERSION/" \
             cf-for-k8s/build/istio/values.yaml
 
-          cf-for-k8s/build/istio/build.sh
+          cf-for-k8s/build/istio/build.sh 2>&1 | tee output.txt
+
+          # TODO: this is hacky
+          #       we should figure out why the build script doesn't exit nonzero on errors
+          if [[ $( cat output.txt | grep Error | wc -l) -gt 0 ]]; then
+            exit 1
+          fi
 
           pushd cf-for-k8s > /dev/null
             git config --global user.name "CF Networking Team CI Bot"
