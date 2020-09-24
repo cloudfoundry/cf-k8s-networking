@@ -16,7 +16,7 @@ resources:
 
 - name: cf-k8s-networking
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: develop
     private_key: ((github_private_key.private_key))
@@ -24,7 +24,7 @@ resources:
 
 - name: cf-k8s-networking-ci
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: develop
     private_key: ((github_private_key.private_key))

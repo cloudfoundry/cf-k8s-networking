@@ -31,7 +31,7 @@ resources:
 
 - name: cf-for-k8s
   type: git
-  icon: github-box
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
@@ -41,7 +41,7 @@ resources:
 
 - name: cf-for-k8s-ci
   type: git
-  icon: github-box
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
@@ -51,7 +51,7 @@ resources:
 
 - name: routecontroller-stress-results
   type: git
-  icon: github-box
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/cf-k8s-networking
     private_key: ((github_private_key.private_key))
@@ -59,7 +59,7 @@ resources:
 
 - name: cf-k8s-networking
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: develop
     private_key: ((github_private_key.private_key))
@@ -67,7 +67,7 @@ resources:
 
 - name: cf-k8s-networking-rc
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: release-candidate
     private_key: ((github_private_key.private_key))
@@ -75,7 +75,7 @@ resources:
 
 - name: cf-k8s-networking-config
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: develop
     private_key: ((github_private_key.private_key))
@@ -85,7 +85,7 @@ resources:
 
 - name: cf-k8s-networking-ci
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: develop
     private_key: ((github_private_key.private_key))
@@ -96,7 +96,7 @@ resources:
 
 - name: routecontroller
   type: git
-  icon: github-box
+  icon: github
   source:
     branch: develop
     private_key: ((github_private_key.private_key))
@@ -132,7 +132,7 @@ resources:
 
 - name: cf-k8s-networking-release
   type: github-release
-  icon: github-box
+  icon: github
   source:
     user: cloudfoundry
     repository: cf-k8s-networking

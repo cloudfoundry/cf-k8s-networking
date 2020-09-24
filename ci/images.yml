@@ -9,7 +9,7 @@ resources:
 
   - name: cf-k8s-networking
     type: git
-    icon: github-box
+    icon: github
     source:
       uri: git@github.com:cloudfoundry/cf-k8s-networking.git
       branch: develop
@@ -17,7 +17,7 @@ resources:
 
   - name: cf-k8s-networking-ci
     type: git
-    icon: github-box
+    icon: github
     source:
       branch: develop
       private_key: ((github_private_key.private_key))
@@ -27,7 +27,7 @@ resources:
 
   - name: cf-k8s-logging-fluent
     type: git
-    icon: github-box
+    icon: github
     source:
       branch: main
       private_key: ((github_private_key.private_key))
@@ -37,7 +37,7 @@ resources:
 
   - name: cf-k8s-networking-docker-images
     type: git
-    icon: github-box
+    icon: github
     source:
       branch: develop
       private_key: ((github_private_key.private_key))
@@ -71,7 +71,7 @@ resources:
 
   - name: httpbin-repo
     type: git
-    icon: github-box
+    icon: github
     source:
       uri: git@github.com:cf-routing/httpbin.git
       branch: develop
@@ -87,7 +87,7 @@ resources:
 
   - name: proxy-repo
     type: git
-    icon: github-box
+    icon: github
     source:
       uri: git@github.com:cf-routing/proxy.git
       branch: develop
@@ -103,7 +103,7 @@ resources:
 
   - name: cf-for-k8s-develop
     type: git
-    icon: github-box
+    icon: github
     source:
       uri: git@github.com:cloudfoundry/cf-for-k8s
       private_key: ((github_private_key.private_key))
@@ -113,7 +113,7 @@ resources:
 
   - name: cf-for-k8s-fluentbit-branch
     type: git
-    icon: github-box
+    icon: github
     source:
       uri: git@github.com:cloudfoundry/cf-for-k8s
       private_key: ((github_private_key.private_key))

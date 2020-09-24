@@ -3,7 +3,7 @@ resource_types: []
 resources:
 - name: cf-for-k8s
   type: git
-  icon: github-box
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
@@ -13,7 +13,7 @@ resources:
 
 - name: cf-k8s-networking
   type: git
-  icon: github-box
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     private_key: ((github_private_key.private_key))
@@ -23,7 +23,7 @@ resources:
 
 - name: cf-k8s-networking-ci
   type: git
-  icon: github-box
+  icon: github
   source:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     private_key: ((github_private_key.private_key))
