@@ -168,6 +168,11 @@ jobs:
             # Merge pull request #PR_NUMBER from cloudfoundry/BRANCH_NAME
             branch="$(< cf-for-k8s/.git/commit_message grep -o -Pe 'cloudfoundry/[^\s]+' | cut -d/ -f2)"
 
+            if [[ "${branch}" == "" ]]; then
+              echo "The branch was from external repository, ignoring..."
+              exit
+            fi
+
             cluster_name="$(printf "ci-%s" "${branch}")"
 
             if [[ "$(echo "${CLUSTERS_DENYLIST}" | grep -o "${cluster_name}")" != "" ]]; then
