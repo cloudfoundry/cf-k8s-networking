@@ -40,7 +40,7 @@ function create_cluster() {
 
     echo "Creating cluster: ${CLUSTER_NAME} ..."
     gcloud container clusters create ${CLUSTER_NAME} \
-        --cluster-version=$(latest_cluster_version) \
+        --cluster-version="1.16.13-gke.401" \
         --machine-type=${MACHINE_TYPE} \
         --labels team=cf-k8s-networking,ci=true,ephemeral="$EPHEMERAL_CLUSTER" \
         --enable-network-policy \
