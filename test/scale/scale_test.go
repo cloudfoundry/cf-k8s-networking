@@ -40,23 +40,6 @@ var _ = Describe("Scale", func() {
 	})
 
 	AfterEach(func() {
-		// For development purposes, to reset the routes back to the original hostnames
-		// so we can rerun the tests
-		if cleanup {
-			fmt.Fprintln(GinkgoWriter, "Beginning cleanup...")
-			forEachAppInSpace(numApps, numAppsPerSpace, func(i int) {
-				fmt.Fprintln(GinkgoWriter, i, "of", numApps)
-				appName := fmt.Sprintf("bin-%d", i)
-				routeHost := fmt.Sprintf("bin-new-%d", i)
-
-				session := cf.Cf("delete-route", domain, "--hostname", routeHost, "-f")
-				Eventually(session, "30s").Should(Exit(0))
-
-				session = cf.Cf("map-route", appName, domain, "--hostname", appName)
-				Eventually(session, "30s").Should(Exit(0))
-			})
-		}
-
 		// Print out the statistics after the test
 		p95, _ := stats.Percentile(results, 95)
 		min, _ := stats.Min(results)
@@ -73,6 +56,23 @@ var _ = Describe("Scale", func() {
 		fmt.Fprintf(GinkgoWriter, "\n\tRoutes failed to map: %d\n", failures)
 		fmt.Fprintf(GinkgoWriter, "\n\tPost-success failures: %d\n", postFailures)
 		fmt.Fprintln(GinkgoWriter, "*********************************************")
+
+		// For development purposes, to reset the routes back to the original hostnames
+		// so we can rerun the tests
+		if cleanup {
+			fmt.Fprintln(GinkgoWriter, "Beginning cleanup...")
+			forEachAppInSpace(numApps, numAppsPerSpace, func(i int) {
+				fmt.Fprintln(GinkgoWriter, i, "of", numApps)
+				appName := fmt.Sprintf("bin-%d", i)
+				routeHost := fmt.Sprintf("bin-new-%d", i)
+
+				session := cf.Cf("delete-route", domain, "--hostname", routeHost, "-f")
+				Eventually(session, "30s").Should(Exit(0))
+
+				session = cf.Cf("map-route", appName, domain, "--hostname", appName)
+				Eventually(session, "30s").Should(Exit(0))
+			})
+		}
 	})
 
 	Context("On an environment with 1000 apps and 1000 routes", func() {
