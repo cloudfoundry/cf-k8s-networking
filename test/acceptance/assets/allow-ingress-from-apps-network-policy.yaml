@@ -12,4 +12,4 @@ spec:
   - from:
     - namespaceSelector:
         matchLabels:
-          name: cf-workloads
+          cf-for-k8s.cloudfoundry.org/cf-workloads-ns: ""
