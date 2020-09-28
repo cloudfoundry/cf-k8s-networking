@@ -127,7 +127,7 @@ func createSystemComponent() string {
 	cmd := exec.Command("kapp", "deploy", "-n", systemNamespace, "-a", "system-component", "-y", "-f", "./assets/system-component.yml")
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
-	session.Wait(2 * time.Minute)
+	session.Wait(4 * time.Minute)
 
 	return "app=test-system-component"
 }
