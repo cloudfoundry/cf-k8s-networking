@@ -22,10 +22,12 @@ function deploy_apps() {
     org_name_prefix="scale-tests"
     space_name_prefix="scale-tests"
 
+    number_of_org_spaces="$((NUMBER_OF_APPS / APPS_PER_SPACE))"
     # we subtract 1 here because `seq` is inclusive on both sides
-    number_of_org_spaces="$((NUMBER_OF_APPS / APPS_PER_SPACE - 1))"
     number_of_apps_per_org_space="$((NUMBER_OF_APPS / number_of_org_spaces - 1))"
+    number_of_org_spaces="$((number_of_org_spaces - 1))"
 
+    echo "#### APPS: $NUMBER_OF_APPS; ORGSPACES: $number_of_org_spaces; APPS PER SPACE: $number_of_apps_per_org_space ###"
     for n in $(seq 0 ${number_of_org_spaces})
     do
       org_name="${org_name_prefix}-${n}"
