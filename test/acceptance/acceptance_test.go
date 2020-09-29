@@ -110,16 +110,24 @@ type KubeCtl struct {
 	kubeConfigPath string
 }
 
-func (kc *KubeCtl) Run(args ...string) ([]byte, error) {
-	cmd := exec.Command("kubectl", args...)
-	cmd.Env = []string{
-		fmt.Sprintf("KUBECONFIG=%s", kc.kubeConfigPath),
-		fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
-		fmt.Sprintf("HOME=%s", filepath.Dir(kc.kubeConfigPath)), // fixme because kubectl will create another .kube folder inside our provided kubeConfgPath
+func (kc *KubeCtl) Run(args ...string) (output []byte, err error) {
+	for i := 0; i < 3; i++ {
+		if i != 0 {
+			fmt.Fprintln(GinkgoWriter, "Retrying...")
+		}
+		cmd := exec.Command("kubectl", args...)
+		cmd.Env = []string{
+			fmt.Sprintf("KUBECONFIG=%s", kc.kubeConfigPath),
+			fmt.Sprintf("PATH=%s", os.Getenv("PATH")),
+			fmt.Sprintf("HOME=%s", filepath.Dir(kc.kubeConfigPath)), // fixme because kubectl will create another .kube folder inside our provided kubeConfgPath
+		}
+		fmt.Fprintf(GinkgoWriter, "\n+ kubectl '%s'\n", strings.Join(args, "' '"))
+		output, err = cmd.CombinedOutput()
+		GinkgoWriter.Write(output)
+		if cmd.ProcessState.ExitCode() == 0 {
+			break
+		}
 	}
-	fmt.Fprintf(GinkgoWriter, "\n+ kubectl '%s'\n", strings.Join(args, "' '"))
-	output, err := cmd.CombinedOutput()
-	GinkgoWriter.Write(output)
 	return output, err
 }
 
