@@ -7,7 +7,11 @@ set -euo pipefail
 : "${GITHUB_BODY:?}"
 : "${BRANCH:?}"
 
-# Create PR
+# Replace newlines with the two characters '\n'.
+# This allows the $GITHUB_BODY in the pipeline to be pretty.
+sed -E ':a;N;$!ba;s/\r{0,1}\n/\\n/g' <<< "$GITHUB_BODY" > github_body
+
+echo "Creating PR"
 pull=$(curl \
   -sS \
   --fail \
@@ -20,11 +24,12 @@ pull=$(curl \
     "base":"develop",
     "maintainer_can_modify": true,
     "title": "'"$GITHUB_TITLE"'",
-    "body": "'"$GITHUB_BODY"'"
+    "body": "'"$(cat github_body)"'"
   }')
 
 pull_number="$(echo "${pull}" | jq -r '.number')"
 
+echo "PR number is $pull_number"
 # Add networking label to run our CI job for tests
 curl \
   --fail \
@@ -34,3 +39,4 @@ curl \
   "https://api.github.com/repos/cloudfoundry/cf-for-k8s/issues/${pull_number}/labels" \
   -d '{"labels":["networking"]}'
 
+echo "DONE"
