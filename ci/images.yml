@@ -227,48 +227,21 @@ jobs:
           force: true
       - task: create-pr
         params:
+          BRANCH: update-istio-fluentbit
           GITHUB_KEY: ((github_access_token))
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
-          params:
-            GITHUB_KEY:
-          run:
-            path: /bin/bash
-            args:
-            - -c
-            - |
-              echo "## WHAT is this change about?\\nUpdate Istio sidecar's fluent-bit image digest\\n\\n## Does this PR introduce a change to config/values.yml?\\nNo\\n\\n## Acceptance Steps\\nDeploy succeeds and you can view access logs for the apps\\n\\n## Tag your pair, your PM, and/or team\\n@cloudfoundry/cf-for-k8s-networking" > github_body
+          GITHUB_TITLE: "Update Istio sidecar fluent-bit image"
+          GITHUB_BODY: |
+              ## WHAT is this change about?
+              Update Istio sidecar's fluent-bit image digest
 
-              # Create PR
-              pull=$(curl \
-                -sS \
-                --fail \
-                -X POST \
-                -H "Accept: application/vnd.github.v3+json" \
-                -H "Authorization: token ${GITHUB_KEY}" \
-                https://api.github.com/repos/cloudfoundry/cf-for-k8s/pulls \
-                -d '{
-                  "head":"update-istio-fluentbit",
-                  "base":"develop",
-                  "maintainer_can_modify": true,
-                  "title": "Update Istio sidecar fluent-bit image",
-                  "body": "'"$(cat github_body)"'"
-                }')
+              ## Does this PR introduce a change to config/values.yml?
+              No
 
-              pull_number="$(echo "${pull}" | jq -r '.number')"
+              ## Acceptance Steps
+              Deploy succeeds and you can view access logs for the apps
 
-              # Add networking label to run our CI job for tests
-              curl \
-                --fail \
-                -X POST \
-                -H "Accept: application/vnd.github.v3+json" \
-                -H "Authorization: token ${GITHUB_KEY}" \
-                "https://api.github.com/repos/cloudfoundry/cf-for-k8s/issues/${pull_number}/labels" \
-                -d '{"labels":["networking"]}'
+              ## Tag your pair, your PM, and/or team
+              @cloudfoundry/cf-for-k8s-networking
 
   - name: build-httpbin-image
     plan:
