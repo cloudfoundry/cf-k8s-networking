@@ -5,6 +5,9 @@ image_resource:
   source:
     repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
 
+inputs:
+  - name: cf-k8s-networking-ci
+
 run:
   path: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-pr.sh
 
