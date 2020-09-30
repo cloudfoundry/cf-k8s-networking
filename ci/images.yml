@@ -214,69 +214,13 @@ jobs:
           image: annotated-fluent-bit-image/image.tar
           additional_tags: fluent-bit-version/version
       - task: add-updated-digest
+        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest-via-pr.yml
         params:
           COMPONENT_NAME: fluentbit
           TARGET_FILE: build/istio/values.yaml
           BRANCH: update-istio-fluentbit
         input_mapping:
           image-resource: fluent-bit-image
-        config:
-          platform: linux
-          image_resource:
-            type: docker-image
-            source:
-              repository: gcr.io/cf-routing/cf-k8s-networking/k8s-deploy
-          inputs:
-          - name: cf-for-k8s-develop
-          - name: image-resource
-          outputs:
-          - name: cf-for-k8s-modified
-          params:
-            TARGET_FILE: # e.g. config/values.yml
-            COMPONENT_NAME: # e.g. routecontroller
-            BRANCH: # e.g. update-routecontroller
-            GIT_COMMIT_USERNAME: "CF Networking Team CI Bot"
-            GIT_COMMIT_EMAIL: "CF-Networking@pivotal.io"
-          run:
-            path: /bin/bash
-            args:
-            - -c
-            - |
-              set -euo pipefail
-
-              # ENV
-              : "${COMPONENT_NAME:?}"
-              : "${TARGET_FILE:?}"
-              : "${BRANCH:?}"
-
-              pushd image-resource > /dev/null
-                  digest="$(cat digest)"
-              popd
-
-              pushd cf-for-k8s-develop
-                  git checkout -b "${BRANCH}" develop
-
-                  sed -r -i "s|(cf-k8s-networking/${COMPONENT_NAME})@sha256:[a-f0-9]+|\1@${digest}|" "${TARGET_FILE}"
-                  ./build/istio/build.sh
-
-                  git config user.name "${GIT_COMMIT_USERNAME}"
-                  git config user.email "${GIT_COMMIT_EMAIL}"
-
-                  if [[ -n $(git status --porcelain) ]]; then
-                      echo "changes detected, will commit..."
-                      git add "${TARGET_FILE}"
-                      git add "config/istio/istio-generated"
-                      git commit -m "Update ${COMPONENT_NAME} image digest to ${digest}"
-
-                      git log -1 --color | cat
-                  else
-                      echo "no changes in repo, no commit necessary"
-                  fi
-              popd
-
-              # include dot files in * globing
-              shopt -s dotglob
-              cp -r cf-for-k8s-develop/* cf-for-k8s-modified/
       - put: cf-for-k8s-fluentbit-branch
         params:
           repository: cf-for-k8s-modified
