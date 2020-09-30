@@ -90,10 +90,27 @@ function configure_dns() {
     echo  "we made it! 🥖🤓"
 }
 
+function eval_with_retry() {
+    local command="${1}"
+    local tries="${2:-5}"
+    local timeout="${3:-2}"
+
+    local i=0
+
+    until [ "${i}" -ge "${tries}" ]
+    do
+       eval "${command}" && break
+       i=$((i+1))
+       echo "Failed to run the command, retrying in ${timeout} seconds..."
+       sleep "${timeout}"
+    done
+}
+
 function main() {
     initialize_gke_env_vars
     install_cf
     configure_dns
+    eval_with_retry 'cf api https://api.${CF_DOMAIN} --skip-ssl-validation '
 }
 
 main
