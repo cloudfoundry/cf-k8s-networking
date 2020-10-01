@@ -35,12 +35,12 @@ func (b *HTTPProxyBuilder) Build(routes *networkingv1alpha1.RouteList) ([]hpv1.H
 	sortedFQDNs := sortFQDNs(routesForFQDN)
 
 	for _, fqdn := range sortedFQDNs {
-		virtualService, err := b.fqdnToHTTPProxy(fqdn, routesForFQDN[fqdn])
+		httpProxy, err := b.fqdnToHTTPProxy(fqdn, routesForFQDN[fqdn])
 		if err != nil {
 			return []hpv1.HTTPProxy{}, err
 		}
 
-		resources = append(resources, virtualService)
+		resources = append(resources, httpProxy)
 	}
 
 	return resources, nil
@@ -61,6 +61,9 @@ func (b *HTTPProxyBuilder) fqdnToHTTPProxy(fqdn string, routes []networkingv1alp
 		Spec: hpv1.HTTPProxySpec{
 			VirtualHost: &hpv1.VirtualHost{
 				Fqdn: fqdn,
+				TLS: &hpv1.TLS{
+					SecretName: "cf-workloads-cert-ver-1",
+				},
 			},
 		},
 	}
