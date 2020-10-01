@@ -26,7 +26,7 @@ CF-K8s-Networking](doc/assets/routecontroller-data-flow-diagram.png)
     the role of the Gorouters in CF for VMs, and service mesh for (eventually)
     container-to-container networking policy enforcement.
   * We provide a manifest for installing our custom configuration for Istio,
-    [here](config/istio-generated/xxx-generated-istio.yaml).
+    [here](https://github.com/cloudfoundry/cf-for-k8s/blob/master/config/istio/istio-generated/xxx-generated-istio.yaml).
   * Istio provides us with security features out of the box, such as:
     * Automatic Envoy sidecar injection for system components and application workloads
     * `Sidecar` Kubernetes resources that can limit egress traffic from workload `Pod`s

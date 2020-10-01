@@ -61,7 +61,7 @@ The work to enable this was completed in [#173568724](https://www.pivotaltracker
   PR](https://github.com/cloudfoundry/cf-k8s-networking/pull/63)
 - Will need to do [some extra work](https://www.pivotaltracker.com/story/show/172732552)
 to get logs from the ingressgateway pods into the log stream corresponding to the destination app.
-See https://github.com/cloudfoundry/cf-k8s-logging/tree/master/examples/forwarder for more information.
+See https://github.com/cloudfoundry/cf-k8s-logging/tree/main/examples/forwarder-fluent-bit for more information.
 - It is unclear how difficult it would be to add custom formatting to sidecar Envoy logs,
 we [know how to do it for the ingressgateway logs](https://www.pivotaltracker.com/story/show/169739120)
 - We may need to revisit the sidecar logs later if we want access logs for container-to-container (c2c)
