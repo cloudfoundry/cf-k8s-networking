@@ -14,7 +14,7 @@ outputs:
 - name: cf-for-k8s-modified
 
 run:
-  path: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest-via-pr.sh
+  path: cf-k8s-networking-ci/ci/tasks/docker/update-image-digest-in-cf-for-k8s.sh
 
 params:
   TARGET_FILE: # e.g. config/values.yml
