@@ -27,4 +27,4 @@ Kubernetes environment and test the setup of networking.
 ## Addendum
 2020-06-19: Updated the "integration tests" link to point to the
 `routecontroller` directory and updated the "script" link as per [ADR
-010](http://localhost:8080/edit/contents/doc/architecture-decisions/0010-route-crd-and-kubebuilder-instead-of-metacontroller.md)
+010](./0010-route-crd-and-kubebuilder-instead-of-metacontroller.md)

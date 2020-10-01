@@ -31,4 +31,4 @@ is under 10 seconds for 95% of the `map-route` requests.
 
 ### CI
 Currently we run scale tests as defined in the [scaling
-pipeline](../scaling.yml).
+pipeline](../../ci/scaling.yml).
