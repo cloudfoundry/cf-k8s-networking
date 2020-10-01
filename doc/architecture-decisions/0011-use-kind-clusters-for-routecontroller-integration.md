@@ -12,10 +12,6 @@ We are working to get up and running quickly with our new routecontroller
 refactor. Much of our work using kubebuilder is informed by what the
 ingress-router team learned during their work with it.
 
-The ingress-router team chose to use KIND for reasons recorded
-[here](https://github.com/pivotal/ingress-router/blob/master/docs/adr/0014-kind-for-all-integration-tests.md).
-Those reasons apply to cf-k8s-networking.
-
 The cfroutesync integration tests used GKE and were very fast, however they were
 unwieldy and difficult to reason about, as they'd been written to test a very
 specific set of circumstances. Since we were not happy with the way those
