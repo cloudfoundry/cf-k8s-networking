@@ -221,8 +221,8 @@ jobs:
         params:
           image: annotated-fluent-bit-image/image.tar
           additional_tags: fluent-bit-version/version
-      - task: add-updated-digest
-        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest-via-pr.yml
+      - task: update-digest
+        file: cf-k8s-networking-ci/ci/tasks/docker/update-image-digest-in-cf-for-k8s.yml
         params:
           COMPONENT_NAME: fluentbit
           TARGET_FILE: build/istio/values.yaml
@@ -279,6 +279,7 @@ jobs:
   - name: build-upgrade-sidecars-job-image
     plan:
       - in_parallel:
+          - get: cf-for-k8s-develop
           - get: cf-k8s-networking
           - get: cf-k8s-networking-ci
           - get: cf-k8s-networking-docker-images
@@ -307,14 +308,14 @@ jobs:
         params:
           image: upgrade-sidecars-annotated-image/image.tar
           additional_tags: docker-info/tags
-      - task: add-updated-digest
-        file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest-via-pr.yml
+      - task: updated-digest
+        file: cf-k8s-networking-ci/ci/tasks/docker/update-image-digest-in-cf-for-k8s.yml
         params:
           COMPONENT_NAME: upgrade-sidecars
           TARGET_FILE: config/istio/upgrade-istio-sidecars-job.yml
           BRANCH: *update-istio-sidecar-upgrade-job-branch
         input_mapping:
-          image-resource: fluent-bit-image
+          image-resource: upgrade-sidecars-image
       - put: cf-for-k8s-update-istio-sidecar-upgrade-job-branch
         params:
           repository: cf-for-k8s-modified
