@@ -57,11 +57,11 @@ function install_cf() {
 }
 
 function configure_dns() {
-    echo "Discovering Istio Gateway LB IP"
+    echo "Discovering Gateway LB IP"
     external_static_ip=""
     while [ -z $external_static_ip ]; do
       sleep 1
-      external_static_ip=$(kubectl get services/istio-ingressgateway -n istio-system --output="jsonpath={.status.loadBalancer.ingress[0].ip}")
+      external_static_ip=$(kubectl get services -A -ojson | jq -r '.items[] | select(.spec.type == "LoadBalancer") | .status.loadBalancer.ingress[0].ip')
     done
 
     echo "Configuring DNS for external IP: ${external_static_ip}"
