@@ -40,10 +40,11 @@ import (
 // RouteReconciler reconciles a Route object
 type RouteReconciler struct {
 	client.Client
-	Log            logr.Logger
-	Scheme         *runtime.Scheme
-	IstioGateway   string
-	ResyncInterval time.Duration
+	Log                  logr.Logger
+	Scheme               *runtime.Scheme
+	IstioGateway         string
+	ResyncInterval       time.Duration
+	ContourTLSSecretName string
 }
 
 const fqdnFieldKey string = "spec.fqdn"
@@ -168,7 +169,7 @@ func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *net
 }
 
 func (r *RouteReconciler) reconcileHTTPProxies(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
-	hpb := resourcebuilders.HTTPProxyBuilder{}
+	hpb := resourcebuilders.HTTPProxyBuilder{TLSSecretName: r.ContourTLSSecretName}
 	desiredHTTPProxies, err := hpb.Build(routes)
 	if err != nil {
 		return err

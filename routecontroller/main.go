@@ -77,11 +77,12 @@ func main() {
 	}
 
 	if err = (&networking.RouteReconciler{
-		Client:         mgr.GetClient(),
-		Log:            ctrl.Log.WithName("controllers").WithName("Route"),
-		Scheme:         mgr.GetScheme(),
-		IstioGateway:   config.Istio.Gateway,
-		ResyncInterval: config.ResyncInterval,
+		Client:               mgr.GetClient(),
+		Log:                  ctrl.Log.WithName("controllers").WithName("Route"),
+		Scheme:               mgr.GetScheme(),
+		IstioGateway:         config.Istio.Gateway,
+		ResyncInterval:       config.ResyncInterval,
+		ContourTLSSecretName: config.ContourTLSSecretName,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Route")
 		os.Exit(1)

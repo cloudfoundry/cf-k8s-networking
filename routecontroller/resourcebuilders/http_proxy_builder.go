@@ -11,6 +11,7 @@ import (
 )
 
 type HTTPProxyBuilder struct {
+	TLSSecretName string
 }
 
 func HTTPProxyName(fqdn string) string {
@@ -61,8 +62,9 @@ func (b *HTTPProxyBuilder) fqdnToHTTPProxy(fqdn string, routes []networkingv1alp
 		Spec: hpv1.HTTPProxySpec{
 			VirtualHost: &hpv1.VirtualHost{
 				Fqdn: fqdn,
+				// AFAIK, this is not going to work with wildcard hosts, we need to use [TLS Certificate Delegation](https://projectcontour.io/docs/v1.9.0/httpproxy/#tls-certificate-delegation)
 				TLS: &hpv1.TLS{
-					SecretName: "cf-workloads-cert-ver-1",
+					SecretName: b.TLSSecretName,
 				},
 			},
 		},

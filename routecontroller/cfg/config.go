@@ -13,6 +13,7 @@ type Config struct {
 		// The Istio Gateway the route controller applies to
 		Gateway string
 	}
+	ContourTLSSecretName string
 }
 
 func Load() (*Config, error) {
@@ -35,6 +36,8 @@ func Load() (*Config, error) {
 	} else {
 		c.ResyncInterval = 30 * time.Second
 	}
+
+	c.ContourTLSSecretName, exists = os.LookupEnv("CONTOUR_TLS_SECRET_NAME")
 
 	return c, nil
 }
