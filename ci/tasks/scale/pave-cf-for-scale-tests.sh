@@ -15,7 +15,7 @@ function login() {
 
 function prepare_cf_foundation() {
     cf enable-feature-flag diego_docker
-    cf update-quota default -r 3000 -m 3T
+    cf update-quota default -r 3000 -m 3000G
 }
 
 function deploy_apps() {
