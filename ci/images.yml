@@ -101,6 +101,22 @@ resources:
       username: ((dockerhub_public.username))
       password: ((dockerhub_public.password))
 
+  - name: whoami-repo
+    type: git
+    icon: github
+    source:
+      uri: git@github.com:cf-container-networking/whoami.git
+      branch: master
+      private_key: ((github_private_key.private_key))
+
+  - name: whoami-image
+    type: docker-image
+    icon: docker
+    source:
+      repository: cfrouting/whoami
+      username: ((dockerhub_public.username))
+      password: ((dockerhub_public.password))
+
   - name: cf-for-k8s-develop
     type: git
     icon: github
@@ -262,6 +278,18 @@ jobs:
       - put: httpbin-image
         params:
           build: httpbin-repo
+          tag_as_latest: true
+
+  - name: build-whoami-image
+    plan:
+      - in_parallel:
+        - get: whoami-repo
+          trigger: true
+        - get: dockerhub-retain-timer
+          trigger: true
+      - put: whoami-image
+        params:
+          build: whoami-repo
           tag_as_latest: true
 
   - name: build-proxy-image
