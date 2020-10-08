@@ -37,7 +37,7 @@ function deploy_apps() {
       for i in $(seq 0 ${number_of_apps_per_org_space})
       do
         name="bin-$((n * APPS_PER_SPACE + i))"
-        echo $name
+        echo $name $org_name
         cf push $name -o cfrouting/proxy -m 128M -k 256M -i 2 &
         # let's give CF time to push an app, sometimes it uses the next org/space if
         # don't give enough time
