@@ -1,5 +1,10 @@
 ---
-resource_types: []
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 resources:
 - name: cf-for-k8s
   type: git
@@ -7,7 +12,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: scale-istio-1.6.9
+    branch: contour-spike
     ignore_paths:
       - ci/**
 
@@ -31,6 +36,14 @@ resources:
     paths:
       - ci
       - config
+
+- name: scaling-env-metdata-archive
+  type: gcs-resource
+  source:
+    bucket: cf-k8s-networking
+    json_key: ((shared_gcp_account_creds))
+    versioned_file: ci-scaling-testing/env-metadata.tar.gz
+
 groups:
   - name: scale-testing
     jobs:
@@ -47,32 +60,80 @@ jobs:
         - get: cf-for-k8s
         - get: cf-k8s-networking-ci
         - get: cf-k8s-networking
-    - task: create-gke-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+        - get: scaling-env-metdata-archive
+    - task: unarchive-env-metadata
+      input_mapping:
+        env-metadata-archive: scaling-env-metdata-archive
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-for-k8s-ci
+        inputs:
+          - name: env-metadata-archive
+        outputs:
+          - name: env-metadata
+        run:
+          path: /bin/bash
+          args:
+          - -cex
+          - |
+            tar -xzvf env-metadata-archive/env-metadata.tar.gz -C env-metadata
+    # - task: create-gke-cluster
+    #   file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+    #   params:
+    #     CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+    #     GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    #     ENABLE_IP_ALIAS: true
+    #     MACHINE_TYPE: "n1-standard-8"
+    #     NUM_NODES: 10
+    #     REGIONAL_CLUSTER: &regional-cluster true
+    # - task: install-cf
+    #   file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+    #   params:
+    #     CF_DOMAIN: &scale-testing-domain "ci-scale-testing.routing.lol"
+    #     # CLUSTER_NAME: *scale-testing-cluster-name
+    #     CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+    #     GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    #     KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    #     KAPP_TIMEOUT: "45m"
+    #     REGIONAL_CLUSTER: &regional-cluster true
+    #     # REGIONAL_CLUSTER: *regional-cluster
+    #     USE_LATEST_NETWORKING: false
+    - task: archive-env-metadata
+      input_mapping:
+        env-metadata-archive: scaling-env-metdata-archive
+      config:
+        platform: linux
+        image_resource:
+          type: docker-image
+          source:
+            repository: relintdockerhubpushbot/cf-for-k8s-ci
+        inputs:
+          - name: env-metadata
+        outputs:
+          - name: env-metadata-archive
+        run:
+          path: /bin/bash
+          args:
+          - -cex
+          - |
+            pushd env-metadata || exit 1
+              tar -czvf ../env-metadata-archive/env-metadata.tar.gz *
+            popd || exit 1
+    - put: scaling-env-metdata-archive
       params:
-        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        ENABLE_IP_ALIAS: true
-        MACHINE_TYPE: "n1-standard-8"
-        NUM_NODES: 34
-        REGIONAL_CLUSTER: &regional-cluster true
-    - task: install-cf
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
-      params:
-        CF_DOMAIN: &scale-testing-domain "ci-scale-testing.routing.lol"
-        CLUSTER_NAME: *scale-testing-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
-        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
-        KAPP_TIMEOUT: "45m"
-        REGIONAL_CLUSTER: *regional-cluster
+        file: env-metadata-archive/env-metadata.tar.gz
+
     - task: pave-cf-for-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/pave-cf-for-scale-tests.yml
       params:
-        NUMBER_OF_APPS: 1000
+        NUMBER_OF_APPS: 100
     - task: run-scale-tests
       file: cf-k8s-networking-ci/ci/tasks/scale/run-scale-tests.yml
       params:
-        NUMBER_OF_APPS: 1000
+        NUMBER_OF_APPS: 100
 
 - name: manually-delete-gke-cluster
   serial_groups: [scale-test]
@@ -82,6 +143,8 @@ jobs:
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
-        CF_DOMAIN: *scale-testing-domain
-        CLUSTER_NAME: *scale-testing-cluster-name
+        # CF_DOMAIN: *scale-testing-domain
+        CF_DOMAIN: &scale-testing-domain "ci-scale-testing.routing.lol"
+        CLUSTER_NAME: &scale-testing-cluster-name ci-scale-testing-cluster
+        # CLUSTER_NAME: *scale-testing-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
