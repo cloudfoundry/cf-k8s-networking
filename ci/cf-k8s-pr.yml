@@ -58,6 +58,7 @@ jobs:
 # For PRs to cf-for-k8s, deploy the PR as is and run networking acceptance tests
 # and don't destroy the environment so PM's can do acceptance
 - name: deploy-and-test-pr
+  max_in_flight: 1
   plan:
     - in_parallel:
         - get: cf-for-k8s-ci
@@ -166,7 +167,7 @@ jobs:
             # Parse branch name from the commit message
             # The commit message looks like this:
             # Merge pull request #PR_NUMBER from cloudfoundry/BRANCH_NAME
-            branch="$(< cf-for-k8s/.git/commit_message grep -o -Pe 'cloudfoundry/[^\s]+' | cut -d/ -f2-)"
+            branch="$(< cf-for-k8s/.git/commit_message grep -o -Pe 'cloudfoundry/[^\s]+' | cut -d/ -f2)"
 
             if [[ "${branch}" == "" ]]; then
               echo "The branch was from external repository, ignoring..."
