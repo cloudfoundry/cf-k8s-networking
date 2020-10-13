@@ -41,8 +41,8 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	})
 
 	AfterEach(func() {
-		cf.Cf("delete", app1name)
-		cf.Cf("delete", app2name)
+		cf.Cf("delete", "-f", app1name)
+		cf.Cf("delete", "-f", app2name)
 	})
 
 	Context("to metrics / stats endpoints", func() {
