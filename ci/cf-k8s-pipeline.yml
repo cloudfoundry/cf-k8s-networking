@@ -256,6 +256,7 @@ jobs:
         - get: cf-for-k8s
         - get: cf-for-k8s-ci
         - get: cf-k8s-networking-ci
+          resource: cf-k8s-networking
         - get: cf-k8s-networking
           resource: cf-k8s-networking-config
           trigger: true
