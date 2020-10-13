@@ -17,7 +17,11 @@ source cf-k8s-networking-ci/ci/tasks/helpers.sh
 : "${REGIONAL_CLUSTER:?}"
 
 function latest_cluster_version() {
-  gcloud container get-server-config --region $CLOUDSDK_COMPUTE_REGION 2>/dev/null | yq .validMasterVersions[0] -r
+  if [ "${REGIONAL_CLUSTER}" = true ]; then
+    gcloud container get-server-config --region $CLOUDSDK_COMPUTE_REGION 2>/dev/null | yq .validMasterVersions[0] -r
+  else
+    gcloud container get-server-config --region $CLOUDSDK_COMPUTE_ZONE 2>/dev/null | yq .validMasterVersions[0] -r
+  fi
 }
 
 function create_cluster() {
