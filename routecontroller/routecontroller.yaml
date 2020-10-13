@@ -1,0 +1,149 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: routecontroller
+  namespace: default
+  labels:
+    app.kubernetes.io/name: routecontroller
+    app.kubernetes.io/component: cf-networking
+    app.kubernetes.io/part-of: cloudfoundry
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: routecontroller
+subjects:
+- kind: ServiceAccount
+  name: routecontroller
+  namespace: default
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: routecontroller
+  namespace: default
+  labels:
+    app.kubernetes.io/name: routecontroller
+    app.kubernetes.io/component: cf-networking
+    app.kubernetes.io/part-of: cloudfoundry
+rules:
+- apiGroups:
+  - networking.cloudfoundry.org
+  resources:
+  - routes
+  - routes/status
+  verbs:
+  - create
+  - delete
+  - get
+  - update
+  - list
+  - watch
+- apiGroups:
+  - networking.istio.io
+  resources:
+  - virtualservices
+  verbs:
+  - create
+  - delete
+  - get
+  - update
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - services
+  verbs:
+  - create
+  - delete
+  - get
+  - update
+  - list
+  - watch
+- apiGroups:
+  - ""
+  resources:
+  - events
+  verbs:
+  - create
+- apiGroups:
+  - ""
+  resources:
+  - configmaps
+  verbs:
+  - create
+  - delete
+  - get
+  - update
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: routecontroller-config
+  namespace: default
+  annotations:
+    kapp.k14s.io/versioned: ""
+    kapp.k14s.io/num-versions: "2"
+  labels:
+    app.kubernetes.io/name: routecontroller-config
+    app.kubernetes.io/component: cf-networking
+    app.kubernetes.io/part-of: cloudfoundry
+data:
+  ISTIO_GATEWAY_NAME: default/istio-ingressgateway
+  RESYNC_INTERVAL: "900"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: routecontroller
+  namespace: default
+  labels:
+    app: routecontroller
+    app.kubernetes.io/name: routecontroller
+    app.kubernetes.io/component: cf-networking
+    app.kubernetes.io/part-of: cloudfoundry
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: routecontroller
+  template:
+    metadata:
+      namespace: default
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+      labels:
+        app: routecontroller
+        app.kubernetes.io/name: routecontroller
+        app.kubernetes.io/component: cf-networking
+        app.kubernetes.io/part-of: cloudfoundry
+    spec:
+      containers:
+      - name: routecontroller
+        image: gcr.io/cf-routing/scratch/routecontroller:latest
+        args:
+        - --enable-leader-election=true
+        resources:
+          limits:
+            cpu: 100m
+            memory: 10Gi
+          requests:
+            cpu: 100m
+            memory: 20Mi
+        envFrom:
+        - configMapRef:
+            name: routecontroller-config
+      terminationGracePeriodSeconds: 10
+      serviceAccountName: routecontroller
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: routecontroller
+  namespace: default
+  labels:
+    app.kubernetes.io/name: routecontroller
+    app.kubernetes.io/component: cf-networking
+    app.kubernetes.io/part-of: cloudfoundry

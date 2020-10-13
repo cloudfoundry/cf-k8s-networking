@@ -22,3 +22,19 @@ rules:
   - get
   - patch
   - update
+- apiGroups:
+  - projectcontour.io/v1
+  resources:
+  - httproxy
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - projectcontour.io/v1
+  resources:
+  - httproxy/status
+  verbs:
+  - get
+  - patch
+  - update
