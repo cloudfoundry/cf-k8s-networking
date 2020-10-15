@@ -66,7 +66,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: main
     paths:
       - ci/**
 
@@ -76,7 +76,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: main
     ignore_paths:
       - ci/**
 
@@ -101,7 +101,7 @@ jobs:
     # release was created at. Normally, we would use the git concourse
     # resource; the git resource clones a single branch from a git repo.
     # However, Istio creates branches for its releases. If we use the git
-    # resource to pull master, we may not have the release commit. If we use
+    # resource to pull main, we may not have the release commit. If we use
     # the git resource to pull the current release branch, then we will need to
     # manually update this pipeline. In order to avoid missing commits and
     # manual updates, we are using a task instead. We are simply cloning the

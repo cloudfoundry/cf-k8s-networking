@@ -28,7 +28,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: main
     paths:
       - ci/**
 
