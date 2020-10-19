@@ -1,4 +1,10 @@
 ---
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
 resources:
 - name: istio-release
   type: github-release
@@ -77,8 +83,13 @@ resources:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
     branch: main
-    ignore_paths:
-      - ci/**
+
+- name: cf-install-values
+  type: gcs-resource
+  source:
+    bucket: cf-k8s-networking
+    json_key: ((shared_gcp_account_creds))
+    versioned_file: ci-istio-upgrade/cf-install-values.yml
 
 jobs:
 - name: pull-and-tag-istio-images
@@ -228,20 +239,17 @@ jobs:
       tag: istio-release/tag
       force: true
 
-
-# Environment to run tests
-- name: deploy-and-test-new-istio-version
+- name: create-gke-cluster-and-deploy-cf
   serial_groups: ['bump-istio']
   plan:
   - in_parallel:
     - get: cf-for-k8s
-      resource: cf-for-k8s-istio-bump-branch
+    - get: cf-for-k8s-istio-bump-branch
       trigger: true
       passed:
       - generate-new-istio-config
-    - get: cf-k8s-networking-ci
-    - get: cf-for-k8s-ci
     - get: cf-k8s-networking
+    - get: cf-k8s-networking-ci
   - task: create-gke-cluster
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
     params:
@@ -251,6 +259,30 @@ jobs:
     file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
     params:
       CF_DOMAIN: &ci-test-for-k8s-domain "bump-istio-test.routing.lol"
+      CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+      KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+      USE_LATEST_NETWORKING: false
+  - put: cf-install-values
+    params:
+      file: cf-install-values-out/cf-install-values.yml
+
+- name: upgrade-to-test-new-istio-version
+  serial_groups: ['bump-istio']
+  plan:
+  - in_parallel:
+    - get: cf-for-k8s
+      resource: cf-for-k8s-istio-bump-branch
+      trigger: true
+      passed:
+      - create-gke-cluster-and-deploy-cf
+    - get: cf-k8s-networking-ci
+    - get: cf-for-k8s-ci
+    - get: cf-k8s-networking
+  - task: install-cf
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+    params:
+      CF_DOMAIN: *ci-test-for-k8s-domain
       CLUSTER_NAME: *ci-test-for-k8s-cluster-name
       GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
       KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
