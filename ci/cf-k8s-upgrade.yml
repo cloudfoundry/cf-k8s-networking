@@ -12,11 +12,12 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-for-k8s
     private_key: ((github_private_key.private_key))
-    branch: networking-upgrade-source # branch off of below sha, with addition of drain time behavior
+    branch: main
+    tag_filter: v1.0.0-rc.2
     ignore_paths:
       - ci/**
-  # version:
-  #   ref: 2127adc45ccb46a39dd1970448e8248a0a5999fe #istio 1.6.4 merge, should change 0.6.0 of cf-for-k8s
+  version:
+    ref: v1.0.0-rc.2
 
 - name: cf-for-k8s-next
   type: git
