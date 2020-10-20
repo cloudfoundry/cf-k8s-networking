@@ -231,12 +231,12 @@ jobs:
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
       params:
-        CLUSTER_NAME: &ci-test-for-k8s-cluster-name ci-test
+        CLUSTER_NAME: &ci-test-for-k8s-cluster-name contour-ci-test
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
-        CF_DOMAIN: &ci-test-for-k8s-domain "ci-test.routing.lol"
+        CF_DOMAIN: &ci-test-for-k8s-domain "contour-ci-test.routing.lol"
         CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
@@ -273,12 +273,12 @@ jobs:
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
       params:
-        CLUSTER_NAME: &ci-cats-for-k8s-cluster-name ci-cats
+        CLUSTER_NAME: &ci-cats-for-k8s-cluster-name contour-ci-cats
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
-        CF_DOMAIN: &ci-cats-for-k8s-domain "ci-cats.routing.lol"
+        CF_DOMAIN: &ci-cats-for-k8s-domain "contour-ci-cats.routing.lol"
         CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
@@ -312,8 +312,8 @@ jobs:
     - task: destroy-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
       params:
-        CF_DOMAIN:  &acceptance-cluster-domain "good-acceptance.routing.lol"
-        CLUSTER_NAME: &acceptance-cluster-name "good-acceptance"
+        CF_DOMAIN:  &acceptance-cluster-domain "contour-good-acceptance.routing.lol"
+        CLUSTER_NAME: &acceptance-cluster-name "contour-good-acceptance"
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
