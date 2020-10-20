@@ -1,0 +1,339 @@
+---
+resource_types:
+- name: gcs-resource
+  type: docker-image
+  source:
+    repository: frodenas/gcs-resource
+
+groups:
+- name: integrate
+  jobs:
+  - contour-gke-deploy-and-test
+  - contour-gke-run-cats
+  - contour-deploy-good-acceptance
+- name: contour-controller
+  jobs:
+  - run-contour-controller-units
+  - run-contour-controller-integration-tests
+  - run-contour-controller-stress-tests
+  - publish-contour-controller-image
+
+resources:
+- name: cf-acceptance-tests
+  type: git
+  source:
+    uri: git@github.com:cloudfoundry/cf-acceptance-tests.git
+    private_key: ((github_private_key.private_key))
+    branch: master
+
+- name: cf-for-k8s
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: contour-ingress
+    ignore_paths:
+      - ci/**
+
+- name: cf-for-k8s-ci
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/cf-for-k8s
+    private_key: ((github_private_key.private_key))
+    branch: main
+    paths:
+      - ci/**
+
+- name: contour-controller-stress-results
+  type: git
+  icon: github
+  source:
+    uri: git@github.com:cloudfoundry/cf-k8s-networking
+    private_key: ((github_private_key.private_key))
+    branch: contour-controller-stress-results
+
+- name: cf-k8s-networking
+  type: git
+  icon: github
+  source:
+    branch: contour-ingress
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+
+- name: cf-k8s-networking-config
+  type: git
+  icon: github
+  source:
+    branch: contour-ingress
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    ignore_paths:
+      - contour-controller
+
+- name: cf-k8s-networking-ci
+  type: git
+  icon: github
+  source:
+    branch: contour-ingress
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+      - ci
+      - config
+
+- name: contour-controller
+  type: git
+  icon: github
+  source:
+    branch: contour-ingress
+    private_key: ((github_private_key.private_key))
+    uri: git@github.com:cloudfoundry/cf-k8s-networking.git
+    paths:
+
+- name: contour-controller-image
+  type: registry-image
+  icon: docker
+  source:
+    repository: gcr.io/cf-networking-images/cf-k8s-networking/contour-controller
+    username: _json_key
+    password: ((gcp_gcr_networking_images_service_account_key))
+
+- name: concourse-dcind
+  type: git
+  source:
+    branch: master
+    uri: git@github.com:karlkfi/concourse-dcind.git
+    private_key: ((github_private_key.private_key))
+
+- name: acceptance-install-values
+  type: gcs-resource
+  source:
+    bucket: cf-k8s-networking
+    json_key: ((shared_gcp_account_creds))
+    versioned_file: good-acceptance/cf-install-values.yml
+
+jobs:
+# Build
+- name: run-contour-controller-units
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+        - get: contour-controller
+          trigger: true
+        - get: cf-k8s-networking-ci
+    - task: unit-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-contour-controller-units.yml
+
+- name: run-contour-controller-integration-tests
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+          tags: [overlay-storage-driver]
+        - get: contour-controller
+          passed: [run-contour-controller-units]
+          tags: [overlay-storage-driver]
+          trigger: true
+        - get: cf-k8s-networking-ci
+          tags: [overlay-storage-driver]
+        - get: concourse-dcind
+          tags: [overlay-storage-driver]
+    - task: integration-tests
+      privileged: true
+      tags: [overlay-storage-driver]
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-contour-controller-integration-tests.yml
+
+- name: run-contour-controller-stress-tests
+  serial: true
+  plan:
+    - in_parallel:
+        - get: contour-controller
+          passed: [run-contour-controller-units]
+          tags: [dedi-k8s-stress-vm]
+          trigger: true
+        - get: cf-k8s-networking-ci
+          tags: [dedi-k8s-stress-vm]
+        - get: concourse-dcind
+          tags: [dedi-k8s-stress-vm]
+        - get: contour-controller-stress-results
+          tags: [dedi-k8s-stress-vm]
+    - task: stress-tests
+      input_mapping:
+        cf-k8s-networking: contour-controller
+      privileged: true
+      tags: [dedi-k8s-stress-vm]
+      file: cf-k8s-networking-ci/ci/tasks/tests/stress/run-stress-tests.yml
+    - put: contour-controller-stress-results
+      params:
+        repository: contour-controller-stress-results-modified
+        rebase: true
+
+- name: publish-contour-controller-image
+  serial: true
+  serial_groups: [image-publishing]
+  plan:
+    - in_parallel:
+        - get: cf-k8s-networking
+        - get: contour-controller
+          passed: [run-contour-controller-integration-tests, run-contour-controller-stress-tests]
+          trigger: true
+        - get: cf-k8s-networking-ci
+    - in_parallel:
+      - task: build-tag-file
+        file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
+        input_mapping:
+          cf-k8s-networking: contour-controller
+      - task: build-contour-controller
+        privileged: true
+        file: cf-k8s-networking-ci/ci/tasks/docker/build-oci-image.yml
+        input_mapping:
+          repository: contour-controller
+        output_mapping:
+          image: contour-controller-image
+        params:
+          CONTEXT: contour-controller
+          DOCKERFILE: contour-controller/Dockerfile
+    - task: annotate
+      file: cf-k8s-networking-ci/ci/tasks/docker/annotate.yml
+      input_mapping:
+        input-image-tar: contour-controller-image
+        repository: contour-controller
+      output_mapping:
+        output-image: contour-controller-annotated-image
+    - put: contour-controller-image
+      params:
+        image: contour-controller-annotated-image/image.tar
+        additional_tags: docker-info/tags
+    - task: add-updated-digest
+      file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
+      input_mapping:
+        image-resource: contour-controller-image
+      params:
+        COMPONENT_NAME: contour-controller
+    - put: cf-k8s-networking
+      params:
+        repository: cf-k8s-networking-modified
+        rebase: true
+
+# Environment to run tests
+- name: contour-gke-deploy-and-test
+  serial: true
+  plan:
+    - in_parallel:
+        - get: cf-for-k8s
+        - get: cf-for-k8s-ci
+        - get: cf-k8s-networking-ci
+          resource: cf-k8s-networking
+        - get: cf-k8s-networking
+          resource: cf-k8s-networking-config
+          trigger: true
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: &ci-test-for-k8s-cluster-name ci-test
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        CF_DOMAIN: &ci-test-for-k8s-domain "ci-test.routing.lol"
+        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    - task: run-smoke-test
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
+      params:
+        SMOKE_TEST_SKIP_SSL: true
+    - task: generate-integration-configs
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
+    - task: networking-acceptance-gke-tests
+      file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
+      params:
+        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        INTEGRATION_CONFIG_FILE: "config.json"
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN: *ci-test-for-k8s-domain
+        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+- name: contour-gke-run-cats
+  serial: true
+  plan:
+    - in_parallel:
+        - get: cf-for-k8s
+        - get: cf-for-k8s-ci
+        - get: cf-acceptance-tests
+        - get: cf-k8s-networking-ci
+        - get: cf-k8s-networking
+          resource: cf-k8s-networking-config
+          trigger: true
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: &ci-cats-for-k8s-cluster-name ci-cats
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        CF_DOMAIN: &ci-cats-for-k8s-domain "ci-cats.routing.lol"
+        CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    - task: run-smoke-test
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
+      params:
+        SMOKE_TEST_SKIP_SSL: true
+    - task: run-cats
+      file: cf-for-k8s-ci/ci/tasks/run-cats/task.yml
+      params:
+        INCLUDE_APPS: true
+        INCLUDE_ROUTING: true
+        SKIP_REGEXP:
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN: *ci-cats-for-k8s-domain
+        CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+
+- name: contour-deploy-good-acceptance
+  plan:
+    - in_parallel:
+      - get: cf-for-k8s
+      - get: cf-for-k8s-ci
+      - get: cf-k8s-networking-ci
+      - get: cf-k8s-networking
+        passed: [contour-gke-deploy-and-test]
+        trigger: true
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN:  &acceptance-cluster-domain "good-acceptance.routing.lol"
+        CLUSTER_NAME: &acceptance-cluster-name "good-acceptance"
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: *acceptance-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        EPHEMERAL_CLUSTER: false
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      input_mapping:
+        cf-k8s-networking: cf-k8s-networking-rc
+      params:
+        CF_DOMAIN: *acceptance-cluster-domain
+        CLUSTER_NAME: *acceptance-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    - task: run-smoke-test
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
+      params:
+        SMOKE_TEST_SKIP_SSL: true
+    - put: acceptance-install-values
+      params:
+        file: cf-install-values-out/cf-install-values.yml
