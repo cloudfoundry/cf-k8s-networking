@@ -222,6 +222,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-for-k8s
+          trigger: true
         - get: cf-for-k8s-ci
         - get: cf-k8s-networking-ci
           resource: cf-k8s-networking
@@ -264,6 +265,7 @@ jobs:
   plan:
     - in_parallel:
         - get: cf-for-k8s
+          trigger: true
         - get: cf-for-k8s-ci
         - get: cf-acceptance-tests
         - get: cf-k8s-networking-ci
