@@ -16,6 +16,22 @@ want to allow the use of Contour as a potential alternative to Istio.
    potential values `istio` or `contour`.
 2. Extend routecontroller to respect the value configured by `ingress_solution_provider: contour`. It will create the appropriate resources based on the chosen provider.
 
+#### Why not make a separate controller altogether?
+
+We are opting to extend routecontroller instead of make a separate one because
+we believe it to be simpler. Best practice is to have one controller reconciling
+objects of one type. Because routecontroller only watches for route CRs, it
+doesn't break that best practice. Whether or Virtual Services or HTTPProxies are
+created as a result does not matter.
+
+It seems overbearing to maintain a separate controller and all the boilerplate
+around it when all we really need to a separate resource builder.
+
+We plan to make routecontroller only create one type of resource or another,
+never both. This will prevent the confusing situation of istio resources
+existing in the cluster when contour is the selected ingress solution provider,
+or vice versa.
+
 ### Open Questions
 1. What do we do about the config? Does contour config live in cf-k8s-networking
    and eventually it moves to cf-for-k8s?
