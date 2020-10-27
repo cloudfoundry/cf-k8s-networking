@@ -1,4 +1,4 @@
-package resourcebuilders
+package resourcebuilders_test
 
 import (
 	"fmt"
@@ -7,6 +7,7 @@ import (
 	. "github.com/onsi/gomega"
 
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
+	. "code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
