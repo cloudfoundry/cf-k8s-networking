@@ -23,11 +23,9 @@ import (
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/resourcebuilders"
 	"github.com/go-logr/logr"
 	"k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/types"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/controller/controllerutil"
 
-	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
 	corev1 "k8s.io/api/core/v1"
 	apierrors "k8s.io/apimachinery/pkg/api/errors"
@@ -38,10 +36,15 @@ import (
 // RouteReconciler reconciles a Route object
 type RouteReconciler struct {
 	client.Client
-	Log            logr.Logger
-	Scheme         *runtime.Scheme
-	IstioGateway   string
-	ResyncInterval time.Duration
+	Log             logr.Logger
+	Scheme          *runtime.Scheme
+	IngressProvider IngressProvider
+	ResyncInterval  time.Duration
+}
+
+type IngressProvider interface {
+	ReconcileIngressResources(ctx context.Context, log logr.Logger, routes *networkingv1alpha1.RouteList) error
+	DeleteIngressResource(ctx context.Context, log logr.Logger, route *networkingv1alpha1.Route, namespace string) error
 }
 
 const fqdnFieldKey string = "spec.fqdn"
@@ -93,7 +96,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 		return ctrl.Result{}, err
 	}
 
-	err = r.reconcileVirtualServices(req, routes, log, ctx)
+	err = r.IngressProvider.ReconcileIngressResources(ctx, log, routes)
 	if err != nil {
 		return ctrl.Result{}, err
 	}
@@ -133,31 +136,6 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 	return err
 }
 
-func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
-	vsb := resourcebuilders.VirtualServiceBuilder{IstioGateways: []string{r.IstioGateway}}
-	desiredVirtualServices, err := vsb.Build(routes)
-	if err != nil {
-		return err
-	}
-
-	for _, desiredVirtualService := range desiredVirtualServices {
-		virtualService := &istionetworkingv1alpha3.VirtualService{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      desiredVirtualService.ObjectMeta.Name,
-				Namespace: desiredVirtualService.ObjectMeta.Namespace,
-			},
-		}
-		mutateFn := vsb.BuildMutateFunction(virtualService, &desiredVirtualService)
-		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, virtualService, mutateFn)
-		if err != nil {
-			return err
-		}
-		log.Info(fmt.Sprintf("VirtualService %s/%s has been %s", virtualService.Namespace, virtualService.Name, result))
-	}
-
-	return nil
-}
-
 func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *networkingv1alpha1.Route, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
 	actualServicesForRoute := &corev1.ServiceList{}
 	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
@@ -172,22 +150,11 @@ func (r *RouteReconciler) finalizeRouteForDeletion(req ctrl.Request, route *netw
 
 	routes.Items = removeRouteFromRouteList(route, routes)
 	if len(routes.Items) == 0 {
-		vs := &istionetworkingv1alpha3.VirtualService{}
-		vsName := resourcebuilders.VirtualServiceName(route.FQDN())
-		namespacedVSName := types.NamespacedName{Namespace: req.Namespace, Name: vsName}
-		if err := r.Get(ctx, namespacedVSName, vs); err != nil {
-			if apierrors.IsNotFound(err) {
-				log.Info("VirtualService no longer exists")
-			}
-		} else {
-			err := r.Delete(ctx, vs)
-			if err != nil {
-				return err
-			}
-			log.Info(fmt.Sprintf("VirtualService %s/%s has been deleted", vs.Namespace, vs.Name))
+		if err := r.IngressProvider.DeleteIngressResource(ctx, log, route, req.Namespace); err != nil {
+			return err
 		}
 	} else {
-		if err := r.reconcileVirtualServices(req, routes, log, ctx); err != nil {
+		if err := r.IngressProvider.ReconcileIngressResources(ctx, log, routes); err != nil {
 			return err
 		}
 	}

@@ -106,7 +106,7 @@ var _ = Describe("Integration", func() {
 		output, err = kubectlWithConfig(kubeConfigPath, kustomizeOutputReader, "-n", namespace, "apply", "-f", "-")
 		Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply crd failed with err: %s", string(output)))
 
-		session = startRouteController(kubeConfigPath, gateway)
+		session = startRouteController(kubeConfigPath, gateway, "istio")
 
 		kubectlGetVirtualServices = func() ([]virtualService, error) {
 			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "-o", "json", "get", "virtualservices")
@@ -1181,12 +1181,13 @@ var _ = Describe("Integration", func() {
 	})
 })
 
-func startRouteController(kubeConfigPath, gateway string) *gexec.Session {
+func startRouteController(kubeConfigPath, gateway string, ingressSolution string) *gexec.Session {
 	cmd := exec.Command(routeControllerBinaryPath)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RESYNC_INTERVAL=%s", "5"))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("INGRESS_SOLUTION=%s", ingressSolution))
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
