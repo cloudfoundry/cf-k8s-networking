@@ -2,7 +2,6 @@ package resourcebuilders
 
 import (
 	"crypto/sha256"
-	"errors"
 	"fmt"
 
 	networkingv1alpha1 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/networking/v1alpha1"
@@ -101,7 +100,7 @@ func (b *HTTPProxyBuilder) fqdnToHTTPProxy(fqdn string, routes []networkingv1alp
 }
 
 func destinationsToServices(route networkingv1alpha1.Route, destinations []networkingv1alpha1.RouteDestination) ([]hpv1.Service, error) {
-	err := validateHTTPProxyWeights(route, destinations)
+	err := validateWeights(route, destinations, false)
 	if err != nil {
 		return nil, err
 	}
@@ -132,21 +131,6 @@ func destinationsToServices(route networkingv1alpha1.Route, destinations []netwo
 		routeServices = append(routeServices, routeService)
 	}
 	return routeServices, nil
-}
-
-func validateHTTPProxyWeights(route networkingv1alpha1.Route, destinations []networkingv1alpha1.RouteDestination) error {
-	// Cloud Controller validates these scenarios
-	//
-	for _, d := range destinations {
-		if (d.Weight == nil) != (destinations[0].Weight == nil) {
-			msg := fmt.Sprintf(
-				"invalid destinations for route %s: weights must be set on all or none",
-				route.ObjectMeta.Name)
-			return errors.New(msg)
-		}
-	}
-
-	return nil
 }
 
 func httpProxyNoDestinationsPlaceholder() []hpv1.Service {
