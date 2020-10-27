@@ -14,7 +14,7 @@ import (
 	. "github.com/onsi/gomega"
 )
 
-type virtualServiceParams struct {
+type ingressResourceParams struct {
 	fqdn     string
 	internal bool
 	https    []httpParams
@@ -57,7 +57,7 @@ type routeDestParams struct {
 	appGUID  string
 }
 
-func constructVirtualService(params virtualServiceParams) istionetworkingv1alpha3.VirtualService {
+func constructVirtualService(params ingressResourceParams) istionetworkingv1alpha3.VirtualService {
 	vs := istionetworkingv1alpha3.VirtualService{
 		ObjectMeta: metav1.ObjectMeta{
 			Name:      VirtualServiceName(params.fqdn),
@@ -232,7 +232,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				}}
 
 			expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
-				constructVirtualService(virtualServiceParams{
+				constructVirtualService(ingressResourceParams{
 					fqdn: "test0.domain0.example.com",
 					owners: []ownerParams{
 						{
@@ -262,7 +262,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						},
 					},
 				}),
-				constructVirtualService(virtualServiceParams{
+				constructVirtualService(ingressResourceParams{
 					fqdn: "test1.domain1.example.com",
 					owners: []ownerParams{
 						{
@@ -546,7 +546,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 
 				It("orders the paths by longest matching prefix", func() {
 					expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
-						constructVirtualService(virtualServiceParams{
+						constructVirtualService(ingressResourceParams{
 							fqdn:     "test0.domain0.example.com",
 							internal: true,
 							owners: []ownerParams{
@@ -780,7 +780,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 						}
 
 						expectedVirtualServices := []istionetworkingv1alpha3.VirtualService{
-							constructVirtualService(virtualServiceParams{
+							constructVirtualService(ingressResourceParams{
 								fqdn: "test0.domain0.example.com",
 								owners: []ownerParams{
 									{
@@ -855,7 +855,7 @@ var _ = Describe("VirtualServiceBuilder", func() {
 				},
 			}
 
-			desiredVirtualService := constructVirtualService(virtualServiceParams{
+			desiredVirtualService := constructVirtualService(ingressResourceParams{
 				fqdn: "test0.domain0.example.com",
 				owners: []ownerParams{
 					{

@@ -198,7 +198,8 @@ func (r *RouteReconciler) deleteServiceList(services []corev1.Service, log logr.
 }
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	err := mgr.GetFieldIndexer().IndexField(&networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
+	ctx := context.Background()
+	err := mgr.GetFieldIndexer().IndexField(ctx, &networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
 		route := rawObj.(*networkingv1alpha1.Route)
 		return []string{route.FQDN()}
 	})
@@ -206,7 +207,7 @@ func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	err = mgr.GetFieldIndexer().IndexField(&corev1.Service{}, serviceOwnerKey, func(rawObj runtime.Object) []string {
+	err = mgr.GetFieldIndexer().IndexField(ctx, &corev1.Service{}, serviceOwnerKey, func(rawObj runtime.Object) []string {
 		service := rawObj.(*corev1.Service)
 		if len(service.ObjectMeta.OwnerReferences) == 0 {
 			return []string{}
