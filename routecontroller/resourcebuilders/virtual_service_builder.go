@@ -172,7 +172,7 @@ func groupByFQDN(routes *networkingv1alpha1.RouteList) map[string][]networkingv1
 
 func sortFQDNs(fqdns map[string][]networkingv1alpha1.Route) []string {
 	var fqdnSlice []string
-	for fqdn, _ := range fqdns {
+	for fqdn := range fqdns {
 		fqdnSlice = append(fqdnSlice, fqdn)
 	}
 	// Sorting so that the results are stable
@@ -198,7 +198,7 @@ func httpRouteDestinationPlaceholder() []*istiov1alpha3.HTTPRouteDestination {
 	const PLACEHOLDER_NON_EXISTING_DESTINATION = "no-destinations"
 
 	return []*istiov1alpha3.HTTPRouteDestination{
-		&istiov1alpha3.HTTPRouteDestination{
+		{
 			Destination: &istiov1alpha3.Destination{
 				Host: PLACEHOLDER_NON_EXISTING_DESTINATION,
 			},
@@ -235,7 +235,7 @@ func destinationsToHttpRouteDestinations(route networkingv1alpha1.Route, destina
 	}
 	if destinations[0].Weight == nil {
 		n := len(destinations)
-		for i, _ := range httpDestinations {
+		for i := range httpDestinations {
 			weight := int(IstioExpectedWeight / n)
 			if i == 0 {
 				// pad the first destination's weight to ensure all weights sum to 100
