@@ -81,6 +81,10 @@ func main() {
 			IngressGateway: config.Istio.Gateway,
 			Client:         mgr.GetClient(),
 		}
+	case cfg.Contour:
+		ingressProvider = &networking.ContourIngressProvider{
+			Client: mgr.GetClient(),
+		}
 	}
 
 	if err = (&networking.RouteReconciler{
