@@ -74,12 +74,21 @@ func main() {
 		os.Exit(1)
 	}
 
+	var ingressProvider networking.IngressProvider
+	switch config.IngressProvider {
+	case cfg.Istio:
+		ingressProvider = &networking.IstioIngressProvider{
+			IngressGateway: config.Istio.Gateway,
+			Client:         mgr.GetClient(),
+		}
+	}
+
 	if err = (&networking.RouteReconciler{
-		Client:         mgr.GetClient(),
-		Log:            ctrl.Log.WithName("controllers").WithName("Route"),
-		Scheme:         mgr.GetScheme(),
-		IstioGateway:   config.Istio.Gateway,
-		ResyncInterval: config.ResyncInterval,
+		Client:          mgr.GetClient(),
+		Log:             ctrl.Log.WithName("controllers").WithName("Route"),
+		Scheme:          mgr.GetScheme(),
+		IngressProvider: ingressProvider,
+		ResyncInterval:  config.ResyncInterval,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Route")
 		os.Exit(1)
