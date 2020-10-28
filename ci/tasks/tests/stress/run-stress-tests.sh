@@ -2,9 +2,19 @@
 
 set -euox pipefail
 
+function routecontroller_image() {
+    image="$(< cf-k8s-networking/config/values.yaml yq -r '.routecontroller.image' | cut -d'@' -f1)"
+    version="$(cat cf-k8s-networking/.git/ref)"
+    echo -n "${image}:${version}"
+}
+
 echo "Starting stress tests..."
 
 cp routecontroller-stress-results/results.json cf-k8s-networking/routecontroller/stress/
+
+ROUTECONTROLLER_IMAGE="$(routecontroller_image)"
+export ROUTECONTROLLER_IMAGE
+export INGRESS_PROVIDER
 
 concourse-dcind/entrypoint.sh cf-k8s-networking/routecontroller/scripts/stress
 
@@ -23,4 +33,3 @@ popd
 
 shopt -s dotglob
 cp -r routecontroller-stress-results/* routecontroller-stress-results-modified
-
