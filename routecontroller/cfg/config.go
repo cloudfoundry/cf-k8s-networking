@@ -37,22 +37,22 @@ func Load() (*Config, error) {
 
 	switch c.IngressProvider {
 	case Istio:
-		err := loadIstioConfig(c)
-		if err != nil {
+		if err := loadIstioConfig(c); err != nil {
 			return nil, err
 		}
 	case Contour:
-		loadContour(c)
+		if err := loadContour(c); err != nil {
+			return nil, err
+		}
 	default:
-		return nil, errors.New(fmt.Sprintf("INGRESS_SOLUTION=%s not supported", c.IngressProvider))
+		return nil, fmt.Errorf("INGRESS_SOLUTION=%s not supported", c.IngressProvider)
 	}
 
 	var err error
 	resyncInterval, exists := os.LookupEnv("RESYNC_INTERVAL")
 
 	if exists {
-		c.ResyncInterval, err = time.ParseDuration(fmt.Sprintf("%ss", resyncInterval))
-		if err != nil {
+		if c.ResyncInterval, err = time.ParseDuration(fmt.Sprintf("%ss", resyncInterval)); err != nil {
 			return nil, errors.New("could not parse the RESYNC_INTERVAL duration")
 		}
 	} else {
@@ -62,7 +62,9 @@ func Load() (*Config, error) {
 	return c, nil
 }
 
-func loadContour(c *Config) {}
+func loadContour(c *Config) error {
+	return nil
+}
 
 func loadIstioConfig(c *Config) error {
 	var exists bool
