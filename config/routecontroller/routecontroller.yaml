@@ -32,7 +32,10 @@ spec:
       containers:
       - name: routecontroller
         image: #@ data.values.routecontroller.image
-        args: ["--enable-leader-election=true"]
+        args:
+          #@ if not data.values.runningInKIND:
+          - --enable-leader-election=true
+          #@ end
         resources:
           limits:
             cpu: 100m

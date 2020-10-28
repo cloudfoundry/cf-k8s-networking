@@ -82,6 +82,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		"-f", filepath.Join("..", "..", "config", "values.yaml"),
 		"-v", "systemNamespace=default",
 		"-v", "workloadsNamespace=default",
+		"--data-value-yaml", "runningInKIND=true",
 		"-v", fmt.Sprintf("routecontroller.ingressSolutionProvider=%s", ingressProvider),
 	}
 
