@@ -10,7 +10,7 @@ function login_and_target() {
 }
 
 function routecontroller_image() {
-    image="$(< config/values.yaml yq -r '.routecontroller.image' | cut -d'@' -f1)"
+    image="$(< cf-k8s-networking/config/values.yaml yq -r '.routecontroller.image' | cut -d'@' -f1)"
     version="$(cat cf-k8s-networking/.git/ref)"
     echo -n "${image}:${version}"
 }
