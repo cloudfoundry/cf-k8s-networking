@@ -3,7 +3,7 @@
 set -euox pipefail
 
 function routecontroller_image() {
-    image="$(< cf-k8s-networking/config/values.yaml yq -r '.routecontroller.image' | cut -d'@' -f1)"
+    image="$(< cf-k8s-networking/config/values.yaml grep "image:" | awk --field-separator ': ' '{ print $2 }')"
     version="$(cat cf-k8s-networking/.git/ref)"
     echo -n "${image}:${version}"
 }
