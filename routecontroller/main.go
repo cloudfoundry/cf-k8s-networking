@@ -30,6 +30,7 @@ import (
 	"code.cloudfoundry.org/cf-k8s-networking/routecontroller/controllers/networking"
 
 	istionetworkingv1alpha3 "code.cloudfoundry.org/cf-k8s-networking/routecontroller/apis/istio/networking/v1alpha3"
+	contourv1 "github.com/projectcontour/contour/apis/projectcontour/v1"
 	// +kubebuilder:scaffold:imports
 )
 
@@ -42,6 +43,7 @@ func init() {
 	_ = clientgoscheme.AddToScheme(scheme)
 	_ = networkingv1alpha1.AddToScheme(scheme)
 	_ = istionetworkingv1alpha3.AddToScheme(scheme)
+	_ = contourv1.AddToScheme(scheme)
 	// +kubebuilder:scaffold:scheme
 }
 
