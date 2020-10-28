@@ -12,7 +12,7 @@ import (
 var _ = Describe("Config", func() {
 	Describe("Load", func() {
 		BeforeEach(func() {
-			err := os.Setenv("INGRESS_SOLUTION", "istio")
+			err := os.Setenv("INGRESS_PROVIDER", "istio")
 			Expect(err).NotTo(HaveOccurred())
 			err = os.Setenv("ISTIO_GATEWAY_NAME", "some-gateway")
 			Expect(err).NotTo(HaveOccurred())
@@ -42,35 +42,35 @@ var _ = Describe("Config", func() {
 			})
 		})
 
-		Context("when the INGRESS_SOLUTION env var is not set", func() {
+		Context("when the INGRESS_PROVIDER env var is not set", func() {
 			BeforeEach(func() {
-				err := os.Unsetenv("INGRESS_SOLUTION")
+				err := os.Unsetenv("INGRESS_PROVIDER")
 				Expect(err).NotTo(HaveOccurred())
 			})
 			It("returns an error", func() {
 				_, err := cfg.Load()
-				Expect(err).To(MatchError("INGRESS_SOLUTION not configured"))
+				Expect(err).To(MatchError("INGRESS_PROVIDER not configured"))
 			})
 		})
 
-		Context("when the INGRESS_SOLUTION env var is set to an invalid provider", func() {
+		Context("when the INGRESS_PROVIDER env var is set to an invalid provider", func() {
 			BeforeEach(func() {
-				err := os.Setenv("INGRESS_SOLUTION", "some-ingress-solution")
+				err := os.Setenv("INGRESS_PROVIDER", "some-ingress-provider")
 				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("returns an error", func() {
 				_, err := cfg.Load()
 				Expect(err).To(HaveOccurred())
-				Expect(err).To(MatchError("INGRESS_SOLUTION=some-ingress-solution not supported"))
+				Expect(err).To(MatchError("INGRESS_PROVIDER=some-ingress-provider not supported"))
 			})
 		})
 
-		Context("When INGRESS_SOLUTION env var is set to Istio", func() {
+		Context("When INGRESS_PROVIDER env var is set to Istio", func() {
 			BeforeEach(func() {
 				err := os.Setenv("ISTIO_GATEWAY_NAME", "some-gateway")
 				Expect(err).NotTo(HaveOccurred())
-				err = os.Setenv("INGRESS_SOLUTION", "istio")
+				err = os.Setenv("INGRESS_PROVIDER", "istio")
 				Expect(err).NotTo(HaveOccurred())
 			})
 
@@ -96,9 +96,9 @@ var _ = Describe("Config", func() {
 			})
 		})
 
-		Context("When INGRESS_SOLUTION env var is set to Contour", func() {
+		Context("When INGRESS_PROVIDER env var is set to Contour", func() {
 			BeforeEach(func() {
-				err := os.Setenv("INGRESS_SOLUTION", "contour")
+				err := os.Setenv("INGRESS_PROVIDER", "contour")
 				Expect(err).NotTo(HaveOccurred())
 			})
 

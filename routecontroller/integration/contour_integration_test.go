@@ -19,7 +19,7 @@ type httpProxy struct {
 
 type httpProxySpec struct {
 	VirtualHost virtualHost
-	Routes     []hpRoute
+	Routes      []hpRoute
 }
 
 type virtualHost struct {
