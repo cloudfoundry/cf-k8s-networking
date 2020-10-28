@@ -14,3 +14,4 @@ run:
 
 params:
   NUMBER_OF_APPS:
+  INGRESS_PROVIDER:

@@ -77,11 +77,18 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 
 	Expect(kubectl.GetNumberOf("virtualservices")).To(Equal(0))
 
-	yttSession, err := ytt.Run(
+	args := []string{
 		"-f", filepath.Join("..", "..", "config", "routecontroller"),
 		"-f", filepath.Join("..", "..", "config", "values.yaml"),
 		"-v", "systemNamespace=default",
-	)
+		"-v", fmt.Sprintf("routecontroller.ingressSolutionProvider=%s", ingressProvider),
+	}
+
+	if routeControllerImage != "" {
+		args = append(args, "-v", fmt.Sprintf("routecontroller.image=%s", routeControllerImage))
+	}
+
+	yttSession, err := ytt.Run(args...)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(yttSession).Should(ExitSuccessfully())
 	yttContents := yttSession.Out.Contents()

@@ -27,9 +27,11 @@ func TestStress(t *testing.T) {
 }
 
 var (
-	kubectl     kubectlRunner
-	ytt         yttRunner
-	resultsPath string
+	kubectl              kubectlRunner
+	ytt                  yttRunner
+	resultsPath          string
+	ingressProvider      string
+	routeControllerImage string
 )
 
 var _ = BeforeSuite(func() {
@@ -47,6 +49,11 @@ var _ = BeforeSuite(func() {
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
 
+	// Deploy Contour's HTTPProxy CRD
+	session, err = kubectl.Run("apply", "-f", "../integration/fixtures/contour-httpproxy-crd.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
+
 	// Add service to reach routecontroller's metrics
 	session, err = kubectl.Run("apply", "-f", "fixtures/service.yml")
 	Expect(err).NotTo(HaveOccurred())
@@ -57,6 +64,13 @@ var _ = BeforeSuite(func() {
 	if !found {
 		resultsPath = "results.json"
 	}
+
+	ingressProvider, found = os.LookupEnv("INGRESS_PROVIDER")
+	if !found {
+		ingressProvider = "istio"
+	}
+
+	routeControllerImage, _ = os.LookupEnv("ROUTECONTROLLER_IMAGE")
 })
 
 var _ = AfterSuite(func() {
