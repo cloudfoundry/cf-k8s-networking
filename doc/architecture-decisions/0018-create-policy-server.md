@@ -52,3 +52,6 @@ document](https://docs.google.com/document/d/1qAYy737uB7orT8St56wg5MbnlrbuA9NoJi
   for app to app communication.
 - There will be no path to import a cf-for-vms policy-server database into
   cf-for-k8s
+- Our new component will need to conform to the new observability initiative
+  (incl the distributed tracing work) that CAPI is doing so that this configuration
+  can be traced as well.
