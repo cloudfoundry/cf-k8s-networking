@@ -71,13 +71,13 @@ type metadata struct {
 	Name string
 }
 
-func startRouteController(kubeConfigPath, gateway string, ingressSolution string) *gexec.Session {
+func startRouteController(kubeConfigPath, gateway string, ingressProvider string) *gexec.Session {
 	cmd := exec.Command(routeControllerBinaryPath)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RESYNC_INTERVAL=%s", "5"))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("INGRESS_SOLUTION=%s", ingressSolution))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("INGRESS_PROVIDER=%s", ingressProvider))
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())

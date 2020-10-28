@@ -28,11 +28,11 @@ func Load() (*Config, error) {
 	var exists bool
 	var ingress string
 
-	ingress, exists = os.LookupEnv("INGRESS_SOLUTION")
+	ingress, exists = os.LookupEnv("INGRESS_PROVIDER")
 	c.IngressProvider = IngressProvider(ingress)
 
 	if !exists {
-		return nil, errors.New("INGRESS_SOLUTION not configured")
+		return nil, errors.New("INGRESS_PROVIDER not configured")
 	}
 
 	switch c.IngressProvider {
@@ -45,7 +45,7 @@ func Load() (*Config, error) {
 			return nil, err
 		}
 	default:
-		return nil, fmt.Errorf("INGRESS_SOLUTION=%s not supported", c.IngressProvider)
+		return nil, fmt.Errorf("INGRESS_PROVIDER=%s not supported", c.IngressProvider)
 	}
 
 	var err error
