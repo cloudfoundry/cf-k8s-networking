@@ -9,19 +9,10 @@ function login_and_target() {
     CF_USERNAME=admin CF_PASSWORD=$(cat env-metadata/cf-admin-password.txt) cf auth
 }
 
-function routecontroller_image() {
-    image="$(< cf-k8s-networking/config/values.yaml yq -r '.routecontroller.image' | cut -d'@' -f1)"
-    version="$(cat cf-k8s-networking/.git/ref)"
-    echo -n "${image}:${version}"
-}
-
 function run_scale_test() {
     export DOMAIN="apps.ci-scale-testing.routing.lol"
     export CLEANUP="true" #Remove when we run these tests regularly after they start to pass
     export NUMBER_OF_APPS=${NUMBER_OF_APPS}
-    ROUTECONTROLLER_IMAGE="$(routecontroller_image)"
-    export ROUTECONTROLLER_IMAGE
-    export INGRESS_PROVIDER
 
     pushd cf-k8s-networking/test/scale
         ginkgo -v .
