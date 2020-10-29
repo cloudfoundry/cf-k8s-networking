@@ -24,6 +24,11 @@ type httpProxySpec struct {
 
 type virtualHost struct {
 	Fqdn string
+	TLS  tls
+}
+
+type tls struct {
+	SecretName string
 }
 
 type hpRoute struct {
@@ -164,7 +169,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -205,7 +213,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -233,7 +244,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{{
 							Conditions: []matchCondition{{Prefix: "/some/path"}},
 							Services:   []hpService{{Name: "no-destinations", Port: 8080}},
@@ -258,7 +272,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -306,7 +323,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname-1.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname-1.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -326,7 +346,10 @@ var _ = Describe("Integration with Contour", func() {
 				},
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname-2.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname-2.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -357,7 +380,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -419,7 +445,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -446,7 +475,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -506,7 +538,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -533,7 +568,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -606,7 +644,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -648,7 +689,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -681,7 +725,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -734,7 +781,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -816,7 +866,10 @@ var _ = Describe("Integration with Contour", func() {
 				Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 					httpProxy{
 						Spec: httpProxySpec{
-							VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+							VirtualHost: virtualHost{
+								Fqdn: "hostname.apps.example.com",
+								TLS:  tls{SecretName: "secret-with-cert"},
+							},
 							Routes: []hpRoute{
 								{
 									Conditions: []matchCondition{
@@ -863,7 +916,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -973,7 +1029,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -1032,7 +1091,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{
@@ -1075,7 +1137,10 @@ var _ = Describe("Integration with Contour", func() {
 			Eventually(kubectlGetHTTPProxies).Should(ConsistOf(
 				httpProxy{
 					Spec: httpProxySpec{
-						VirtualHost: virtualHost{Fqdn: "hostname.apps.example.com"},
+						VirtualHost: virtualHost{
+							Fqdn: "hostname.apps.example.com",
+							TLS:  tls{SecretName: "secret-with-cert"},
+						},
 						Routes: []hpRoute{
 							{
 								Conditions: []matchCondition{

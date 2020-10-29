@@ -11,6 +11,7 @@ import (
 )
 
 type HTTPProxyBuilder struct {
+	TLSSecretName string
 }
 
 func HTTPProxyName(fqdn string) string {
@@ -60,6 +61,9 @@ func (b *HTTPProxyBuilder) fqdnToHTTPProxy(fqdn string, routes []networkingv1alp
 		Spec: hpv1.HTTPProxySpec{
 			VirtualHost: &hpv1.VirtualHost{
 				Fqdn: fqdn,
+				TLS: &hpv1.TLS{
+					SecretName: b.TLSSecretName,
+				},
 			},
 		},
 	}

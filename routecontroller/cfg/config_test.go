@@ -100,6 +100,8 @@ var _ = Describe("Config", func() {
 			BeforeEach(func() {
 				err := os.Setenv("INGRESS_PROVIDER", "contour")
 				Expect(err).NotTo(HaveOccurred())
+				err = os.Setenv("TLS_SECRET_NAME", "my-secret")
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("is configured correctly", func() {
@@ -107,8 +109,20 @@ var _ = Describe("Config", func() {
 				Expect(err).NotTo(HaveOccurred())
 
 				Expect(config.IngressProvider).To(Equal(cfg.IngressProvider("contour")))
+				Expect(config.Contour.TLSSecretName).To(Equal("my-secret"))
 			})
 
+			Context("when the TLS_SECRET_NAME env var is not set", func() {
+				BeforeEach(func() {
+					err := os.Unsetenv("TLS_SECRET_NAME")
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("returns an error", func() {
+					_, err := cfg.Load()
+					Expect(err).To(MatchError("TLS_SECRET_NAME not configured"))
+				})
+			})
 		})
 	})
 })

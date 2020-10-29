@@ -173,14 +173,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
@@ -214,14 +214,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
@@ -268,29 +268,29 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
-									route{
+									{
 										Destination: destination{Host: "s-additional-destination-for-route-1"},
 									},
 								},
 							},
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/different/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
@@ -314,14 +314,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname-1.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
@@ -334,14 +334,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname-2.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/different/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
@@ -365,17 +365,17 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
@@ -426,14 +426,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/hello"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
@@ -453,26 +453,26 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/hello/world"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
 							},
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/hello"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
@@ -512,14 +512,14 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-1"},
 										},
 									},
@@ -539,17 +539,17 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-1"},
 										},
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-2"},
 										},
 									},
@@ -611,14 +611,14 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-1"},
 										},
 									},
@@ -653,14 +653,14 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-1"},
 										},
 									},
@@ -686,14 +686,14 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-1"},
 										},
 									},
@@ -739,29 +739,29 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-1"},
 										},
-										route{
+										{
 											Destination: destination{Host: "s-additional-destination-for-route-1"},
 										},
 									},
 								},
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/different/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-2"},
 										},
 									},
@@ -819,14 +819,14 @@ var _ = Describe("Integration with Istio", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
-								http{
+								{
 									Match: []match{
-										match{
+										{
 											Uri: uri{Prefix: "/some/different/path"},
 										},
 									},
 									Route: []route{
-										route{
+										{
 											Destination: destination{Host: "s-destination-guid-2"},
 										},
 									},
@@ -866,29 +866,29 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
-									route{
+									{
 										Destination: destination{Host: "s-additional-destination-for-route-1"},
 									},
 								},
 							},
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/different/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
@@ -974,26 +974,26 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
 							},
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/different/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-2"},
 									},
 								},
@@ -1032,14 +1032,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},
@@ -1076,14 +1076,14 @@ var _ = Describe("Integration with Istio", func() {
 						Gateways: []string{gateway},
 						Hosts:    []string{"hostname.apps.example.com"},
 						Http: []http{
-							http{
+							{
 								Match: []match{
-									match{
+									{
 										Uri: uri{Prefix: "/some/path"},
 									},
 								},
 								Route: []route{
-									route{
+									{
 										Destination: destination{Host: "s-destination-guid-1"},
 									},
 								},

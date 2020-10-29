@@ -86,7 +86,8 @@ func main() {
 		}
 	case cfg.Contour:
 		ingressProvider = &networking.ContourIngressProvider{
-			Client: mgr.GetClient(),
+			Client:        mgr.GetClient(),
+			TLSSecretName: config.Contour.TLSSecretName,
 		}
 	}
 
