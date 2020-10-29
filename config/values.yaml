@@ -10,6 +10,7 @@ routecontroller:
   ingressSolutionProvider: contour
   contour:
     tlsSecretName:
+    httpsOnly: true
 
 service:
   externalPort: 80

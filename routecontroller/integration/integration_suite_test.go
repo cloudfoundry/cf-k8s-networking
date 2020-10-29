@@ -83,6 +83,7 @@ func startRouteController(kubeConfigPath, gateway string, ingressProvider string
 		cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
 	case "contour":
 		cmd.Env = append(cmd.Env, fmt.Sprintf("TLS_SECRET_NAME=%s", "secret-with-cert"))
+		cmd.Env = append(cmd.Env, fmt.Sprintf("HTTPS_ONLY=%s", "true"))
 	default:
 		panic(ingressProvider + " is not supported")
 	}

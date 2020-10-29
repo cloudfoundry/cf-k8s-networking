@@ -24,6 +24,7 @@ type Config struct {
 	Contour struct {
 		// Secret name used to configire HTTPProxy resources
 		TLSSecretName string
+		HTTPSOnly     bool
 	}
 }
 
@@ -73,6 +74,12 @@ func loadContour(c *Config) error {
 	if !exists {
 		return errors.New("TLS_SECRET_NAME not configured")
 	}
+
+	httpsOnlyStr, exists := os.LookupEnv("HTTPS_ONLY")
+	if !exists {
+		return errors.New("HTTPS_ONLY not configured")
+	}
+	c.Contour.HTTPSOnly = httpsOnlyStr == "true"
 
 	return nil
 }

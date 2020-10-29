@@ -48,7 +48,9 @@ func constructHTTPProxy(params ingressResourceParams) hpv1.HTTPProxy {
 	if params.https != nil {
 		hpRoutes := []hpv1.Route{}
 		for _, http := range params.https {
-			hpRoute := hpv1.Route{}
+			hpRoute := hpv1.Route{
+				PermitInsecure: !params.httpsOnly,
+			}
 			if http.matchPrefix != "" {
 				hpRoute.Conditions = []hpv1.MatchCondition{
 					{
@@ -140,6 +142,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 			expectedHTTPProxy := []hpv1.HTTPProxy{
 				constructHTTPProxy(ingressResourceParams{
+					httpsOnly:     true,
 					tlsSecretName: "my-secret",
 					fqdn:          "test0.domain0.example.com",
 					owners: []ownerParams{
@@ -171,6 +174,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 					},
 				}),
 				constructHTTPProxy(ingressResourceParams{
+					httpsOnly:     true,
 					tlsSecretName: "my-secret",
 					fqdn:          "test1.domain1.example.com",
 					owners: []ownerParams{
@@ -197,6 +201,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 			builder := HTTPProxyBuilder{
 				TLSSecretName: "my-secret",
+				HTTPSOnly:     true,
 			}
 			httpProxy, err := builder.Build(&routes)
 			Expect(err).NotTo(HaveOccurred())
@@ -244,6 +249,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 					builder := HTTPProxyBuilder{
 						TLSSecretName: "my-secret",
+						HTTPSOnly:     true,
 					}
 
 					httpProxies, err := builder.Build(&routes)
@@ -285,6 +291,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 					It("returns an error", func() {
 						builder := HTTPProxyBuilder{
 							TLSSecretName: "my-secret",
+							HTTPSOnly:     true,
 						}
 
 						_, err := builder.Build(&routes)
@@ -336,6 +343,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 			It("orders the paths by longest matching prefix", func() {
 				expectedHTTPProxies := []hpv1.HTTPProxy{
 					constructHTTPProxy(ingressResourceParams{
+						httpsOnly:     true,
 						tlsSecretName: "my-secret",
 						fqdn:          "test0.domain0.example.com",
 						internal:      true,
@@ -380,6 +388,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 				builder := HTTPProxyBuilder{
 					TLSSecretName: "my-secret",
+					HTTPSOnly:     true,
 				}
 				httpProxies, err := builder.Build(&routes)
 				Expect(err).NotTo(HaveOccurred())
@@ -418,6 +427,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 					builder := HTTPProxyBuilder{
 						TLSSecretName: "my-secret",
+						HTTPSOnly:     true,
 					}
 					k8sResources, err := builder.Build(&routes)
 					Expect(err).NotTo(HaveOccurred())
@@ -483,6 +493,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 					builder := HTTPProxyBuilder{
 						TLSSecretName: "my-secret",
+						HTTPSOnly:     true,
 					}
 					_, err := builder.Build(&routes)
 					Expect(err).To(MatchError("route guid route-guid-0 and route guid route-guid-1 disagree on whether or not the domain is internal"))
@@ -544,6 +555,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 					builder := HTTPProxyBuilder{
 						TLSSecretName: "my-secret",
+						HTTPSOnly:     true,
 					}
 					_, err := builder.Build(&routes)
 					Expect(err).To(MatchError("route guid route-guid-0 and route guid route-guid-1 share the same FQDN but have different namespaces"))
@@ -567,10 +579,12 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 					builder := HTTPProxyBuilder{
 						TLSSecretName: "my-secret",
+						HTTPSOnly:     true,
 					}
 
 					expectedHTTPProxies := []hpv1.HTTPProxy{
 						constructHTTPProxy(ingressResourceParams{
+							httpsOnly:     true,
 							tlsSecretName: "my-secret",
 							fqdn:          "test0.domain0.example.com",
 							owners: []ownerParams{
@@ -600,6 +614,105 @@ var _ = Describe("HTTPProxyBuilder", func() {
 			})
 
 		})
+
+		Context("when httpsOnly is false", func() {
+			var routes networkingv1alpha1.RouteList
+			BeforeEach(func() {
+				routes = networkingv1alpha1.RouteList{
+					Items: []networkingv1alpha1.Route{
+						constructRoute(routeParams{
+							name:     "route-guid-0",
+							host:     "test0",
+							path:     "/path0",
+							domain:   "domain0.example.com",
+							internal: true,
+							destinations: []routeDestParams{
+								{
+									destGUID: "route-0-destination-guid-0",
+									port:     9000,
+									weight:   intPtr(100),
+									appGUID:  "app-guid-0",
+								},
+							},
+						}),
+						constructRoute(routeParams{
+							name:     "route-guid-1",
+							host:     "test0",
+							path:     "/path0/deeper",
+							domain:   "domain0.example.com",
+							internal: true,
+							destinations: []routeDestParams{
+								{
+									destGUID: "route-1-destination-guid-0",
+									port:     8080,
+									weight:   intPtr(100),
+									appGUID:  "app-guid-1",
+								},
+							},
+						}),
+					},
+				}
+			})
+
+			It("allows unecrypted traffic", func() {
+				expectedHTTPProxies := []hpv1.HTTPProxy{
+					constructHTTPProxy(ingressResourceParams{
+						httpsOnly:     false,
+						tlsSecretName: "my-secret",
+						fqdn:          "test0.domain0.example.com",
+						internal:      true,
+						owners: []ownerParams{
+							{
+								routeName: routes.Items[1].ObjectMeta.Name,
+								routeUID:  routes.Items[1].ObjectMeta.UID,
+							},
+							{
+								routeName: routes.Items[0].ObjectMeta.Name,
+								routeUID:  routes.Items[0].ObjectMeta.UID,
+							},
+						},
+						https: []httpParams{
+							{
+								matchPrefix: "/path0/deeper",
+								destinations: []destParams{
+									{
+										host:      "s-route-1-destination-guid-0",
+										appGUID:   "app-guid-1",
+										spaceGUID: "space-guid-0",
+										orgGUID:   "org-guid-0",
+										weight:    100,
+									},
+								},
+							},
+							{
+								matchPrefix: "/path0",
+								destinations: []destParams{
+									{
+										host:      "s-route-0-destination-guid-0",
+										appGUID:   "app-guid-0",
+										spaceGUID: "space-guid-0",
+										orgGUID:   "org-guid-0",
+										weight:    100,
+									},
+								},
+							},
+						},
+					}),
+				}
+
+				builder := HTTPProxyBuilder{
+					TLSSecretName: "my-secret",
+					HTTPSOnly:     false,
+				}
+				httpProxies, err := builder.Build(&routes)
+				Expect(err).NotTo(HaveOccurred())
+				Expect(httpProxies).To(Equal(expectedHTTPProxies))
+			})
+
+			It("allows unecrypted traffic", func() {
+
+			})
+		})
 	})
 
 	Describe("BuildMutateFunction", func() {
@@ -613,6 +726,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 			}
 
 			desiredHTTPProxy := constructHTTPProxy(ingressResourceParams{
+				httpsOnly:     true,
 				tlsSecretName: "my-secret",
 				fqdn:          "test0.domain0.example.com",
 				owners: []ownerParams{
@@ -641,6 +755,7 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 			builder := HTTPProxyBuilder{
 				TLSSecretName: "my-secret",
+				HTTPSOnly:     true,
 			}
 			mutateFn := builder.BuildMutateFunction(actualHTTPProxy, &desiredHTTPProxy)
 			err := mutateFn()

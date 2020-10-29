@@ -102,6 +102,8 @@ var _ = Describe("Config", func() {
 				Expect(err).NotTo(HaveOccurred())
 				err = os.Setenv("TLS_SECRET_NAME", "my-secret")
 				Expect(err).NotTo(HaveOccurred())
+				err = os.Setenv("HTTPS_ONLY", "true")
+				Expect(err).NotTo(HaveOccurred())
 			})
 
 			It("is configured correctly", func() {
@@ -110,6 +112,7 @@ var _ = Describe("Config", func() {
 
 				Expect(config.IngressProvider).To(Equal(cfg.IngressProvider("contour")))
 				Expect(config.Contour.TLSSecretName).To(Equal("my-secret"))
+				Expect(config.Contour.HTTPSOnly).To(Equal(true))
 			})
 
 			Context("when the TLS_SECRET_NAME env var is not set", func() {
@@ -121,6 +124,18 @@ var _ = Describe("Config", func() {
 				It("returns an error", func() {
 					_, err := cfg.Load()
 					Expect(err).To(MatchError("TLS_SECRET_NAME not configured"))
+				})
+			})
+
+			Context("when the HTTPS_ONLY env var is not set", func() {
+				BeforeEach(func() {
+					err := os.Unsetenv("HTTPS_ONLY")
+					Expect(err).NotTo(HaveOccurred())
+				})
+
+				It("returns an error", func() {
+					_, err := cfg.Load()
+					Expect(err).To(MatchError("HTTPS_ONLY not configured"))
 				})
 			})
 		})

@@ -89,6 +89,13 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 		args = append(args, "-v", fmt.Sprintf("routecontroller.image=%s", routeControllerImage))
 	}
 
+	if ingressProvider == "contour" {
+		args = append(args,
+			"-v", "routecontroller.contour.tlsSecretName=secret",
+			"--data-value-yaml", "routecontroller.contour.httpsOnly=true",
+		)
+	}
+
 	yttSession, err := ytt.Run(args...)
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(yttSession).Should(ExitSuccessfully())
