@@ -12,6 +12,7 @@ import (
 
 type HTTPProxyBuilder struct {
 	TLSSecretName string
+	HTTPSOnly     bool
 }
 
 func HTTPProxyName(fqdn string) string {
@@ -90,7 +91,8 @@ func (b *HTTPProxyBuilder) fqdnToHTTPProxy(fqdn string, routes []networkingv1alp
 		}
 
 		hpRoute := hpv1.Route{
-			Services: routeServices,
+			Services:       routeServices,
+			PermitInsecure: !b.HTTPSOnly,
 		}
 		if route.Spec.Path != "" {
 			hpRoute.Conditions = []hpv1.MatchCondition{{

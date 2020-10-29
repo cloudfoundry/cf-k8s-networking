@@ -25,6 +25,7 @@ type ingressResourceParams struct {
 	https         []httpParams
 	owners        []ownerParams
 	tlsSecretName string
+	httpsOnly     bool
 }
 
 type httpParams struct {

@@ -32,8 +32,9 @@ type tls struct {
 }
 
 type hpRoute struct {
-	Services   []hpService
-	Conditions []matchCondition
+	Services       []hpService
+	Conditions     []matchCondition
+	PermitInsecure bool
 }
 
 type hpService struct {
@@ -175,6 +176,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -219,6 +221,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -249,8 +252,9 @@ var _ = Describe("Integration with Contour", func() {
 							TLS:  tls{SecretName: "secret-with-cert"},
 						},
 						Routes: []hpRoute{{
-							Conditions: []matchCondition{{Prefix: "/some/path"}},
-							Services:   []hpService{{Name: "no-destinations", Port: 8080}},
+							PermitInsecure: false,
+							Conditions:     []matchCondition{{Prefix: "/some/path"}},
+							Services:       []hpService{{Name: "no-destinations", Port: 8080}},
 						}},
 					},
 				},
@@ -278,6 +282,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -329,6 +334,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -352,6 +358,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/different/path",
@@ -386,6 +393,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -451,6 +459,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/hello",
@@ -481,6 +490,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/hello/world",
@@ -544,6 +554,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/path",
@@ -574,6 +585,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/path",
@@ -650,6 +662,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/path",
@@ -695,6 +708,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/path",
@@ -731,6 +745,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/path",
@@ -787,6 +802,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/path",
@@ -872,6 +888,7 @@ var _ = Describe("Integration with Contour", func() {
 							},
 							Routes: []hpRoute{
 								{
+									PermitInsecure: false,
 									Conditions: []matchCondition{
 										{
 											Prefix: "/some/different/path",
@@ -922,6 +939,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -1035,6 +1053,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -1097,6 +1116,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",
@@ -1143,6 +1163,7 @@ var _ = Describe("Integration with Contour", func() {
 						},
 						Routes: []hpRoute{
 							{
+								PermitInsecure: false,
 								Conditions: []matchCondition{
 									{
 										Prefix: "/some/path",

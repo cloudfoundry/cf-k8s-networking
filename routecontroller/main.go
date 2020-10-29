@@ -88,6 +88,7 @@ func main() {
 		ingressProvider = &networking.ContourIngressProvider{
 			Client:        mgr.GetClient(),
 			TLSSecretName: config.Contour.TLSSecretName,
+			HTTPSOnly:     config.Contour.HTTPSOnly,
 		}
 	}
 

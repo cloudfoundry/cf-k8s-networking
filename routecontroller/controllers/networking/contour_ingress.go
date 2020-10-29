@@ -18,11 +18,13 @@ import (
 type ContourIngressProvider struct {
 	client.Client
 	TLSSecretName string
+	HTTPSOnly     bool
 }
 
 func (p *ContourIngressProvider) ReconcileIngressResources(ctx context.Context, log logr.Logger, routes *networkingv1alpha1.RouteList) error {
 	hpb := resourcebuilders.HTTPProxyBuilder{
 		TLSSecretName: p.TLSSecretName,
+		HTTPSOnly:     p.HTTPSOnly,
 	}
 	desiredHTTPProxies, err := hpb.Build(routes)
 	if err != nil {
