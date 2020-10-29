@@ -36,29 +36,6 @@ var (
 
 var _ = BeforeSuite(func() {
 	SetDefaultEventuallyTimeout(5 * time.Minute)
-
-	kubectl = CreateKindCluster()
-
-	// Deploy Route CRD
-	session, err := kubectl.Run("apply", "-f", "../../config/crd/networking.cloudfoundry.org_routes.yaml")
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
-
-	// Deploy Istio's Virtual Service CRD
-	session, err = kubectl.Run("apply", "-f", "../integration/fixtures/istio-virtual-service.yaml")
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
-
-	// Deploy Contour's HTTPProxy CRD
-	session, err = kubectl.Run("apply", "-f", "../integration/fixtures/contour-httpproxy-crd.yaml")
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
-
-	// Add service to reach routecontroller's metrics
-	session, err = kubectl.Run("apply", "-f", "fixtures/service.yml")
-	Expect(err).NotTo(HaveOccurred())
-	Eventually(session).Should(gexec.Exit(0))
-
 	var found bool
 	resultsPath, found = os.LookupEnv("RESULTS_PATH")
 	if !found {
@@ -71,6 +48,23 @@ var _ = BeforeSuite(func() {
 	}
 
 	routeControllerImage, _ = os.LookupEnv("ROUTECONTROLLER_IMAGE")
+
+	kubectl = CreateKindCluster()
+
+	// Deploy Route CRD
+	session, err := kubectl.Run("apply", "-f", "../../config/crd/networking.cloudfoundry.org_routes.yaml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
+
+	// Deploy Ingress Providers's Ingress CRD
+	session, err = kubectl.Run("apply", "-f", getIngressProviderIngressCRDPath())
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
+
+	// Add service to reach routecontroller's metrics
+	session, err = kubectl.Run("apply", "-f", "fixtures/service.yml")
+	Expect(err).NotTo(HaveOccurred())
+	Eventually(session).Should(gexec.Exit(0))
 })
 
 var _ = AfterSuite(func() {
@@ -226,5 +220,38 @@ func buildRoute(index int, tag, update string) TestRouteTemplate {
 		DestinationGUID: fmt.Sprintf("destination-guid-%s-%d", tag, index),
 		AppGUID:         fmt.Sprintf("app-guid-%s-%d", tag, index),
 		Tag:             tag,
+	}
+}
+
+func getIngressResourceName() string {
+	switch ingressProvider {
+	case "istio":
+		return "virtualservices"
+	case "contour":
+		return "httpproxies"
+	default:
+		panic("unknown ingrss provider: " + ingressProvider)
+	}
+}
+
+func getIngressProviderIngressCRDPath() string {
+	switch ingressProvider {
+	case "istio":
+		return "../integration/fixtures/istio-virtual-service.yaml"
+	case "contour":
+		return "../integration/fixtures/contour-httpproxy-crd.yaml"
+	default:
+		panic("unknown ingrss provider: " + ingressProvider)
+	}
+}
+
+func getIngrssMatchPrefixPath() string {
+	switch ingressProvider {
+	case "istio":
+		return ".spec.http[0].match[0].uri.prefix"
+	case "contour":
+		return ".spec.routes[0].conditions[0].prefix"
+	default:
+		panic("unknown ingrss provider: " + ingressProvider)
 	}
 }

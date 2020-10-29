@@ -75,7 +75,7 @@ var _ = Describe("Stress Tests", func() {
 func stressRouteController(numberOfRoutes int, results Results) Results {
 	setupRoutes(numberOfRoutes, "initial")
 
-	Expect(kubectl.GetNumberOf("virtualservices")).To(Equal(0))
+	Expect(kubectl.GetNumberOf(getIngressResourceName())).To(Equal(0))
 
 	args := []string{
 		"-f", filepath.Join("..", "..", "config", "routecontroller"),
@@ -106,8 +106,8 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	Eventually(session).Should(gbytes.Say("successfully rolled out"))
 	Eventually(session).Should(ExitSuccessfully())
 
-	// Wait for all the virtualservices to be created
-	Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
+	// Wait for all the ingress resources to be created
+	Eventually(func() int { return kubectl.GetNumberOf(getIngressResourceName()) }, 30*time.Minute, 500*time.Millisecond).Should(Equal(numberOfRoutes))
 
 	add1000hist := getReconcileTime().Metric[0].Histogram
 
@@ -128,7 +128,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 
 		expectedNum := numberOfRoutes + i + 1
 		Expect(kubectl.GetNumberOf("routes")).To(Equal(expectedNum))
-		Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(expectedNum))
+		Eventually(func() int { return kubectl.GetNumberOf(getIngressResourceName()) }, 30*time.Minute, 500*time.Millisecond).Should(Equal(expectedNum))
 	}
 
 	add100hist := getReconcileTime().Metric[0].Histogram
@@ -144,7 +144,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	}
 
 	Eventually(func() int {
-		session, err = kubectl.Run("get", "virtualservices", "-o", "custom-columns=PATH:.spec.http[0].match[0].uri.prefix", "--no-headers")
+		session, err = kubectl.Run("get", getIngressResourceName(), "-o", "custom-columns=PATH:"+getIngrssMatchPrefixPath(), "--no-headers")
 		Eventually(session).Should(ExitSuccessfully())
 		Expect(err).NotTo(HaveOccurred())
 		return strings.Count(string(session.Out.Contents()), "stressfully-updated")
@@ -163,7 +163,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 
 		expectedNum := currentNumberOfRoutes - i - 1
 		Expect(kubectl.GetNumberOf("routes")).To(Equal(expectedNum))
-		Eventually(func() int { return kubectl.GetNumberOf("virtualservices") }, 30*time.Minute, 500*time.Millisecond).Should(Equal(expectedNum))
+		Eventually(func() int { return kubectl.GetNumberOf(getIngressResourceName()) }, 30*time.Minute, 500*time.Millisecond).Should(Equal(expectedNum))
 	}
 
 	del100hist := getReconcileTime().Metric[0].Histogram
@@ -179,7 +179,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 	}, 30*time.Minute, 500*time.Millisecond).Should(Equal(0))
 
 	Eventually(func() int {
-		return kubectl.GetNumberOf("virtualservices")
+		return kubectl.GetNumberOf(getIngressResourceName())
 	}, 30*time.Minute, 500*time.Millisecond).Should(Equal(0))
 
 	del1000hist := getReconcileTime().Metric[0].Histogram
