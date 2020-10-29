@@ -21,6 +21,10 @@ type Config struct {
 		// The Istio Gateway the route controller applies to
 		Gateway string
 	}
+	Contour struct {
+		// Secret name used to configire HTTPProxy resources
+		TLSSecretName string
+	}
 }
 
 func Load() (*Config, error) {
@@ -63,6 +67,13 @@ func Load() (*Config, error) {
 }
 
 func loadContour(c *Config) error {
+	var exists bool
+
+	c.Contour.TLSSecretName, exists = os.LookupEnv("TLS_SECRET_NAME")
+	if !exists {
+		return errors.New("TLS_SECRET_NAME not configured")
+	}
+
 	return nil
 }
 

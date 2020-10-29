@@ -20,10 +20,11 @@ func TestResourcebuilders(t *testing.T) {
 }
 
 type ingressResourceParams struct {
-	fqdn     string
-	internal bool
-	https    []httpParams
-	owners   []ownerParams
+	fqdn          string
+	internal      bool
+	https         []httpParams
+	owners        []ownerParams
+	tlsSecretName string
 }
 
 type httpParams struct {

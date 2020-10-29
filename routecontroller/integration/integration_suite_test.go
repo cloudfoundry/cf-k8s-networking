@@ -75,9 +75,17 @@ func startRouteController(kubeConfigPath, gateway string, ingressProvider string
 	cmd := exec.Command(routeControllerBinaryPath)
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
-	cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RESYNC_INTERVAL=%s", "5"))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("INGRESS_PROVIDER=%s", ingressProvider))
+
+	switch ingressProvider {
+	case "istio":
+		cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
+	case "contour":
+		cmd.Env = append(cmd.Env, fmt.Sprintf("TLS_SECRET_NAME=%s", "secret-with-cert"))
+	default:
+		panic(ingressProvider + " is not supported")
+	}
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())

@@ -27,6 +27,9 @@ func constructHTTPProxy(params ingressResourceParams) hpv1.HTTPProxy {
 		Spec: hpv1.HTTPProxySpec{
 			VirtualHost: &hpv1.VirtualHost{
 				Fqdn: params.fqdn,
+				TLS: &hpv1.TLS{
+					SecretName: params.tlsSecretName,
+				},
 			},
 		},
 	}
@@ -137,7 +140,8 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 			expectedHTTPProxy := []hpv1.HTTPProxy{
 				constructHTTPProxy(ingressResourceParams{
-					fqdn: "test0.domain0.example.com",
+					tlsSecretName: "my-secret",
+					fqdn:          "test0.domain0.example.com",
 					owners: []ownerParams{
 						{
 							routeName: routes.Items[0].ObjectMeta.Name,
@@ -167,7 +171,8 @@ var _ = Describe("HTTPProxyBuilder", func() {
 					},
 				}),
 				constructHTTPProxy(ingressResourceParams{
-					fqdn: "test1.domain1.example.com",
+					tlsSecretName: "my-secret",
+					fqdn:          "test1.domain1.example.com",
 					owners: []ownerParams{
 						{
 							routeName: routes.Items[1].ObjectMeta.Name,
@@ -190,7 +195,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 				}),
 			}
 
-			builder := HTTPProxyBuilder{}
+			builder := HTTPProxyBuilder{
+				TLSSecretName: "my-secret",
+			}
 			httpProxy, err := builder.Build(&routes)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(httpProxy).To(Equal(expectedHTTPProxy))
@@ -235,7 +242,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 					routes.Items[0].Spec.Destinations[1].Weight = intPtr(2)
 					routes.Items[0].Spec.Destinations[2].Weight = intPtr(1)
 
-					builder := HTTPProxyBuilder{}
+					builder := HTTPProxyBuilder{
+						TLSSecretName: "my-secret",
+					}
 
 					httpProxies, err := builder.Build(&routes)
 					Expect(err).NotTo(HaveOccurred())
@@ -274,7 +283,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 					})
 
 					It("returns an error", func() {
-						builder := HTTPProxyBuilder{}
+						builder := HTTPProxyBuilder{
+							TLSSecretName: "my-secret",
+						}
 
 						_, err := builder.Build(&routes)
 						Expect(err).To(MatchError("invalid destinations for route route-guid-0: weights must be set on all or none"))
@@ -325,8 +336,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 			It("orders the paths by longest matching prefix", func() {
 				expectedHTTPProxies := []hpv1.HTTPProxy{
 					constructHTTPProxy(ingressResourceParams{
-						fqdn:     "test0.domain0.example.com",
-						internal: true,
+						tlsSecretName: "my-secret",
+						fqdn:          "test0.domain0.example.com",
+						internal:      true,
 						owners: []ownerParams{
 							{
 								routeName: routes.Items[1].ObjectMeta.Name,
@@ -366,7 +378,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 					}),
 				}
 
-				builder := HTTPProxyBuilder{}
+				builder := HTTPProxyBuilder{
+					TLSSecretName: "my-secret",
+				}
 				httpProxies, err := builder.Build(&routes)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(httpProxies).To(Equal(expectedHTTPProxies))
@@ -402,7 +416,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 						},
 					}
 
-					builder := HTTPProxyBuilder{}
+					builder := HTTPProxyBuilder{
+						TLSSecretName: "my-secret",
+					}
 					k8sResources, err := builder.Build(&routes)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(len(k8sResources)).To(Equal(1))
@@ -465,7 +481,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 						},
 					}
 
-					builder := HTTPProxyBuilder{}
+					builder := HTTPProxyBuilder{
+						TLSSecretName: "my-secret",
+					}
 					_, err := builder.Build(&routes)
 					Expect(err).To(MatchError("route guid route-guid-0 and route guid route-guid-1 disagree on whether or not the domain is internal"))
 				})
@@ -524,7 +542,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 						},
 					}
 
-					builder := HTTPProxyBuilder{}
+					builder := HTTPProxyBuilder{
+						TLSSecretName: "my-secret",
+					}
 					_, err := builder.Build(&routes)
 					Expect(err).To(MatchError("route guid route-guid-0 and route guid route-guid-1 share the same FQDN but have different namespaces"))
 				})
@@ -545,11 +565,14 @@ var _ = Describe("HTTPProxyBuilder", func() {
 						},
 					}
 
-					builder := HTTPProxyBuilder{}
+					builder := HTTPProxyBuilder{
+						TLSSecretName: "my-secret",
+					}
 
 					expectedHTTPProxies := []hpv1.HTTPProxy{
 						constructHTTPProxy(ingressResourceParams{
-							fqdn: "test0.domain0.example.com",
+							tlsSecretName: "my-secret",
+							fqdn:          "test0.domain0.example.com",
 							owners: []ownerParams{
 								{
 									routeName: routes.Items[0].ObjectMeta.Name,
@@ -590,7 +613,8 @@ var _ = Describe("HTTPProxyBuilder", func() {
 			}
 
 			desiredHTTPProxy := constructHTTPProxy(ingressResourceParams{
-				fqdn: "test0.domain0.example.com",
+				tlsSecretName: "my-secret",
+				fqdn:          "test0.domain0.example.com",
 				owners: []ownerParams{
 					{
 						routeName: "banana",
@@ -615,7 +639,9 @@ var _ = Describe("HTTPProxyBuilder", func() {
 
 			Expect(len(actualHTTPProxy.ObjectMeta.OwnerReferences)).To(BeZero())
 
-			builder := HTTPProxyBuilder{}
+			builder := HTTPProxyBuilder{
+				TLSSecretName: "my-secret",
+			}
 			mutateFn := builder.BuildMutateFunction(actualHTTPProxy, &desiredHTTPProxy)
 			err := mutateFn()
 			Expect(err).NotTo(HaveOccurred())
