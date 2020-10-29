@@ -6,7 +6,7 @@ systemNamespace: cf-system
 workloadsNamespace: cf-workloads
 
 routecontroller:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:1f35ffa5cd0ccfc5fead47a60bada131d024ca5c6a87085d5ee32415e1a10834
+  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:aa79bb476ee8d8ed1dd77c216cf1c4e79abf7599e32181ae2dcde1c2f83bd9fc
   ingressSolutionProvider: contour
 
 service:
