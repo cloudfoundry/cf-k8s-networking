@@ -11,5 +11,3 @@ routecontroller:
 
 service:
   externalPort: 80
-
-runningInKIND: false
