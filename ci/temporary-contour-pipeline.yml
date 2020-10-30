@@ -69,8 +69,8 @@ resources:
     branch: contour-ingress
     private_key: ((github_private_key.private_key))
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
-    ignore_paths:
-      - routecontroller
+    paths:
+      - config
 
 - name: cf-k8s-networking-ci
   type: git
@@ -183,6 +183,9 @@ jobs:
           passed: [run-routecontroller-units, publish-routecontroller-dev-image]
           tags: [dedi-k8s-stress-vm]
           trigger: true
+        - get: cf-k8s-networking-config
+          trigger: true
+          tags: [dedi-k8s-stress-vm]
         - get: cf-k8s-networking-ci
           tags: [dedi-k8s-stress-vm]
         - get: concourse-dcind
