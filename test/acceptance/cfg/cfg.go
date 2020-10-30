@@ -7,6 +7,13 @@ import (
 	"time"
 )
 
+type IngressProvider string
+
+const (
+	Istio   = IngressProvider("istio")
+	Contour = IngressProvider("contour")
+)
+
 // Example config:
 //  {
 //    "kubeconfig_path": "/Users/user/.kube/config",
@@ -16,9 +23,10 @@ import (
 //    "apps_domain": "apps.example.com"
 //  }
 type Config struct {
-	KubeConfigPath     string `json:"kubeconfig_path"`
-	KeepClusterChanges bool   `json:"keep_cluster_changes"`
-	KeepCFChanges      bool   `json:"keep_cf_changes"`
+	KubeConfigPath     string          `json:"kubeconfig_path"`
+	KeepClusterChanges bool            `json:"keep_cluster_changes"`
+	KeepCFChanges      bool            `json:"keep_cf_changes"`
+	IngressProvider    IngressProvider `json:"ingress_provider"`
 
 	API           string `json:"api"`
 	AdminUser     string `json:"admin_user"`
@@ -110,7 +118,7 @@ func (c *Config) GetScaledTimeout(timeout time.Duration) time.Duration {
 	return time.Duration(float64(timeout) * 2)
 }
 
-func NewConfig(configPath string, kubeConfigPath string, keepClusterChanges bool, keepCFChanges bool) (*Config, error) {
+func NewConfig(configPath string, kubeConfigPath string, keepClusterChanges bool, keepCFChanges bool, ingressProvider string) (*Config, error) {
 	configFile, err := ioutil.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("error reading config %v", err)
@@ -126,6 +134,7 @@ func NewConfig(configPath string, kubeConfigPath string, keepClusterChanges bool
 	config.KubeConfigPath = kubeConfigPath
 	config.KeepClusterChanges = keepClusterChanges
 	config.KeepCFChanges = keepCFChanges
+	config.IngressProvider = IngressProvider(ingressProvider)
 
 	return config, nil
 }

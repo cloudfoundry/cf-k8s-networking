@@ -57,7 +57,7 @@ var _ = BeforeSuite(func() {
 	Eventually(session).Should(gexec.Exit(0))
 
 	// Deploy Ingress Providers's Ingress CRD
-	session, err = kubectl.Run("apply", "-f", getIngressProviderIngressCRDPath())
+	session, err = kubectl.Run("apply", "-f", getIngressProviderCRDFilePath())
 	Expect(err).NotTo(HaveOccurred())
 	Eventually(session).Should(gexec.Exit(0))
 
@@ -234,7 +234,7 @@ func getIngressResourceName() string {
 	}
 }
 
-func getIngressProviderIngressCRDPath() string {
+func getIngressProviderCRDFilePath() string {
 	switch ingressProvider {
 	case "istio":
 		return "../integration/fixtures/istio-virtual-service.yaml"
