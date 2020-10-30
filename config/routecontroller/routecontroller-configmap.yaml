@@ -26,5 +26,5 @@ data:
   #@ end
   #@ if data.values.routecontroller.ingressSolutionProvider == "contour":
   TLS_SECRET_NAME: #@ data.values.routecontroller.contour.tlsSecretName
-  HTTPS_ONLY: #@ data.values.routecontroller.contour.httpsOnly
+  HTTPS_ONLY: #@ "true" if data.values.routecontroller.contour.httpsOnly else "false"
   #@ end
