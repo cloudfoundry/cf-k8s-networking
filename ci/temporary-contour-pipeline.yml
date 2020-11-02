@@ -10,6 +10,7 @@ groups:
   jobs:
   - gke-deploy-and-test
   - gke-run-cats
+  - deploy-good-acceptance
 - name: routecontroller
   jobs:
   - run-routecontroller-units
@@ -107,6 +108,13 @@ resources:
     branch: master
     uri: git@github.com:karlkfi/concourse-dcind.git
     private_key: ((github_private_key.private_key))
+
+- name: acceptance-install-values
+  type: gcs-resource
+  source:
+    bucket: cf-k8s-networking
+    json_key: ((shared_gcp_account_creds))
+    versioned_file: contour-good-acceptance/cf-install-values.yml
 
 jobs:
 # Build
@@ -310,3 +318,38 @@ jobs:
         CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
+- name: deploy-good-acceptance
+  plan:
+    - in_parallel:
+      - get: cf-for-k8s
+      - get: cf-for-k8s-ci
+      - get: cf-k8s-networking-ci
+      - get: cf-k8s-networking
+        passed: [gke-deploy-and-test]
+        trigger: true
+    - task: destroy-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+      params:
+        CF_DOMAIN:  &acceptance-cluster-domain "contour-good-acceptance.routing.lol"
+        CLUSTER_NAME: &acceptance-cluster-name "contour-good-acceptance"
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+    - task: create-gke-cluster
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
+      params:
+        CLUSTER_NAME: *acceptance-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        EPHEMERAL_CLUSTER: false
+    - task: install-cf
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
+      params:
+        CF_DOMAIN: *acceptance-cluster-domain
+        CLUSTER_NAME: *acceptance-cluster-name
+        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+        KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
+    - task: run-smoke-test
+      file: cf-for-k8s-ci/ci/tasks/run-smoke-tests/task.yml
+      params:
+        SMOKE_TEST_SKIP_SSL: true
+    - put: acceptance-install-values
+      params:
+        file: cf-install-values-out/cf-install-values.yml
