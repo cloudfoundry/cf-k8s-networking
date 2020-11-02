@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 
+	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/generator"
 
@@ -47,8 +48,8 @@ var _ = Describe("Policy and mesh connectivity", func() {
 
 	Context("to metrics / stats endpoints", func() {
 		It("succeeds", func() {
-			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape("istiod.istio-system:15014/metrics"))
-			fmt.Printf("Attempting to reach %s", route)
+			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape(getIngressControlPlaneMetricsURL()))
+			fmt.Printf("Attempting to reach %s\n", route)
 			resp, err := client.Get(route)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(resp.StatusCode).To(Equal(200))
@@ -56,14 +57,15 @@ var _ = Describe("Policy and mesh connectivity", func() {
 
 			body, err := ioutil.ReadAll(resp.Body)
 			Expect(err).NotTo(HaveOccurred())
-
-			Expect(string(body)).To(ContainSubstring("component=\"pilot\""))
+			Expect(string(body)).NotTo(BeEmpty())
 		})
 
 	})
 
 	Context("from apps", func() {
 		Context("to istio control plane components", func() {
+			SkipIfIngressProviderNotSupported(cfg.Istio)
+
 			It("fails", func() {
 				// using the istiod ip because this endpoint is not exposed via the service, and we want to make sure it can't be reached.
 				ip, err := getPodIPBySelector("istio-system", "app=istiod")
@@ -87,7 +89,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		Context("to other apps via hairpinning", func() {
 			It("succeeds", func() {
 				route := fmt.Sprintf("http://%s.%s/proxy/%s.%s", app1name, domain, app2name, domain)
-				fmt.Printf("Attempting to reach %s", route)
+				fmt.Printf("Attempting to reach %s\n", route)
 				resp, err := client.Get(route)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(resp.StatusCode).To(Equal(200))
@@ -107,10 +109,10 @@ var _ = Describe("Policy and mesh connectivity", func() {
 })
 
 func expectConnectError(client *http.Client, route string) {
-	fmt.Printf("Attempting to reach %s", route)
+	fmt.Printf("Attempting to reach %s\n", route)
 	resp, err := client.Get(route)
 	Expect(err).NotTo(HaveOccurred())
-	Expect(resp.StatusCode).To(Equal(200))
+	// We are not checking status code as it's different between Istio and Contour.
 
 	buf := new(bytes.Buffer)
 	_, err = buf.ReadFrom(resp.Body)
@@ -118,7 +120,9 @@ func expectConnectError(client *http.Client, route string) {
 	bodyStr := buf.String()
 	fmt.Println(bodyStr)
 
-	Expect(bodyStr).To(MatchRegexp("connect error"))
+	// Istio will reply with "connect error..."
+	// While Contour will just proxy the output of the proxy app which is "request failed: ..."
+	Expect(bodyStr).To(MatchRegexp("connect error|request failed"))
 
 	defer resp.Body.Close()
 }

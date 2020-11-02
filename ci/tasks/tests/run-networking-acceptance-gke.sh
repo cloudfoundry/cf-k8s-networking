@@ -10,9 +10,11 @@ source cf-k8s-networking-ci/ci/tasks/helpers.sh
 : "${CLOUDSDK_COMPUTE_ZONE:?}"
 : "${GCP_SERVICE_ACCOUNT_KEY:?}"
 : "${GCP_PROJECT:?}"
+: "${INGRESS_PROVIDER:?}"
 
 function main() {
     export KUBECONFIG=kubeconfig/config
+    export INGRESS_PROVIDER
 
     gcloud auth activate-service-account --key-file=<(echo "${GCP_SERVICE_ACCOUNT_KEY}") --project="${GCP_PROJECT}" 1>/dev/null 2>&1
     gcloud container clusters get-credentials ${CLUSTER_NAME} 1>/dev/null 2>&1

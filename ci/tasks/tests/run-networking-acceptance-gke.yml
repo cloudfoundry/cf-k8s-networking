@@ -30,3 +30,4 @@ params:
   CLOUDSDK_COMPUTE_ZONE: "us-west1-a"
   GCP_PROJECT: "cf-routing"
   FLAKE_ATTEMPTS:
+  INGRESS_PROVIDER: istio

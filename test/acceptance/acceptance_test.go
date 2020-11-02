@@ -34,12 +34,18 @@ func TestAcceptance(t *testing.T) {
 		os.Getenv("KUBECONFIG"),
 		os.Getenv("CONFIG_KEEP_CLUSTER") != "",
 		os.Getenv("CONFIG_KEEP_CF") != "",
+		os.Getenv("INGRESS_PROVIDER"),
 	)
 
 	if err != nil {
 		defer GinkgoRecover()
 		fmt.Println("Failed to load config.")
 		t.Fail()
+	}
+
+	g := &Globals{
+		AppsDomain:      config.AppsDomain,
+		IngressProvider: config.IngressProvider,
 	}
 
 	kubectl = &KubeCtl{kubeConfigPath: config.KubeConfigPath}
@@ -57,10 +63,8 @@ func TestAcceptance(t *testing.T) {
 			Eventually(cf.Cf("enable-feature-flag", "diego_docker")).Should(gexec.Exit(0))
 		})
 
-		g := &Globals{}
 		g.SysComponentSelector = createSystemComponent()
 		g.AppGuid = pushApp(generator.PrefixedRandomName("ACCEPTANCE", "app"))
-		g.AppsDomain = config.AppsDomain
 
 		data, err := g.Serialize()
 		if err != nil {
@@ -96,6 +100,7 @@ type Globals struct {
 	AppGuid              string `json:"app_guid"`
 	AppsDomain           string `json:"apps_domain"`
 	SysComponentSelector string `json:"sys_component_selector"`
+	IngressProvider      cfg.IngressProvider
 }
 
 func (g *Globals) Serialize() ([]byte, error) {
@@ -129,6 +134,14 @@ func (kc *KubeCtl) Run(args ...string) (output []byte, err error) {
 		}
 	}
 	return output, err
+}
+
+func SkipIfIngressProviderNotSupported(desiredProvider cfg.IngressProvider) {
+	BeforeEach(func() {
+		if desiredProvider != globals.IngressProvider {
+			Skip(fmt.Sprintf("The current ingress provider is not supported.\nExpected: %q, Actual: %q", desiredProvider, globals.IngressProvider))
+		}
+	})
 }
 
 func createSystemComponent() string {
@@ -183,4 +196,16 @@ func pushApp(name string) string {
 	guid := strings.TrimSpace(string(cf.Cf("app", name, "--guid").Wait().Out.Contents()))
 
 	return guid
+}
+
+func getIngressControlPlaneMetricsURL() string {
+	switch globals.IngressProvider {
+	case cfg.Istio:
+		return "istiod.istio-system:15014/metrics"
+	case cfg.Contour:
+		podIP, _ := getPodIPBySelector("projectcontour", "app=contour")
+		return fmt.Sprintf("%s:8000/metrics", podIP)
+	default:
+		panic("ingress provider not supported: " + globals.IngressProvider)
+	}
 }

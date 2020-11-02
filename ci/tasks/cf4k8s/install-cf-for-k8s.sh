@@ -12,6 +12,7 @@ source cf-k8s-networking-ci/ci/tasks/helpers.sh
 : "${SHARED_DNS_ZONE_NAME:?}"
 : "${KAPP_TIMEOUT:?}"
 : "${USE_LATEST_NETWORKING:?}"
+: "${INGRESS_PROVIDER:?}"
 
 
 function install_cf() {
@@ -45,10 +46,10 @@ function install_cf() {
 
     echo "Installing CF..."
     if [[ "${USE_NODEPORT_SERVICE}" == "true" ]]; then
-        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml) \
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml --data-value-yaml networking.ingress_solution_provider="${INGRESS_PROVIDER}") \
             -y --wait-timeout ${KAPP_TIMEOUT}
     else
-        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
+        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml --data-value-yaml networking.ingress_solution_provider="${INGRESS_PROVIDER}") \
              --wait-timeout ${KAPP_TIMEOUT}
     fi
 

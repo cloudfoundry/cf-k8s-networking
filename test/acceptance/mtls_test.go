@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 )
@@ -19,6 +20,8 @@ const CurlSuccessfulExitCode = 0
 const CurlFailedToConnectHostExitCode = 7
 
 var _ = Describe("mTLS setup on a CF-k8s env", func() {
+	SkipIfIngressProviderNotSupported(cfg.Istio)
+
 	const cfAppContainerName = "opi"
 	const proxyContainerName = "istio-proxy"
 
