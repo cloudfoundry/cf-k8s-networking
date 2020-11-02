@@ -16,7 +16,7 @@ ROUTECONTROLLER_IMAGE="$(routecontroller_image)"
 export ROUTECONTROLLER_IMAGE
 export INGRESS_PROVIDER
 
-mv cf-k8s-networking-config/config cf-k8s-networking/config
+yes | cp -rf cf-k8s-networking-config/config cf-k8s-networking/config
 
 concourse-dcind/entrypoint.sh cf-k8s-networking/routecontroller/scripts/stress
 
