@@ -42,19 +42,14 @@ function install_cf() {
         cf-for-k8s/hack/generate-values.sh -d "${CF_DOMAIN}" -g /tmp/service-account.json > cf-install-values/cf-install-values.yml
     fi
 
-    # Set ingress provider to CF values file and copy it to cf-install-values-out
-    yq --yml-roundtrip \
-       --arg ingress_provider "${INGRESS_PROVIDER}" \
-       '.networking.ingress_solution_provider = $ingress_provider' \
-       < cf-install-values/cf-install-values.yml \
-       > cf-install-values-out/cf-install-values.yml
+    cp cf-install-values/cf-install-values.yml cf-install-values-out/cf-install-values.yml
 
     echo "Installing CF..."
     if [[ "${USE_NODEPORT_SERVICE}" == "true" ]]; then
-        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml) \
+        kapp deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-for-k8s/config-optional/ingressgateway-service-nodeport.yml -f cf-install-values-out/cf-install-values.yml --data-value-yaml networking.ingress_solution_provider="${INGRESS_PROVIDER}") \
             -y --wait-timeout ${KAPP_TIMEOUT}
     else
-        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml) \
+        kapp -y deploy -a cf -f <(ytt -f cf-for-k8s/config -f cf-install-values-out/cf-install-values.yml --data-value-yaml networking.ingress_solution_provider="${INGRESS_PROVIDER}") \
              --wait-timeout ${KAPP_TIMEOUT}
     fi
 
