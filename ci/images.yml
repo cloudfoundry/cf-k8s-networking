@@ -241,7 +241,7 @@ jobs:
         file: cf-k8s-networking-ci/ci/tasks/docker/update-image-digest-in-cf-for-k8s.yml
         params:
           COMPONENT_NAME: fluentbit
-          TARGET_FILE: build/istio/values.yaml
+          TARGET_FILE: build/ingress/common-values.yaml
           BRANCH: *update-fluentbit-branch
         input_mapping:
           image-resource: fluent-bit-image
@@ -254,10 +254,10 @@ jobs:
         params:
           BRANCH: *update-fluentbit-branch
           GITHUB_KEY: ((github_access_token))
-          GITHUB_TITLE: "Update Istio gateway fluent-bit sidecar image"
+          GITHUB_TITLE: "Update Ingrses fluent-bit sidecar image"
           GITHUB_BODY: |
               ## WHAT is this change about?
-              Update the Istio gateway's fluent-bit sidecar image digest
+              Update the Ingress provider's Envoy fluent-bit sidecar image digest
 
               ## Does this PR introduce a change to config/values.yml?
               No

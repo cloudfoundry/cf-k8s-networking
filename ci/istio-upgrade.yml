@@ -217,9 +217,9 @@ jobs:
 
           sed -i \
             "s/istio_version.*\$/istio_version: $ISTIO_VERSION/" \
-            cf-for-k8s/build/istio/values.yaml
+            cf-for-k8s/build/ingress/istio/values.yaml
 
-          cf-for-k8s/build/istio/build.sh 2>&1 | tee output.txt
+          cf-for-k8s/build/ingress/istio/build.sh 2>&1 | tee output.txt
 
           # TODO: this is hacky
           #       we should figure out why the build script doesn't exit nonzero on errors

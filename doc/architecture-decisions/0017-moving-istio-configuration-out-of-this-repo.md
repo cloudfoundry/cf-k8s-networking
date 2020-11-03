@@ -30,13 +30,13 @@ this repo and run in our
 More details on this decision:
 
 * move Istio config generation and overlays folder `istio-install` to
-  [cf-for-k8s/build/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/master/build/istio)
+  [cf-for-k8s/build/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/328332e5d1bce5f61077e88d0ec20662564f6bf5/build/istio)
 * move Istio generated and other networking config folders `config/istio`,
-  `config/istio-generated` to [cf-for-k8s/config/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/master/config/istio)
+  `config/istio-generated` to [cf-for-k8s/config/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/328332e5d1bce5f61077e88d0ec20662564f6bf5/config/istio)
 * overlays directly related to Istio installation should be created in
   cf-for-k8s/build/istio
 * Istio values should not be created in cf-for-k8s values config but via
-  starlark functions in [cf-for-k8s/config/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/master/config/istio), e.g. for `istio_version` value:
+  starlark functions in [cf-for-k8s/config/istio](https://github.com/cloudfoundry/cf-for-k8s/tree/328332e5d1bce5f61077e88d0ec20662564f6bf5/config/istio), e.g. for `istio_version` value:
   ```
   #@ def build_version():
   #@   return "1.6.4"
@@ -53,7 +53,6 @@ More details on this decision:
 ## Consequences
 
 * cf-k8s-networking now mostly only contains routecontroller, CI and tests.
-* Istio config now lives in the [cf-for-k8s
-  repo](https://github.com/cloudfoundry/cf-for-k8s/tree/master/config/istio) and
+* Istio config now lives in the [cf-for-k8s repo](https://github.com/cloudfoundry/cf-for-k8s/tree/328332e5d1bce5f61077e88d0ec20662564f6bf5/config/istio) and
   whenever need to make changes to Istio config, we do so through a PR to
   cf-for-k8s.
