@@ -25,7 +25,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-acceptance-tests.git
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: develop
 
 - name: cf-for-k8s
   type: git
@@ -289,8 +289,7 @@ jobs:
         - get: cf-for-k8s-ci
         - get: cf-acceptance-tests
         - get: cf-k8s-networking-ci
-        - get: cf-k8s-networking
-          resource: cf-k8s-networking-config
+        - get: cf-k8s-networking-config
           trigger: true
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
