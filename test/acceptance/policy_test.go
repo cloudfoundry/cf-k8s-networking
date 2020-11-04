@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"time"
 
 	"code.cloudfoundry.org/cf-k8s-networking/acceptance/cfg"
 	"github.com/cloudfoundry-incubator/cf-test-helpers/cf"
@@ -33,7 +34,7 @@ var _ = Describe("Policy and mesh connectivity", func() {
 		_ = pushProxy(app1name)
 		app2guid = pushProxy(app2name)
 
-		domain = globals.AppsDomain
+		domain = globals.Config.AppsDomain
 
 		tr := &http.Transport{
 			TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -42,12 +43,29 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	})
 
 	AfterEach(func() {
-		cf.Cf("delete", "-f", app1name)
-		cf.Cf("delete", "-f", app2name)
+		if !globals.Config.KeepCFChanges {
+			cf.Cf("delete", "-f", app1name)
+			cf.Cf("delete", "-f", app2name)
+		}
 	})
 
 	Context("to metrics / stats endpoints", func() {
 		It("succeeds", func() {
+			var resp *http.Response
+
+			Eventually(func() int {
+				var err error
+				route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape(getIngressControlPlaneMetricsURL()))
+				fmt.Printf("Attempting to reach %s\n", route)
+				resp, err = client.Get(route)
+				if err != nil {
+					fmt.Println("Failed to reach", route, resp)
+					return 0
+				}
+
+				return resp.StatusCode
+			}, 10*time.Second, 500*time.Millisecond).Should(Equal(http.StatusOK))
+
 			route := fmt.Sprintf("http://%s.%s/proxy/%s", app1name, domain, url.QueryEscape(getIngressControlPlaneMetricsURL()))
 			fmt.Printf("Attempting to reach %s\n", route)
 			resp, err := client.Get(route)
@@ -88,14 +106,23 @@ var _ = Describe("Policy and mesh connectivity", func() {
 
 		Context("to other apps via hairpinning", func() {
 			It("succeeds", func() {
-				route := fmt.Sprintf("http://%s.%s/proxy/%s.%s", app1name, domain, app2name, domain)
-				fmt.Printf("Attempting to reach %s\n", route)
-				resp, err := client.Get(route)
-				Expect(err).NotTo(HaveOccurred())
-				Expect(resp.StatusCode).To(Equal(200))
+				var resp *http.Response
+
+				Eventually(func() int {
+					var err error
+					route := fmt.Sprintf("http://%s.%s/proxy/%s.%s", app1name, domain, app2name, domain)
+					fmt.Printf("Attempting to reach %s\n", route)
+					resp, err = client.Get(route)
+					if err != nil {
+						fmt.Println("Failed to reach", route, resp)
+						return 0
+					}
+
+					return resp.StatusCode
+				}, 10*time.Second, 500*time.Millisecond).Should(Equal(http.StatusOK))
 
 				buf := new(bytes.Buffer)
-				_, err = buf.ReadFrom(resp.Body)
+				_, err := buf.ReadFrom(resp.Body)
 				Expect(err).NotTo(HaveOccurred())
 				bodyStr := buf.String()
 				fmt.Println(bodyStr)
@@ -109,22 +136,25 @@ var _ = Describe("Policy and mesh connectivity", func() {
 })
 
 func expectConnectError(client *http.Client, route string) {
-	fmt.Printf("Attempting to reach %s\n", route)
-	resp, err := client.Get(route)
-	Expect(err).NotTo(HaveOccurred())
-	// We are not checking status code as it's different between Istio and Contour.
+	Consistently(func() string {
+		fmt.Printf("Attempting to reach %s\n", route)
+		resp, err := client.Get(route)
+		Expect(err).NotTo(HaveOccurred())
+		// We are not checking status code as it's different between Istio and Contour.
+		defer resp.Body.Close()
 
-	buf := new(bytes.Buffer)
-	_, err = buf.ReadFrom(resp.Body)
-	Expect(err).NotTo(HaveOccurred())
-	bodyStr := buf.String()
-	fmt.Println(bodyStr)
+		buf := new(bytes.Buffer)
+		_, err = buf.ReadFrom(resp.Body)
+		Expect(err).NotTo(HaveOccurred())
+		bodyStr := buf.String()
+		fmt.Println(bodyStr)
+		return bodyStr
+	}, 10*time.Second, 500*time.Millisecond).Should(
+		// Istio will reply with "connect error..."
+		// While Contour will just proxy the output of the proxy app which is "request failed: ..."
+		MatchRegexp("connect error|request failed"),
+	)
 
-	// Istio will reply with "connect error..."
-	// While Contour will just proxy the output of the proxy app which is "request failed: ..."
-	Expect(bodyStr).To(MatchRegexp("connect error|request failed"))
-
-	defer resp.Body.Close()
 }
 
 func getPodIPBySelector(namespace string, selector string) (string, error) {

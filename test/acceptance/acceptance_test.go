@@ -44,8 +44,7 @@ func TestAcceptance(t *testing.T) {
 	}
 
 	g := &Globals{
-		AppsDomain:      config.AppsDomain,
-		IngressProvider: config.IngressProvider,
+		Config: *config,
 	}
 
 	kubectl = &KubeCtl{kubeConfigPath: config.KubeConfigPath}
@@ -100,7 +99,7 @@ type Globals struct {
 	AppGuid              string `json:"app_guid"`
 	AppsDomain           string `json:"apps_domain"`
 	SysComponentSelector string `json:"sys_component_selector"`
-	IngressProvider      cfg.IngressProvider
+	Config               cfg.Config
 }
 
 func (g *Globals) Serialize() ([]byte, error) {
@@ -138,8 +137,8 @@ func (kc *KubeCtl) Run(args ...string) (output []byte, err error) {
 
 func SkipIfIngressProviderNotSupported(desiredProvider cfg.IngressProvider) {
 	BeforeEach(func() {
-		if desiredProvider != globals.IngressProvider {
-			Skip(fmt.Sprintf("The current ingress provider is not supported.\nExpected: %q, Actual: %q", desiredProvider, globals.IngressProvider))
+		if desiredProvider != globals.Config.IngressProvider {
+			Skip(fmt.Sprintf("The current ingress provider is not supported.\nExpected: %q, Actual: %q", desiredProvider, globals.Config.IngressProvider))
 		}
 	})
 }
@@ -199,13 +198,13 @@ func pushApp(name string) string {
 }
 
 func getIngressControlPlaneMetricsURL() string {
-	switch globals.IngressProvider {
+	switch globals.Config.IngressProvider {
 	case cfg.Istio:
 		return "istiod.istio-system:15014/metrics"
 	case cfg.Contour:
 		podIP, _ := getPodIPBySelector("projectcontour", "app=contour")
 		return fmt.Sprintf("%s:8000/metrics", podIP)
 	default:
-		panic("ingress provider not supported: " + globals.IngressProvider)
+		panic("ingress provider not supported: " + globals.Config.IngressProvider)
 	}
 }

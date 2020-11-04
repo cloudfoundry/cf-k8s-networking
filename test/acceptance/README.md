@@ -18,7 +18,7 @@ Other requirements:
 
 * JSON-formatted configuration file with the following required fields:
 
-  ```
+  ```json
   {
    "kubeconfig_path": "/Users/user/.kube/config",
    "api": "api.example.com",
