@@ -15,6 +15,7 @@ source cf-k8s-networking-ci/ci/tasks/helpers.sh
 : "${NUM_NODES:?}"
 : "${EPHEMERAL_CLUSTER:?}"
 : "${REGIONAL_CLUSTER:?}"
+: "${REUSE_CLUSTER:?}"
 
 function latest_cluster_version() {
   if [ "${REGIONAL_CLUSTER}" = true ]; then
@@ -34,8 +35,13 @@ function create_cluster() {
     fi
 
     if gcloud container clusters describe ${CLUSTER_NAME} "${additional_args[@]}" > /dev/null; then
+      if [ "${REUSE_CLUSTER}" = true ]; then
+        echo "${CLUSTER_NAME} already exists! Removing CF..."
+        kapp delete -a cf
+      else
         echo "${CLUSTER_NAME} already exists! Destroying..."
         gcloud container clusters delete ${CLUSTER_NAME} --quiet "${additional_args[@]}"
+      fi
     fi
 
     if [ "${ENABLE_IP_ALIAS}" = true ]; then

@@ -284,12 +284,6 @@ jobs:
         CLUSTER_NAME: *ci-test-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         INTEGRATION_CONFIG_FILE: "config.json"
-    - task: destroy-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
-      params:
-        CF_DOMAIN: *ci-test-for-k8s-domain
-        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: gke-run-cats
   serial: true
@@ -324,12 +318,6 @@ jobs:
         INCLUDE_APPS: true
         INCLUDE_ROUTING: true
         SKIP_REGEXP:
-    - task: destroy-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
-      params:
-        CF_DOMAIN: *ci-cats-for-k8s-domain
-        CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: bump-rc
   plan:
@@ -350,12 +338,6 @@ jobs:
       - get: cf-k8s-networking-rc
         passed: [bump-rc]
         trigger: true
-    - task: destroy-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
-      params:
-        CF_DOMAIN:  &acceptance-cluster-domain "good-acceptance.routing.lol"
-        CLUSTER_NAME: &acceptance-cluster-name "good-acceptance"
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
     - task: create-gke-cluster
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/create-gke-cluster.yml
       params:
