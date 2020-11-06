@@ -37,6 +37,7 @@ function create_cluster() {
     if gcloud container clusters describe ${CLUSTER_NAME} "${additional_args[@]}" > /dev/null; then
       if [ "${REUSE_CLUSTER}" = true ]; then
         echo "${CLUSTER_NAME} already exists! Removing CF..."
+        gcloud container clusters get-credentials "${CLUSTER_NAME}"
         kapp delete -a cf
       else
         echo "${CLUSTER_NAME} already exists! Destroying..."
