@@ -20,8 +20,21 @@ groups:
   - run-routecontroller-integration-tests
   - run-routecontroller-stress-tests
   - publish-routecontroller-image
+- name: cleanup
+  jobs:
+  - nightly-delete-ci-test
+  - nightly-delete-ci-cats
 
 resources:
+- name: quitting-time
+  type: time
+  icon: clock
+  source:
+    location: America/Los_Angeles
+    start: 6:00 PM
+    stop: 6:10 PM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+
 - name: cf-acceptance-tests
   type: git
   source:
@@ -398,3 +411,30 @@ jobs:
         body: release-text/body.md
     - put: version
       params: {bump: minor}
+
+# Cleanup
+- name: nightly-delete-ci-test
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking-ci
+    - get: quitting-time
+      trigger: true
+  - task: destroy-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+    params:
+      CF_DOMAIN: *ci-test-for-k8s-domain
+      CLUSTER_NAME: *ci-test-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
+
+- name: nightly-delete-ci-cats
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking-ci
+    - get: quitting-time
+      trigger: true
+  - task: destroy-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+    params:
+      CF_DOMAIN: *ci-cats-for-k8s-domain
+      CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))

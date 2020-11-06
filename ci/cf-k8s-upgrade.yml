@@ -6,6 +6,15 @@ resource_types:
     repository: frodenas/gcs-resource
 
 resources:
+- name: quitting-time
+  type: time
+  icon: clock
+  source:
+    location: America/Los_Angeles
+    start: 6:00 PM
+    stop: 6:10 PM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
+
 - name: cf-for-k8s-stable
   type: git
   icon: github
@@ -143,3 +152,16 @@ jobs:
 
           TARGET_ORG: sli
           TARGET_SPACE: sli
+
+- name: nightly-delete-cluster
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking-ci
+    - get: quitting-time
+      trigger: true
+  - task: destroy-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+    params:
+      CF_DOMAIN: *domain
+      CLUSTER_NAME: *upgrade-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
