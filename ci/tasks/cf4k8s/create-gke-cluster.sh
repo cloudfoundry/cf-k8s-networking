@@ -38,7 +38,7 @@ function create_cluster() {
       if [ "${REUSE_CLUSTER}" = true ]; then
         echo "${CLUSTER_NAME} already exists! Removing CF..."
         gcloud container clusters get-credentials "${CLUSTER_NAME}"
-        kapp delete -a cf
+        kapp delete -a cf -y
       else
         echo "${CLUSTER_NAME} already exists! Destroying..."
         gcloud container clusters delete ${CLUSTER_NAME} --quiet "${additional_args[@]}"
