@@ -78,6 +78,7 @@ func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
 			}
 		}
 	} else {
+		// if the DeletionTimestamp is set, we should run the finalizer
 		if hasFinalizer(route, finalizerName) {
 			err = r.finalizeRouteForDeletion(req, route, routes, log, ctx)
 			if err != nil {
