@@ -11,6 +11,7 @@ groups:
   - gke-deploy-and-test
   - gke-run-cats
   - deploy-good-acceptance
+  - nightly-delete-cluster
 - name: routecontroller
   jobs:
   - run-routecontroller-units
@@ -115,6 +116,15 @@ resources:
     bucket: cf-k8s-networking
     json_key: ((shared_gcp_account_creds))
     versioned_file: contour-good-acceptance/cf-install-values.yml
+
+- name: quitting-time
+  type: time
+  icon: clock
+  source:
+    location: America/Los_Angeles
+    start: 6:00 PM
+    stop: 6:10 PM
+    days: [Monday, Tuesday, Wednesday, Thursday, Friday]
 
 jobs:
 # Build
@@ -274,12 +284,6 @@ jobs:
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         INTEGRATION_CONFIG_FILE: "config.json"
         INGRESS_PROVIDER: contour
-    - task: destroy-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
-      params:
-        CF_DOMAIN: *ci-test-for-k8s-domain
-        CLUSTER_NAME: *ci-test-for-k8s-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: gke-run-cats
   serial: true
@@ -299,7 +303,7 @@ jobs:
     - task: install-cf
       file: cf-k8s-networking-ci/ci/tasks/cf4k8s/install-cf-for-k8s.yml
       params:
-        CF_DOMAIN: &ci-cats-for-k8s-domain "ci-conotour-cats.routing.lol"
+        CF_DOMAIN: &ci-cats-for-k8s-domain "ci-contour-cats.routing.lol"
         CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
         GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
         KPACK_GCR_ACCOUNT_KEY: ((gcp_gcr_service_account_key))
@@ -314,12 +318,6 @@ jobs:
         INCLUDE_APPS: true
         INCLUDE_ROUTING: true
         SKIP_REGEXP:
-    - task: destroy-cluster
-      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
-      params:
-        CF_DOMAIN: *ci-cats-for-k8s-domain
-        CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
-        GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
 
 - name: deploy-good-acceptance
   plan:
@@ -357,3 +355,16 @@ jobs:
     - put: acceptance-install-values
       params:
         file: cf-install-values-out/cf-install-values.yml
+
+- name: nightly-delete-cluster
+  plan:
+  - in_parallel:
+    - get: cf-k8s-networking-ci
+    - get: quitting-time
+      trigger: true
+  - task: destroy-cluster
+    file: cf-k8s-networking-ci/ci/tasks/cf4k8s/destroy-cluster.yml
+    params:
+      CF_DOMAIN: *ci-cats-for-k8s-domain
+      CLUSTER_NAME: *ci-cats-for-k8s-cluster-name
+      GCP_SERVICE_ACCOUNT_KEY: ((shared_gcp_account_creds))
