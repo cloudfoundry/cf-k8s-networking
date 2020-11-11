@@ -26,7 +26,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-acceptance-tests.git
     private_key: ((github_private_key.private_key))
-    branch: develop
+    branch: contour-hotfixes
 
 - name: cf-for-k8s
   type: git
