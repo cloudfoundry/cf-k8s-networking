@@ -317,6 +317,7 @@ jobs:
       params:
         INCLUDE_APPS: true
         INCLUDE_ROUTING: true
+        INGRESS_PROVIDER: contour
         SKIP_REGEXP:
 
 - name: deploy-good-acceptance
