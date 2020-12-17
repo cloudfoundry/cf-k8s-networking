@@ -40,7 +40,7 @@ resources:
   source:
     uri: git@github.com:cloudfoundry/cf-acceptance-tests.git
     private_key: ((github_private_key.private_key))
-    branch: master
+    branch: develop
 
 - name: cf-for-k8s
   type: git
