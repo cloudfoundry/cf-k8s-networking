@@ -1,4 +1,4 @@
-FROM relintdockerhubpushbot/cf-deployment-concourse-tasks
+FROM cloudfoundry/cf-deployment-concourse-tasks
 MAINTAINER https://github.com/cloudfoundry/cf-k8s-networking
 
 ENV HELM_VERSION 2.12.3
