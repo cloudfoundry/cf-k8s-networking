@@ -17,6 +17,7 @@ import (
 
 	"github.com/onsi/gomega/gexec"
 	"sigs.k8s.io/kind/pkg/cluster"
+	"sigs.k8s.io/kind/pkg/cluster/nodes"
 
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
@@ -1222,6 +1223,10 @@ func deleteKindCluster(name, kubeConfigPath string) {
 	provider := cluster.NewProvider()
 	err := provider.Delete(name, kubeConfigPath)
 	Expect(err).NotTo(HaveOccurred())
+	Eventually(func() []nodes.Node {
+		nodes, _ := provider.ListNodes(name)
+		return nodes
+	}).Should(HaveLen(0))
 }
 
 func kustomizeConfigCRD() ([]byte, error) {
