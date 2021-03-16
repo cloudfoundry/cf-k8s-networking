@@ -16,6 +16,18 @@ trap printStatus EXIT
 script_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
 cd "${script_dir}/.."
 
+# btrfs fix: Concourse with btrfs doesn't automatically expose the /dev/loop0
+# device on task containers. When running KIND this is necessary because
+# Kubelet attempts to stat the device mounts and will fail if this device
+# doesn't exist.
+#
+# More info:
+# https://github.com/vmware-tanzu/cross-cluster-connectivity/blob/old-hamlet/doc/adr/0002-kind-concourse-and-btrfs.md
+if [[ "$(df -Th / | grep btrfs | wc -l)" -eq 1 ]] && [[ ! -e /dev/loop0 ]]; then
+    echo "Detected btrfs. Making /dev/loop0."
+    mknod /dev/loop0 b 7 0
+fi
+
 set -x
 # TODO make these runnable in parallel
 ginkgo -keepGoing -trace -progress -failOnPending -randomizeAllSpecs -race -slowSpecThreshold 45 integration

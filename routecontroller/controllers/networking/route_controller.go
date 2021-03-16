@@ -51,8 +51,7 @@ const finalizerName string = "routes.networking.cloudfoundry.org"
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes,verbs=get;list;watch
 // +kubebuilder:rbac:groups=networking.cloudfoundry.org,resources=routes/status,verbs=get;update;patch
 
-func (r *RouteReconciler) Reconcile(req ctrl.Request) (ctrl.Result, error) {
-	ctx := context.Background()
+func (r *RouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
 	log := r.Log.WithValues("route", req.NamespacedName)
 
 	routes := &networkingv1alpha1.RouteList{}
@@ -231,7 +230,7 @@ func (r *RouteReconciler) deleteServiceList(services []corev1.Service, log logr.
 }
 
 func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
-	err := mgr.GetFieldIndexer().IndexField(&networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj runtime.Object) []string {
+	err := mgr.GetFieldIndexer().IndexField(context.Background(), &networkingv1alpha1.Route{}, fqdnFieldKey, func(rawObj client.Object) []string {
 		route := rawObj.(*networkingv1alpha1.Route)
 		return []string{route.FQDN()}
 	})
@@ -239,7 +238,7 @@ func (r *RouteReconciler) SetupWithManager(mgr ctrl.Manager) error {
 		return err
 	}
 
-	err = mgr.GetFieldIndexer().IndexField(&corev1.Service{}, serviceOwnerKey, func(rawObj runtime.Object) []string {
+	err = mgr.GetFieldIndexer().IndexField(context.Background(), &corev1.Service{}, serviceOwnerKey, func(rawObj client.Object) []string {
 		service := rawObj.(*corev1.Service)
 		if len(service.ObjectMeta.OwnerReferences) == 0 {
 			return []string{}
