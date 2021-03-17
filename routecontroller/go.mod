@@ -1,6 +1,6 @@
 module code.cloudfoundry.org/cf-k8s-networking/routecontroller
 
-go 1.13
+go 1.15
 
 require (
 	github.com/go-logr/logr v0.3.0

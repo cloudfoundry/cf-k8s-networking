@@ -1,4 +1,4 @@
-FROM golang:1.13 AS build
+FROM golang:1.15 AS build
 
 COPY ./ /go/src/routecontroller/
 WORKDIR /go/src/routecontroller/
