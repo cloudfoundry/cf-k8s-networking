@@ -101,35 +101,8 @@ func (r *RouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 }
 
 func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv1alpha1.Route, log logr.Logger, ctx context.Context) error {
-	sb := resourcebuilders.ServiceBuilder{}
-	desiredServices := sb.Build(route)
-
-	actualServicesForRoute := &corev1.ServiceList{}
-	// get services owned by that route
-	err := r.List(ctx, actualServicesForRoute, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
-	if err != nil {
-		return err
-	}
-
-	for _, desiredService := range desiredServices {
-		service := &corev1.Service{
-			ObjectMeta: metav1.ObjectMeta{
-				Name:      desiredService.ObjectMeta.Name,
-				Namespace: desiredService.ObjectMeta.Namespace,
-			},
-		}
-		mutateFn := sb.BuildMutateFunction(service, &desiredService)
-		result, err := controllerutil.CreateOrUpdate(ctx, r.Client, service, mutateFn)
-		if err != nil {
-			return err
-		}
-		log.Info(fmt.Sprintf("Service %s/%s has been %s", service.Namespace, service.Name, result))
-	}
-
-	servicesToDelete := findServicesForDeletion(actualServicesForRoute.Items, desiredServices)
-	err = r.deleteServiceList(servicesToDelete, log, ctx)
-
-	return err
+	// Let's implement this function!
+	return nil
 }
 
 func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {

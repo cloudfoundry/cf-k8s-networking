@@ -218,20 +218,6 @@ var _ = Describe("Integration", func() {
 
 		It("handles removing a destination from the route correctly", func() {
 			// check that service and vs exists
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-			))
 
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
@@ -275,9 +261,7 @@ var _ = Describe("Integration", func() {
 			))
 
 			By("deleting the service associated with the destination")
-			resultList, err := kubectlGetServices()
-			Expect(err).NotTo(HaveOccurred())
-			Eventually(len(resultList)).Should(Equal(0))
+			// TODO: add test coverage
 		})
 	})
 
@@ -409,34 +393,8 @@ var _ = Describe("Integration", func() {
 					},
 				},
 			))
-
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-2",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 9000,
-							},
-						},
-					},
-				},
-			))
 		})
+		// TODO: Add service test coverage here
 	})
 
 	When("Route resources are created in succession for the same FQDN", func() {
@@ -516,20 +474,7 @@ var _ = Describe("Integration", func() {
 
 		When("adding an additional destination to the Route", func() {
 			It("adds a new service for the new destination, and updates the virtual service with the backend", func() {
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
-								},
-							},
-						},
-					},
-				))
+				// TODO: fill in test coverage
 
 				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 					virtualService{
@@ -584,180 +529,140 @@ var _ = Describe("Integration", func() {
 					},
 				))
 
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
-								},
-							},
-						},
-					},
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-2",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 9000,
-								},
-							},
-						},
-					},
-				))
+				// TODO: Fill in test coverage
+			})
+
+			When("changing the destination on the Route", func() {
+				It("updates the service and virtual service", func() {
+					// TODO: Let's fill in the whole thing!
+				})
 			})
 		})
 
-		When("changing the destination on the Route", func() {
-			It("updates the service and virtual service", func() {
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
-								},
-							},
-						},
-					},
-				))
+		When("deleting a route", func() {
+			Context("that is the only route for a given domain", func() {
+				BeforeEach(func() {
+					yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+				})
 
-				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-					virtualService{
-						Spec: virtualServiceSpec{
-							Gateways: []string{gateway},
-							Hosts:    []string{"hostname.apps.example.com"},
-							Http: []http{
-								http{
-									Match: []match{
-										match{
-											Uri: uri{Prefix: "/some/path"},
+				It("deletes the associated services and virtual services", func() {
+					Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+						virtualService{
+							Spec: virtualServiceSpec{
+								Gateways: []string{gateway},
+								Hosts:    []string{"hostname.apps.example.com"},
+								Http: []http{
+									http{
+										Match: []match{
+											match{
+												Uri: uri{Prefix: "/some/path"},
+											},
 										},
-									},
-									Route: []route{
-										route{
-											Destination: destination{Host: "s-destination-guid-1"},
+										Route: []route{
+											route{
+												Destination: destination{Host: "s-destination-guid-1"},
+											},
 										},
 									},
 								},
 							},
 						},
-					},
-				))
+					))
 
-				secondYAMLToApply := filepath.Join("fixtures", "single-route-with-updated-single-destination.yaml")
-				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
-				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+					// TODO: add services check
 
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 9090,
-								},
-							},
-						},
-					},
-				))
+					output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "routes", "cc-route-guid-1")
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete route CR failed with err: %s", string(output)))
 
-				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-					virtualService{
-						Spec: virtualServiceSpec{
-							Gateways: []string{gateway},
-							Hosts:    []string{"hostname.apps.example.com"},
-							Http: []http{
-								http{
-									Match: []match{
-										match{
-											Uri: uri{Prefix: "/some/path"},
-										},
-									},
-									Route: []route{
-										route{
-											Destination: destination{Host: "s-destination-guid-1"},
-										},
-									},
-								},
-							},
-						},
-					},
-				))
-			})
-		})
-	})
+					Eventually(kubectlGetVirtualServices, "5s", "1s").Should(BeEmpty())
 
-	When("deleting a route", func() {
-		Context("that is the only route for a given domain", func() {
-			BeforeEach(func() {
-				yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+					//TODO: add test coverage
+				})
 			})
 
-			It("deletes the associated services and virtual services", func() {
-				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-					virtualService{
-						Spec: virtualServiceSpec{
-							Gateways: []string{gateway},
-							Hosts:    []string{"hostname.apps.example.com"},
-							Http: []http{
-								http{
-									Match: []match{
-										match{
-											Uri: uri{Prefix: "/some/path"},
+			Context("that applies to an FQDN with other routes that are not deleted", func() {
+				BeforeEach(func() {
+					yamlToApply = filepath.Join("fixtures", "multiple-routes-with-same-fqdn.yaml")
+				})
+
+				It("deletes the associated services, and updates the virtual service", func() {
+					Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+						virtualService{
+							Spec: virtualServiceSpec{
+								Gateways: []string{gateway},
+								Hosts:    []string{"hostname.apps.example.com"},
+								Http: []http{
+									http{
+										Match: []match{
+											match{
+												Uri: uri{Prefix: "/some/path"},
+											},
+										},
+										Route: []route{
+											route{
+												Destination: destination{Host: "s-destination-guid-1"},
+											},
+											route{
+												Destination: destination{Host: "s-additional-destination-for-route-1"},
+											},
 										},
 									},
-									Route: []route{
-										route{
-											Destination: destination{Host: "s-destination-guid-1"},
+									http{
+										Match: []match{
+											match{
+												Uri: uri{Prefix: "/some/different/path"},
+											},
+										},
+										Route: []route{
+											route{
+												Destination: destination{Host: "s-destination-guid-2"},
+											},
 										},
 									},
 								},
 							},
 						},
-					},
-				))
+					))
 
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
+					// TODO: add services check
+
+					output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "routes", "cc-route-guid-1")
+					Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete route CR failed with err: %s", string(output)))
+
+					Eventually(kubectlGetVirtualServices).Should(ConsistOf(
+						virtualService{
+							Spec: virtualServiceSpec{
+								Gateways: []string{gateway},
+								Hosts:    []string{"hostname.apps.example.com"},
+								Http: []http{
+									http{
+										Match: []match{
+											match{
+												Uri: uri{Prefix: "/some/different/path"},
+											},
+										},
+										Route: []route{
+											route{
+												Destination: destination{Host: "s-destination-guid-2"},
+											},
+										},
+									},
 								},
 							},
 						},
-					},
-				))
+					))
 
-				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "routes", "cc-route-guid-1")
-				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete route CR failed with err: %s", string(output)))
-
-				Eventually(kubectlGetVirtualServices, "5s", "1s").Should(BeEmpty())
-
-				Eventually(kubectlGetServices, "5s", "1s").Should(BeEmpty())
+					//TODO: add test coverage
+				})
 			})
 		})
 
-		Context("that applies to an FQDN with other routes that are not deleted", func() {
+		When("removing a destination from an existing route", func() {
 			BeforeEach(func() {
 				yamlToApply = filepath.Join("fixtures", "multiple-routes-with-same-fqdn.yaml")
 			})
 
-			It("deletes the associated services, and updates the virtual service", func() {
+			It("removes the Service/updates the VirtualService without deleting Services owned by other routes", func() {
 				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 					virtualService{
 						Spec: virtualServiceSpec{
@@ -796,47 +701,13 @@ var _ = Describe("Integration", func() {
 					},
 				))
 
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
-								},
-							},
-						},
-					},
-					service{
-						Metadata: metadata{
-							Name: "s-additional-destination-for-route-1",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 9090,
-								},
-							},
-						},
-					},
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-2",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
-								},
-							},
-						},
-					},
-				))
+				//TODO: add service check
 
-				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "routes", "cc-route-guid-1")
-				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete route CR failed with err: %s", string(output)))
+				secondYAMLToApply := filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+				output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
+				Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
+
+				// TODO: add test coverage
 
 				Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 					virtualService{
@@ -844,6 +715,18 @@ var _ = Describe("Integration", func() {
 							Gateways: []string{gateway},
 							Hosts:    []string{"hostname.apps.example.com"},
 							Http: []http{
+								http{
+									Match: []match{
+										match{
+											Uri: uri{Prefix: "/some/path"},
+										},
+									},
+									Route: []route{
+										route{
+											Destination: destination{Host: "s-destination-guid-1"},
+										},
+									},
+								},
 								http{
 									Match: []match{
 										match{
@@ -860,263 +743,17 @@ var _ = Describe("Integration", func() {
 						},
 					},
 				))
-
-				Eventually(kubectlGetServices).Should(ConsistOf(
-					service{
-						Metadata: metadata{
-							Name: "s-destination-guid-2",
-						},
-						Spec: serviceSpec{
-							Ports: []serviceSpecPort{
-								{
-									TargetPort: 8080,
-								},
-							},
-						},
-					},
-				))
 			})
 		})
-	})
 
-	When("removing a destination from an existing route", func() {
-		BeforeEach(func() {
-			yamlToApply = filepath.Join("fixtures", "multiple-routes-with-same-fqdn.yaml")
-		})
+		When("a Route's child resources are deleted unexpectedly", func() {
+			BeforeEach(func() {
+				yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
+			})
 
-		It("removes the Service/updates the VirtualService without deleting Services owned by other routes", func() {
-			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-				virtualService{
-					Spec: virtualServiceSpec{
-						Gateways: []string{gateway},
-						Hosts:    []string{"hostname.apps.example.com"},
-						Http: []http{
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-1"},
-									},
-									route{
-										Destination: destination{Host: "s-additional-destination-for-route-1"},
-									},
-								},
-							},
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/different/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-2"},
-									},
-								},
-							},
-						},
-					},
-				},
-			))
-
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-				service{
-					Metadata: metadata{
-						Name: "s-additional-destination-for-route-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 9090,
-							},
-						},
-					},
-				},
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-2",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-			))
-
-			secondYAMLToApply := filepath.Join("fixtures", "single-route-with-single-destination.yaml")
-			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "apply", "-f", secondYAMLToApply)
-			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl apply CR failed with err: %s", string(output)))
-
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-2",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-			))
-
-			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-				virtualService{
-					Spec: virtualServiceSpec{
-						Gateways: []string{gateway},
-						Hosts:    []string{"hostname.apps.example.com"},
-						Http: []http{
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-1"},
-									},
-								},
-							},
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/different/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-2"},
-									},
-								},
-							},
-						},
-					},
-				},
-			))
-		})
-	})
-
-	When("a Route's child resources are deleted unexpectedly", func() {
-		BeforeEach(func() {
-			yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
-		})
-
-		It("recreates the VirtualService and Service for the Route", func() {
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-			))
-
-			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-				virtualService{
-					Spec: virtualServiceSpec{
-						Gateways: []string{gateway},
-						Hosts:    []string{"hostname.apps.example.com"},
-						Http: []http{
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-1"},
-									},
-								},
-							},
-						},
-					},
-				},
-			))
-
-			output, err := kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "services", "--all", "--wait=true")
-			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete services failed with err: %s", string(output)))
-
-			output, err = kubectlWithConfig(kubeConfigPath, nil, "-n", namespace, "delete", "virtualservices", "--all", "--wait=true")
-			Expect(err).NotTo(HaveOccurred(), fmt.Sprintf("kubectl delete virtualservices failed with err: %s", string(output)))
-
-			Eventually(kubectlGetServices).Should(ConsistOf(
-				service{
-					Metadata: metadata{
-						Name: "s-destination-guid-1",
-					},
-					Spec: serviceSpec{
-						Ports: []serviceSpecPort{
-							{
-								TargetPort: 8080,
-							},
-						},
-					},
-				},
-			))
-
-			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
-				virtualService{
-					Spec: virtualServiceSpec{
-						Gateways: []string{gateway},
-						Hosts:    []string{"hostname.apps.example.com"},
-						Http: []http{
-							http{
-								Match: []match{
-									match{
-										Uri: uri{Prefix: "/some/path"},
-									},
-								},
-								Route: []route{
-									route{
-										Destination: destination{Host: "s-destination-guid-1"},
-									},
-								},
-							},
-						},
-					},
-				},
-			))
+			It("recreates the VirtualService and Service for the Route", func() {
+				// TODO: Add test coverage
+			})
 		})
 	})
 

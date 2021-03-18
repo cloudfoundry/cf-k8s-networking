@@ -283,3 +283,16 @@ func intPtr(x int) *int {
 func serviceName(dest networkingv1alpha1.RouteDestination) string {
 	return fmt.Sprintf("s-%s", dest.Guid)
 }
+
+func routeToOwnerRef(r *networkingv1alpha1.Route) metav1.OwnerReference {
+	return metav1.OwnerReference{
+		APIVersion: networkingv1alpha1.SchemeBuilder.GroupVersion.String(),
+		Kind:       r.TypeMeta.Kind,
+		Name:       r.ObjectMeta.Name,
+		UID:        r.ObjectMeta.UID,
+	}
+}
+
+func boolPtr(x bool) *bool {
+	return &x
+}
