@@ -6,7 +6,7 @@ systemNamespace: cf-system
 workloadsNamespace: cf-workloads
 
 routecontroller:
-  image: gcr.io/cf-networking-images/cf-k8s-networking/routecontroller@sha256:4b65f377a956f2f427809295aac6b5a6ec03db4c5977570e70173c8064d8deb8
+  image: cloudfoundry/routecontroller@sha256:c7b27d510b9800a354dc059ffd81df56c4480a647b3b1a1cb01c839da6871f8c
 
 service:
   externalPort: 80
