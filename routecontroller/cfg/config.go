@@ -13,6 +13,7 @@ type Config struct {
 		// The Istio Gateway the route controller applies to
 		Gateway string
 	}
+	LeaderElectionNamespace string
 }
 
 func Load() (*Config, error) {
@@ -22,6 +23,12 @@ func Load() (*Config, error) {
 
 	if !exists {
 		return nil, errors.New("ISTIO_GATEWAY_NAME not configured")
+	}
+
+	c.LeaderElectionNamespace, exists = os.LookupEnv("LEADER_ELECTION_NAMESPACE")
+
+	if !exists {
+		return nil, errors.New("LEADER_ELECTION_NAMESPACE not configured")
 	}
 
 	var err error

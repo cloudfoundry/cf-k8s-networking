@@ -16,6 +16,8 @@ var _ = Describe("Config", func() {
 			Expect(err).NotTo(HaveOccurred())
 			err = os.Setenv("RESYNC_INTERVAL", "15")
 			Expect(err).NotTo(HaveOccurred())
+			err = os.Setenv("LEADER_ELECTION_NAMESPACE", "my-good-namespace")
+			Expect(err).NotTo(HaveOccurred())
 		})
 
 		It("loads the config", func() {
@@ -24,6 +26,7 @@ var _ = Describe("Config", func() {
 
 			Expect(config.Istio.Gateway).To(Equal("some-gateway"))
 			Expect(config.ResyncInterval).To(Equal(15 * time.Second))
+			Expect(config.LeaderElectionNamespace).To(Equal("my-good-namespace"))
 		})
 
 		Context("when the ISTIO_GATEWAY_NAME env var is not set", func() {
@@ -36,8 +39,20 @@ var _ = Describe("Config", func() {
 				_, err := cfg.Load()
 				Expect(err).To(MatchError("ISTIO_GATEWAY_NAME not configured"))
 			})
-
 		})
+
+		Context("when the LEADER_ELECTION_NAMESPACE env var is not set", func() {
+			BeforeEach(func() {
+				err := os.Unsetenv("LEADER_ELECTION_NAMESPACE")
+				Expect(err).NotTo(HaveOccurred())
+			})
+
+			It("returns an error", func() {
+				_, err := cfg.Load()
+				Expect(err).To(MatchError("LEADER_ELECTION_NAMESPACE not configured"))
+			})
+		})
+
 		Context("when the RESYNC_INTERVAL env var is not set", func() {
 			BeforeEach(func() {
 				err := os.Unsetenv("RESYNC_INTERVAL")

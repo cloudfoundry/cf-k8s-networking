@@ -1184,10 +1184,14 @@ var _ = Describe("Integration", func() {
 
 func startRouteController(kubeConfigPath, gateway string) *gexec.Session {
 	cmd := exec.Command(routeControllerBinaryPath)
+
 	cmd.Env = os.Environ()
 	cmd.Env = append(cmd.Env, fmt.Sprintf("KUBECONFIG=%s", kubeConfigPath))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("ISTIO_GATEWAY_NAME=%s", gateway))
 	cmd.Env = append(cmd.Env, fmt.Sprintf("RESYNC_INTERVAL=%s", "5"))
+	cmd.Env = append(cmd.Env, fmt.Sprintf("LEADER_ELECTION_NAMESPACE=%s", "cf-k8s-networking-tests"))
+
+	cmd.Args = append(cmd.Args, "--enable-leader-election=true")
 
 	session, err := gexec.Start(cmd, GinkgoWriter, GinkgoWriter)
 	Expect(err).NotTo(HaveOccurred())
