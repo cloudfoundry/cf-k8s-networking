@@ -79,7 +79,7 @@ func stressRouteController(numberOfRoutes int, results Results) Results {
 
 	yttSession, err := ytt.Run(
 		"-f", filepath.Join("..", "..", "config", "routecontroller"),
-		"-f", filepath.Join("..", "..", "config", "values.yaml"),
+		"-f", filepath.Join("..", "..", "config", "values", "_defaults.yml"),
 		"-v", "systemNamespace=default",
 	)
 	Expect(err).NotTo(HaveOccurred())
