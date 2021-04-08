@@ -19,7 +19,7 @@ resources:
     private_key: ((github_private_key.private_key))
     branch: develop
     ignore_paths:
-      - config/values.yaml # Do not want resource to trigger on image digest updates
+      - config/values/images.yml # Do not want resource to trigger on image digest updates
 
 - name: cf-k8s-networking-ci
   type: git
