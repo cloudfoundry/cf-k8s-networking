@@ -101,23 +101,34 @@ func (r *RouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 }
 
 func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv1alpha1.Route, log logr.Logger, ctx context.Context) error {
-	svc := corev1.Service{
-		ObjectMeta: metav1.ObjectMeta{
-			Name:      fmt.Sprintf("s-%s", route.Spec.Destinations[0].Guid),
-			Namespace: req.Namespace,
-		},
-		Spec: corev1.ServiceSpec{
-			Ports: []corev1.ServicePort{
-				{
-					Port: int32(*route.Spec.Destinations[0].Port),
+	for _, dest := range route.Spec.Destinations {
+		svc := corev1.Service{
+			ObjectMeta: metav1.ObjectMeta{
+				Name:      fmt.Sprintf("s-%s", dest.Guid),
+				Namespace: req.Namespace,
+			},
+			Spec: corev1.ServiceSpec{
+				Ports: []corev1.ServicePort{
+					{
+						Port: int32(*dest.Port),
+					},
 				},
 			},
-		},
-	}
-
-	err := r.Create(ctx, &svc)
-	if err != nil {
-		return err
+		}
+		// For each service, check if it already exists and create/update accordingly
+		if err := r.Get(ctx, req.NamespacedName, &svc); err != nil {
+			if apierrors.IsNotFound(err) {
+				err := r.Create(ctx, &svc)
+				if err != nil {
+					return err
+				}
+			}
+		} else {
+			err := r.Update(ctx, &svc)
+			if err != nil {
+				return err
+			}
+		}
 	}
 
 	return nil
