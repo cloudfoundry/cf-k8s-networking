@@ -217,7 +217,21 @@ var _ = Describe("Integration", func() {
 		})
 
 		It("handles removing a destination from the route correctly", func() {
-			// TODO: check that service and vs exists
+			// DONE: check that service and vs exists
+			Eventually(kubectlGetServices).Should(ConsistOf(
+				service{
+					Metadata: metadata{
+						Name: "s-destination-guid-1",
+					},
+					Spec: serviceSpec{
+						Ports: []serviceSpecPort{
+							{
+								TargetPort: 8080,
+							},
+						},
+					},
+				},
+			))
 
 			Eventually(kubectlGetVirtualServices).Should(ConsistOf(
 				virtualService{
@@ -261,9 +275,10 @@ var _ = Describe("Integration", func() {
 			))
 
 			By("deleting the service associated with the destination")
-			Eventually(kubectlGetServices).ShouldNot(ConsistOf(
-			// TODO come back and fix
-			))
+			serviceList, err := kubectlGetServices()
+			Expect(err).NotTo(HaveOccurred())
+			Eventually(len(serviceList)).Should(Equal(0))
+
 		})
 	})
 
@@ -500,9 +515,9 @@ var _ = Describe("Integration", func() {
 		BeforeEach(func() {
 			yamlToApply = filepath.Join("fixtures", "single-route-with-single-destination.yaml")
 		})
-		// TODO come back
+
 		When("adding an additional destination to the Route", func() {
-			It("adds a new service for the new destination, and updates the virtual service with the backend", func() {
+			FIt("adds a new service for the new destination, and updates the virtual service with the backend", func() {
 				// DONE: fill in test coverage
 				Eventually(kubectlGetServices).Should(ConsistOf(
 					service{

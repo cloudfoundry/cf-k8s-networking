@@ -101,6 +101,14 @@ func (r *RouteReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl
 }
 
 func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv1alpha1.Route, log logr.Logger, ctx context.Context) error {
+	desiredServices := []corev1.Service{}
+	actualServices := corev1.ServiceList{}
+
+	err := r.List(ctx, &actualServices, client.InNamespace(req.Namespace), client.MatchingFields{serviceOwnerKey: string(route.ObjectMeta.UID)})
+	if err != nil {
+		return err
+	}
+
 	for _, dest := range route.Spec.Destinations {
 		svc := corev1.Service{
 			ObjectMeta: metav1.ObjectMeta{
@@ -115,6 +123,9 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 				},
 			},
 		}
+
+		desiredServices = append(desiredServices, svc)
+
 		// For each service, check if it already exists and create/update accordingly
 		if err := r.Get(ctx, req.NamespacedName, &svc); err != nil {
 			if apierrors.IsNotFound(err) {
@@ -124,6 +135,7 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 				}
 			}
 		} else {
+			// TODO: update doesn't work
 			err := r.Update(ctx, &svc)
 			if err != nil {
 				return err
@@ -131,7 +143,8 @@ func (r *RouteReconciler) reconcileServices(req ctrl.Request, route *networkingv
 		}
 	}
 
-	return nil
+	servicesToDelete := findServicesForDeletion(actualServices.Items, desiredServices)
+	return r.deleteServiceList(servicesToDelete, log, ctx)
 }
 
 func (r *RouteReconciler) reconcileVirtualServices(req ctrl.Request, routes *networkingv1alpha1.RouteList, log logr.Logger, ctx context.Context) error {
