@@ -110,6 +110,18 @@ func (c *Config) GetScaledTimeout(timeout time.Duration) time.Duration {
 	return time.Duration(float64(timeout) * 2)
 }
 
+func (c *Config) CfPushTimeoutDuration() time.Duration {
+	return 240 * time.Second
+}
+
+func (c *Config) CfPushDockerTimeoutDuration() time.Duration {
+	return 120 * time.Second
+}
+
+func (c *Config) DefaultTimeoutDuration() time.Duration {
+	return 60 * time.Second
+}
+
 func NewConfig(configPath string, kubeConfigPath string, keepClusterChanges bool, keepCFChanges bool) (*Config, error) {
 	configFile, err := ioutil.ReadFile(configPath)
 	if err != nil {

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"crypto/tls"
 	"fmt"
+	"github.com/onsi/gomega/gexec"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -41,8 +42,10 @@ var _ = Describe("Policy and mesh connectivity", func() {
 	})
 
 	AfterEach(func() {
-		cf.Cf("delete", "-f", app1name)
-		cf.Cf("delete", "-f", app2name)
+		session1 := cf.Cf("delete", app1name, "-f")
+		session2 := cf.Cf("delete", app2name, "-f")
+		Expect(session1.Wait(TestConfig.DefaultTimeoutDuration())).To(gexec.Exit(0), "expected cf delete to succeed")
+		Expect(session2.Wait(TestConfig.DefaultTimeoutDuration())).To(gexec.Exit(0), "expected cf delete to succeed")
 	})
 
 	Context("to metrics / stats endpoints", func() {
