@@ -9,8 +9,5 @@ while true; do
   echo "Didn't quite find it this time... will try again in a sec"
 done
 
-kubectl -n cf-workloads rollout restart statefulsets
+kubectl -n cf-workloads rollout restart statefulset
 kubectl -n cf-workloads delete jobs -l "cloudfoundry.org/istio_version notin ($ISTIO_VERSION)"
-
-kubectl -n cf-system rollout restart daemonsets/fluentd
-kubectl -n cf-system rollout status daemonsets/fluentd
