@@ -5,11 +5,11 @@ image_resource:
     repository: cloudfoundry/cf-for-k8s-ci
 
 inputs:
-  - name: cf-for-k8s-ci
+  - name: cf-k8s-networking-ci
   - name: env-metadata
 
 outputs:
   - name: integration-config
 
 run:
-  path: cf-for-k8s-ci/ci/tasks/cf-k8s-networking/generate-integration-config.sh
+  path: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.sh
