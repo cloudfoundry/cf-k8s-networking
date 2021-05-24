@@ -7,7 +7,7 @@ image_resource:
 inputs:
   - name: cf-k8s-networking
   - name: version
-  - name: cf-for-k8s-ci
+  - name: cf-k8s-networking-ci
 
 outputs:
   - name: release-text
