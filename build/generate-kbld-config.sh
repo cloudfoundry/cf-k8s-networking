@@ -8,7 +8,7 @@ function generate_kbld_config() {
   local kbld_config_path="${1}"
 
   local source_path
-  source_path="${SCRIPT_DIR}/sources/cf-k8s-networking"
+  source_path="${SCRIPT_DIR}/.."
 
   pushd "${source_path}" > /dev/null
     local git_ref
