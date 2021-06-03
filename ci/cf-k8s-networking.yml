@@ -216,7 +216,7 @@ jobs:
           - -ec
           - |
             pushd cf-for-k8s
-              vendir sync --directory config/networking/_ytt_lib/cf-k8s-networking=../cf-k8s-networking/config
+              vendir sync --directory config/networking/_ytt_lib/cf-k8s-networking=../cf-k8s-networking
             popd
             cp -r cf-for-k8s/* cf-for-k8s-latest-networking
     - task: install-cf
