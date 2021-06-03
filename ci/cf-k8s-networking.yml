@@ -177,11 +177,11 @@ jobs:
         - get: cf-k8s-networking-ci
     - task: build-routecontroller-image-and-update-digest
       file: cf-k8s-networking-ci/ci/tasks/build-image/task.yml
+      privileged: true
     - put: cf-k8s-networking
       params:
         repository: updated-cf-k8s-networking
         rebase: true
-   
 
 # Environment to run tests
 - name: gke-deploy-and-test
