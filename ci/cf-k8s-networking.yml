@@ -6,17 +6,17 @@ resource_types:
     repository: frodenas/gcs-resource
 
 groups:
+- name: routecontroller
+  jobs:
+  - run-routecontroller-units
+  - run-routecontroller-integration-tests
+  - publish-routecontroller-image
 - name: integrate
   jobs:
   - gke-deploy-and-test
   - bump-rc
   - ship-what
   - ship-it
-- name: routecontroller
-  jobs:
-  - run-routecontroller-units
-  - run-routecontroller-integration-tests
-  - publish-routecontroller-image
 
 resources:
 - name: cf-acceptance-tests
@@ -94,14 +94,6 @@ resources:
     uri: git@github.com:cloudfoundry/cf-k8s-networking.git
     paths:
     - routecontroller
-
-- name: routecontroller-image
-  type: registry-image
-  icon: docker
-  source:
-    repository: cloudfoundry/routecontroller
-    username: ((dockerhub.username))
-    password: ((dockerhub.password))
 
 - name: concourse-dcind
   type: git
@@ -183,41 +175,13 @@ jobs:
           trigger: true
         - get: cf-for-k8s-ci
         - get: cf-k8s-networking-ci
-    - in_parallel:
-      - task: build-tag-file
-        file: cf-k8s-networking-ci/ci/tasks/docker/build-tag-file-for-image.yml
-        input_mapping:
-          cf-k8s-networking: routecontroller
-      - task: build-labels-file
-        file: cf-for-k8s-ci/ci/tasks/generate-oci-image-labels/task.yml
-        input_mapping:
-          source-repo: routecontroller
-    - task: build-routecontroller
-      privileged: true
-      file: cf-k8s-networking-ci/ci/tasks/docker/build-oci-image.yml
-      input_mapping:
-        repository: routecontroller
-        image-labels-file: labels
-      output_mapping:
-        image: routecontroller-image
-      params:
-        CONTEXT: routecontroller
-        DOCKERFILE: routecontroller/Dockerfile
-        LABELS_FILE: image-labels-file/oci-image-labels
-    - put: routecontroller-image
-      params:
-        image: routecontroller-image/image.tar
-        additional_tags: docker-info/tags
-    - task: add-updated-digest
-      file: cf-k8s-networking-ci/ci/tasks/docker/add-updated-digest.yml
-      input_mapping:
-        image-resource: routecontroller-image
-      params:
-        COMPONENT_NAME: routecontroller
+    - task: build-routecontroller-image-and-update-digest
+      file: cf-k8s-networking-ci/ci/tasks/build-image/task.yml
     - put: cf-k8s-networking
       params:
-        repository: cf-k8s-networking-modified
+        repository: updated-cf-k8s-networking
         rebase: true
+   
 
 # Environment to run tests
 - name: gke-deploy-and-test
@@ -252,7 +216,7 @@ jobs:
           - -ec
           - |
             pushd cf-for-k8s
-              vendir sync --directory config/networking/_ytt_lib/cf-k8s-networking=../cf-k8s-networking
+              vendir sync --directory config/networking/_ytt_lib/cf-k8s-networking=../cf-k8s-networking/config
             popd
             cp -r cf-for-k8s/* cf-for-k8s-latest-networking
     - task: install-cf
