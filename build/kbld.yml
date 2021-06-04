@@ -17,18 +17,6 @@ sources:
       - --env
       - #@ "BP_OCI_SOURCE={}".format(data.values.git_url)
 
-- imageRepo: cloudfoundry/cf-k8s-networking-upgrade-sidecars
-  path: ../ci/dockerfiles/upgrade
-  docker:
-    build:
-      rawOptions:
-      - --label
-      - #@ "org.opencontainers.image.revision={}".format(data.values.git_ref)
-      - --label
-      - #@ "org.opencontainers.image.source={}".format(data.values.git_url)
-
 destinations:
 - imageRepo: cloudfoundry/routecontroller
   newImage: index.docker.io/cloudfoundry/routecontroller
-- imageRepo: cloudfoundry/cf-k8s-networking-upgrade-sidecars
-  newImage: index.docker.io/cloudfoundry/cf-k8s-networking-upgrade-sidecars
