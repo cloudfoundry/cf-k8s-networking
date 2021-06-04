@@ -12,7 +12,7 @@ timeout 300 wait_for_docker
 
 cf-k8s-networking/build/build.sh
 
-image_ref="$(yq -r '.overrides[] | select(.image | test("/cf-k8s-networking")).newImage' cf-k8s-networking/build/kbld.lock.yml)"
+image_ref="$(yq -r '.overrides[] | select(.image | test("/routecontroller")).newImage' cf-k8s-networking/build/kbld.lock.yml)"
 sed -i'' -e "s| routecontroller:.*| routecontroller: \"$image_ref\"|" cf-k8s-networking/config/values/images.yml
 
 pushd cf-k8s-networking > /dev/null
