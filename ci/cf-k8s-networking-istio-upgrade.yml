@@ -201,7 +201,7 @@ jobs:
         APP_REGISTRY_PASSWORD: ((cf_for_k8s_private_dockerhub.password))
 
     - task: generate-integration-configs
-      file: cf-k8s-networking-cii/ci/tasks/cf4k8s/generate-integration-config.yml
+      file: cf-k8s-networking-ci/ci/tasks/cf4k8s/generate-integration-config.yml
 
     - task: networking-acceptance-gke-tests
       file: cf-k8s-networking-ci/ci/tasks/tests/run-networking-acceptance-gke.yml
