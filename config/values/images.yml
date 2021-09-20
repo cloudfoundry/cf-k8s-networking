@@ -3,4 +3,4 @@
 ---
 #@overlay/match missing_ok=True
 images:
-  routecontroller: "index.docker.io/cloudfoundry/routecontroller@sha256:bcd1af21ee9ceb1d1a79c0e6ad7cdfc4a4c89bb6b9836c9b8690deab6cdec426"
+  routecontroller: "index.docker.io/cloudfoundry/routecontroller@sha256:983b70fca4fff9eae1c927ef10d899151b2f0f2e449bf90613fc11eb65543a0c"
