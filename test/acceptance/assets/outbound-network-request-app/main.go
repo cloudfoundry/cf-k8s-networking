@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
-	"time"
+	"os"
 )
 
 func main() {
@@ -19,7 +19,9 @@ func main() {
 		panic(err)
 	}
 	fmt.Println("=== Network is available upon start: SUCCEEDED === ")
-	for {
-		time.Sleep(1 * time.Hour)
+	fmt.Println("listening...")
+	err = http.ListenAndServe(":"+os.Getenv("PORT"), nil)
+	if err != nil {
+		panic(err)
 	}
 }
